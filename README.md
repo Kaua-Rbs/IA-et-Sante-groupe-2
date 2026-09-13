@@ -52,6 +52,7 @@ The repository is currently at the exploratory-analysis stage:
 - [`dashboard.py`](dashboard.py) provides an interactive, aggregate view of the preprocessed data;
 - [`data_dictionary_donees_bloc.md`](data_dictionary_donees_bloc.md) documents and validates the workbook schema;
 - [`docs/patient-workflow.md`](docs/patient-workflow.md) provides a first activity-diagram draft of the planned surgical-patient journey;
+- [`report/`](report/) contains the collaborative LaTeX report and its local build instructions;
 - [`requirements.txt`](requirements.txt) lists the Python dependencies required by the notebooks, dashboard, prediction models, simulation and tests.
 
 The notebook covers schema inspection, missing values, duplicate rows, derived ages and durations, monthly and weekday activity, common clinical categories, operating-room timing, and duration comparisons by intervention type. Identifier columns are omitted from row-level previews and charts.
@@ -75,6 +76,7 @@ Predictive models, real scheduling algorithms, comparative experiments, and an o
 ├── data_dictionary_donees_bloc.md # Description of the 30 source columns
 ├── docs/
 │   └── patient-workflow.md        # Versioned patient-journey diagram
+├── report/                         # Collaborative LaTeX report sources
 ├── requirements.txt               # Python research dependencies
 ├── resources/                     # Local-only data and project briefs (ignored)
 └── README.md
