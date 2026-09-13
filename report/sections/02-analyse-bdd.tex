@@ -5,9 +5,9 @@
 
 \subsection{Source, périmètre et granularité}
 
-La base est fournie sous la forme d'un classeur contenant une feuille de \num{14649} lignes et 30 variables. Une ligne correspond à un cas hospitalier associé à une intervention. Le champ \texttt{No Cas} est unique pour chaque ligne, tandis que \texttt{ID Patient} permet de relier plusieurs séjours d'un même patient. La base contient \num{11108} identifiants patients distincts ; \num{2546} apparaissent dans plusieurs cas, avec un maximum observé de neuf cas pour un même identifiant.
+La base est fournie sous la forme d'un classeur contenant une feuille de 14\,649 lignes et 30 variables. Une ligne correspond à un cas hospitalier associé à une intervention. Le champ \texttt{No Cas} est unique pour chaque ligne, tandis que \texttt{ID Patient} permet de relier plusieurs séjours d'un même patient. La base contient 11\,108 identifiants patients distincts ; 2\,546 apparaissent dans plusieurs cas, avec un maximum observé de neuf cas pour un même identifiant.
 
-Les variables peuvent être regroupées en cinq familles présentées dans le \cref{tab:familles-variables}.
+Les variables peuvent être regroupées en cinq familles présentées dans le tableau~\ref{tab:familles-variables}.
 
 \begin{table}[htbp]
   \centering
@@ -26,7 +26,7 @@ Les variables peuvent être regroupées en cinq familles présentées dans le \c
   \end{tabularx}
 \end{table}
 
-Les interventions couvrent la période du 2 janvier 2019 au 30 décembre 2022. La date d'entrée s'étend du 14 novembre 2018 au 30 décembre 2022, car un séjour commencé en 2018 est associé à une intervention en 2019. La date d'intervention se situe entre l'entrée et la sortie pour les \num{14649} cas, et l'année fournie correspond toujours à l'année d'entrée. La répartition annuelle reste relativement stable, comme le montre le \cref{tab:repartition-annuelle}.
+Les interventions couvrent la période du 2 janvier 2019 au 30 décembre 2022. La date d'entrée s'étend du 14 novembre 2018 au 30 décembre 2022, car un séjour commencé en 2018 est associé à une intervention en 2019. La date d'intervention se situe entre l'entrée et la sortie pour les 14\,649 cas, et l'année fournie correspond toujours à l'année d'entrée. La répartition annuelle reste relativement stable, comme le montre le tableau~\ref{tab:repartition-annuelle}.
 
 \begin{table}[htbp]
   \centering
@@ -36,20 +36,20 @@ Les interventions couvrent la période du 2 janvier 2019 au 30 décembre 2022. L
     \toprule
     Année & Nombre de cas \\
     \midrule
-    2018 & \num{1} \\
-    2019 & \num{3690} \\
-    2020 & \num{3526} \\
-    2021 & \num{3764} \\
-    2022 & \num{3668} \\
+    2018 & 1 \\
+    2019 & 3\,690 \\
+    2020 & 3\,526 \\
+    2021 & 3\,764 \\
+    2022 & 3\,668 \\
     \bottomrule
   \end{tabular}
 \end{table}
 
 \subsection{Complétude et qualité}
 
-Aucun doublon exact n'a été détecté. Les variables administratives principales, les dates, les codes GHM et GHS et les quatre horaires opératoires ne contiennent pas de valeur manquante au sens du tableur. Cette complétude apparente ne garantit toutefois pas la validité des valeurs. Les heures égales à minuit représentent entre \num{0.9}\,\% et \num{3.8}\,\% des champs horaires selon l'étape ; elles peuvent correspondre à une heure réelle, à une valeur absente ou à un événement non enregistré. Leur interprétation doit être confirmée avant tout calcul de durée.
+Aucun doublon exact n'a été détecté. Les variables administratives principales, les dates, les codes GHM et GHS et les quatre horaires opératoires ne contiennent pas de valeur manquante au sens du tableur. Cette complétude apparente ne garantit toutefois pas la validité des valeurs. Les heures égales à minuit représentent entre 0,9\,\% et 3,8\,\% des champs horaires selon l'étape ; elles peuvent correspondre à une heure réelle, à une valeur absente ou à un événement non enregistré. Leur interprétation doit être confirmée avant tout calcul de durée.
 
-Les diagnostics associés et les actes secondaires sont, de manière attendue, de moins en moins renseignés lorsque leur rang augmente. Les principales absences sont résumées dans le \cref{tab:valeurs-manquantes}.
+Les diagnostics associés et les actes secondaires sont, de manière attendue, de moins en moins renseignés lorsque leur rang augmente. Les principales absences sont résumées dans le tableau~\ref{tab:valeurs-manquantes}.
 
 \begin{table}[htbp]
   \centering
@@ -59,28 +59,28 @@ Les diagnostics associés et les actes secondaires sont, de manière attendue, d
     \toprule
     Variable & Valeurs manquantes \\
     \midrule
-    Diagnostic associé 1 & \num{20.7}\,\% \\
-    Diagnostic associé 2 & \num{43.2}\,\% \\
-    Diagnostic associé 3 & \num{63.2}\,\% \\
-    Diagnostic associé 4 & \num{77.1}\,\% \\
-    Diagnostic associé 5 & \num{86.9}\,\% \\
-    Acte CCAM 2 & \num{7.3}\,\% \\
-    Acte CCAM 3 & \num{38.6}\,\% \\
-    Acte CCAM 4 & \num{66.0}\,\% \\
-    Type d'anesthésie & \num{15.3}\,\% \\
-    Anesthésie locorégionale & \num{37.1}\,\% \\
-    Type d'intervention & \num{0.9}\,\% \\
+    Diagnostic associé 1 & 20,7\,\% \\
+    Diagnostic associé 2 & 43,2\,\% \\
+    Diagnostic associé 3 & 63,2\,\% \\
+    Diagnostic associé 4 & 77,1\,\% \\
+    Diagnostic associé 5 & 86,9\,\% \\
+    Acte CCAM 2 & 7,3\,\% \\
+    Acte CCAM 3 & 38,6\,\% \\
+    Acte CCAM 4 & 66,0\,\% \\
+    Type d'anesthésie & 15,3\,\% \\
+    Anesthésie locorégionale & 37,1\,\% \\
+    Type d'intervention & 0,9\,\% \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-Plusieurs en-têtes présentent également des erreurs d'encodage, par exemple \texttt{EntrÈe}, \texttt{AnnÈe} ou le numéro de GHS. Ils devront être normalisés de manière déterministe, sans modifier les valeurs sources. La variable textuelle \texttt{Interv Type} contient \num{1433} modalités pour \num{14512} valeurs renseignées, ce qui suggère un travail d'harmonisation avant son utilisation comme variable catégorielle.
+Plusieurs en-têtes présentent également des erreurs d'encodage, par exemple \texttt{EntrÈe}, \texttt{AnnÈe} ou le numéro de GHS. Ils devront être normalisés de manière déterministe, sans modifier les valeurs sources. La variable textuelle \texttt{Interv Type} contient 1\,433 modalités pour 14\,512 valeurs renseignées, ce qui suggère un travail d'harmonisation avant son utilisation comme variable catégorielle.
 
-La durée de séjour demande une attention particulière. Sa médiane est d'un jour, son intervalle interquartile est compris entre un et deux jours, et \num{67.4}\,\% des cas prennent la valeur 1, convention utilisée pour l'ambulatoire. Toutefois, 31 cellules contiennent des valeurs de l'ordre de \num{2458000} à \num{2459900}, proches de numéros de jours juliens et incompatibles avec une durée. Une autre observation atteint 94 jours. Ces cas devront être comparés aux dates d'entrée et de sortie puis corrigés ou exclus selon une règle traçable. Pour la majorité des observations valides, la durée correspond à une convention inclusive, c'est-à-dire au nombre de jours calendaires entre l'entrée et la sortie augmenté d'une unité.
+La durée de séjour demande une attention particulière. Sa médiane est d'un jour, son intervalle interquartile est compris entre un et deux jours, et 67,4\,\% des cas prennent la valeur 1, convention utilisée pour l'ambulatoire. Toutefois, 31 cellules contiennent des valeurs de l'ordre de 2\,458\,000 à 2\,459\,900, proches de numéros de jours juliens et incompatibles avec une durée. Une autre observation atteint 94 jours. Ces cas devront être comparés aux dates d'entrée et de sortie puis corrigés ou exclus selon une règle traçable. Pour la majorité des observations valides, la durée correspond à une convention inclusive, c'est-à-dire au nombre de jours calendaires entre l'entrée et la sortie augmenté d'une unité.
 
 \subsection{Première description de la population}
 
-Le sexe est codé par les valeurs 1 et 2, avec respectivement \num{7243} et \num{7406} cas. En supposant le codage fourni (1 pour homme, 2 pour femme), la répartition est proche de l'équilibre. L'âge à la date d'intervention, calculé à partir de la date de naissance, présente une moyenne de \num{51.6} ans, une médiane de \num{54.0} ans et un intervalle interquartile de \num{38.7} à \num{66.1} ans. Ces nombres décrivent des cas et non des personnes uniques, puisque certains patients apparaissent plusieurs fois.
+Le sexe est codé par les valeurs 1 et 2, avec respectivement 7\,243 et 7\,406 cas. En supposant le codage fourni (1 pour homme, 2 pour femme), la répartition est proche de l'équilibre. L'âge à la date d'intervention, calculé à partir de la date de naissance, présente une moyenne de 51,6 ans, une médiane de 54,0 ans et un intervalle interquartile de 38,7 à 66,1 ans. Ces nombres décrivent des cas et non des personnes uniques, puisque certains patients apparaissent plusieurs fois.
 
 Les codes présentent des cardinalités élevées : 617 diagnostics principaux CIM-10, 570 actes CCAM principaux, 205 codes GHM et 212 codes GHS. Ces catégories devront être regroupées à un niveau cliniquement pertinent ou encodées par une méthode capable de gérer leur forte cardinalité. Un regroupement purement statistique risquerait de perdre la structure médicale des classifications.
 
