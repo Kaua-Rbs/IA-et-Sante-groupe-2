@@ -48,6 +48,7 @@ The repository is currently at the exploratory-analysis stage:
 
 - [`EDA_donees_bloc.ipynb`](EDA_donees_bloc.ipynb) provides an initial, unexecuted data-analysis workflow;
 - [`data_dictionary_donees_bloc.md`](data_dictionary_donees_bloc.md) documents and validates the workbook schema;
+- [`docs/patient-workflow.md`](docs/patient-workflow.md) provides a first activity-diagram draft of the planned surgical-patient journey;
 - [`requirements.txt`](requirements.txt) lists the Python dependencies required by the notebook.
 
 The notebook covers schema inspection, missing values, duplicate rows, derived ages and durations, monthly and weekday activity, common clinical categories, operating-room timing, and duration comparisons by intervention type. Identifier columns are omitted from row-level previews and charts.
@@ -60,6 +61,8 @@ Predictive models, scheduling algorithms, comparative experiments, and an end-us
 .
 ├── EDA_donees_bloc.ipynb          # Initial exploratory data analysis
 ├── data_dictionary_donees_bloc.md # Description of the 30 source columns
+├── docs/
+│   └── patient-workflow.md        # Versioned patient-journey diagram
 ├── requirements.txt               # Python analysis dependencies
 ├── resources/                     # Local-only data and project briefs (ignored)
 └── README.md
