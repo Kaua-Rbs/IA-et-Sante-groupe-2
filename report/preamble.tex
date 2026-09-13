@@ -1,0 +1,44 @@
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{siunitx}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{csquotes}
+
+\usepackage[backend=biber,style=authoryear,maxcitenames=2]{biblatex}
+\addbibresource{bibliography.bib}
+
+\usepackage{hyperref}
+\usepackage[nameinlink,noabbrev]{cleveref}
+
+\graphicspath{{figures/}}
+\setcounter{secnumdepth}{3}
+\setcounter{tocdepth}{3}
+\renewcommand{\thechapter}{\Roman{chapter}}
+
+\sisetup{
+  locale=FR,
+  group-minimum-digits=4,
+  group-separator={\,},
+  output-decimal-marker={,}
+}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue!45!black,
+  citecolor=green!35!black,
+  urlcolor=blue!55!black,
+  pdftitle={Optimisation intelligente de l'ordonnancement des blocs opératoires},
+  pdfauthor={Groupe 2}
+}
+
+\newcommand{\aremplir}[1]{\textcolor{red!70!black}{[À compléter : #1]}}

@@ -1,0 +1,121 @@
+\chapter{Analyse de la base de données}
+\label{chap:analyse-bdd}
+
+\section{Analyse statistique}
+
+\subsection{Source, périmètre et granularité}
+
+La base est fournie sous la forme d'un classeur contenant une feuille de \num{14649} lignes et 30 variables. Une ligne correspond à un cas hospitalier associé à une intervention. Le champ \texttt{No Cas} est unique pour chaque ligne, tandis que \texttt{ID Patient} permet de relier plusieurs séjours d'un même patient. La base contient \num{11108} identifiants patients distincts ; \num{2546} apparaissent dans plusieurs cas, avec un maximum observé de neuf cas pour un même identifiant.
+
+Les variables peuvent être regroupées en cinq familles présentées dans le \cref{tab:familles-variables}.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Principales familles de variables disponibles}
+  \label{tab:familles-variables}
+  \begin{tabularx}{\textwidth}{@{}>{\bfseries}p{0.22\textwidth}X@{}}
+    \toprule
+    Famille & Contenu \\
+    \midrule
+    Séjour & Dates d'entrée et de sortie, durée administrative du séjour, année et identifiants du cas et du patient. \\
+    Données patient & Date de naissance et sexe codé. \\
+    Données médicales & Diagnostic principal et diagnostics associés CIM-10, actes CCAM et type d'intervention. \\
+    Groupage & Codes GHM et GHS décrivant le groupage médico-économique du séjour. \\
+    Parcours opératoire & Date d'intervention, praticien, chirurgien, horaires du SAS pré-anesthésie, d'entrée en salle, d'incision et de sortie de salle, ainsi que le type d'anesthésie. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Les interventions couvrent la période du 2 janvier 2019 au 30 décembre 2022. La date d'entrée s'étend du 14 novembre 2018 au 30 décembre 2022, car un séjour commencé en 2018 est associé à une intervention en 2019. La date d'intervention se situe entre l'entrée et la sortie pour les \num{14649} cas, et l'année fournie correspond toujours à l'année d'entrée. La répartition annuelle reste relativement stable, comme le montre le \cref{tab:repartition-annuelle}.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Nombre de cas par année d'entrée}
+  \label{tab:repartition-annuelle}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    Année & Nombre de cas \\
+    \midrule
+    2018 & \num{1} \\
+    2019 & \num{3690} \\
+    2020 & \num{3526} \\
+    2021 & \num{3764} \\
+    2022 & \num{3668} \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\subsection{Complétude et qualité}
+
+Aucun doublon exact n'a été détecté. Les variables administratives principales, les dates, les codes GHM et GHS et les quatre horaires opératoires ne contiennent pas de valeur manquante au sens du tableur. Cette complétude apparente ne garantit toutefois pas la validité des valeurs. Les heures égales à minuit représentent entre \num{0.9}\,\% et \num{3.8}\,\% des champs horaires selon l'étape ; elles peuvent correspondre à une heure réelle, à une valeur absente ou à un événement non enregistré. Leur interprétation doit être confirmée avant tout calcul de durée.
+
+Les diagnostics associés et les actes secondaires sont, de manière attendue, de moins en moins renseignés lorsque leur rang augmente. Les principales absences sont résumées dans le \cref{tab:valeurs-manquantes}.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Taux de valeurs manquantes pour une sélection de variables}
+  \label{tab:valeurs-manquantes}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    Variable & Valeurs manquantes \\
+    \midrule
+    Diagnostic associé 1 & \num{20.7}\,\% \\
+    Diagnostic associé 2 & \num{43.2}\,\% \\
+    Diagnostic associé 3 & \num{63.2}\,\% \\
+    Diagnostic associé 4 & \num{77.1}\,\% \\
+    Diagnostic associé 5 & \num{86.9}\,\% \\
+    Acte CCAM 2 & \num{7.3}\,\% \\
+    Acte CCAM 3 & \num{38.6}\,\% \\
+    Acte CCAM 4 & \num{66.0}\,\% \\
+    Type d'anesthésie & \num{15.3}\,\% \\
+    Anesthésie locorégionale & \num{37.1}\,\% \\
+    Type d'intervention & \num{0.9}\,\% \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Plusieurs en-têtes présentent également des erreurs d'encodage, par exemple \texttt{EntrÈe}, \texttt{AnnÈe} ou le numéro de GHS. Ils devront être normalisés de manière déterministe, sans modifier les valeurs sources. La variable textuelle \texttt{Interv Type} contient \num{1433} modalités pour \num{14512} valeurs renseignées, ce qui suggère un travail d'harmonisation avant son utilisation comme variable catégorielle.
+
+La durée de séjour demande une attention particulière. Sa médiane est d'un jour, son intervalle interquartile est compris entre un et deux jours, et \num{67.4}\,\% des cas prennent la valeur 1, convention utilisée pour l'ambulatoire. Toutefois, 31 cellules contiennent des valeurs de l'ordre de \num{2458000} à \num{2459900}, proches de numéros de jours juliens et incompatibles avec une durée. Une autre observation atteint 94 jours. Ces cas devront être comparés aux dates d'entrée et de sortie puis corrigés ou exclus selon une règle traçable. Pour la majorité des observations valides, la durée correspond à une convention inclusive, c'est-à-dire au nombre de jours calendaires entre l'entrée et la sortie augmenté d'une unité.
+
+\subsection{Première description de la population}
+
+Le sexe est codé par les valeurs 1 et 2, avec respectivement \num{7243} et \num{7406} cas. En supposant le codage fourni (1 pour homme, 2 pour femme), la répartition est proche de l'équilibre. L'âge à la date d'intervention, calculé à partir de la date de naissance, présente une moyenne de \num{51.6} ans, une médiane de \num{54.0} ans et un intervalle interquartile de \num{38.7} à \num{66.1} ans. Ces nombres décrivent des cas et non des personnes uniques, puisque certains patients apparaissent plusieurs fois.
+
+Les codes présentent des cardinalités élevées : 617 diagnostics principaux CIM-10, 570 actes CCAM principaux, 205 codes GHM et 212 codes GHS. Ces catégories devront être regroupées à un niveau cliniquement pertinent ou encodées par une méthode capable de gérer leur forte cardinalité. Un regroupement purement statistique risquerait de perdre la structure médicale des classifications.
+
+\subsection{Variables dérivées pour l'étude}
+
+Sous réserve de valider les valeurs nulles et le passage de minuit, les horaires permettent de construire trois durées opérationnelles :
+
+\begin{itemize}
+  \item le temps d'attente préopératoire entre l'arrivée dans le SAS et l'entrée en salle ;
+  \item le temps entre l'entrée en salle et l'incision, qui inclut notamment l'installation et une partie de la prise en charge anesthésique ;
+  \item le temps d'occupation de la salle entre l'entrée et la sortie.
+\end{itemize}
+
+D'autres variables utiles sont l'âge à l'intervention, le jour de la semaine, le mois, la proximité d'un week-end ou d'une période de vacances, le caractère ambulatoire du séjour, le nombre d'actes et de diagnostics associés et l'historique agrégé par type d'intervention. Les identifiants du patient, du cas et des professionnels ne doivent pas être traités comme des mesures numériques.
+
+\subsection{Limites pour l'optimisation}
+
+La base décrit les séjours réalisés, mais ne contient pas directement la salle, la vacation planifiée, la capacité quotidienne en lits, les disponibilités du personnel, les interventions annulées, les propositions de dates refusées ni les urgences. Elle ne permet donc pas, à elle seule, de reconstruire toutes les contraintes d'un planning ou d'évaluer le biais de sélection lié aux actes qui n'ont pas été réalisés. Ces informations devront être obtenues auprès de l'établissement, formulées comme hypothèses ou générées explicitement pour les expériences de simulation.
+
+Les données restent sensibles malgré la pseudonymisation. Les analyses et figures du rapport seront agrégées ; aucun identifiant ni extrait individuel ne sera publié.
+
+\section{Analyse prédictive}
+
+\subsection{Cibles et instant de prédiction}
+
+Deux cibles de régression sont prioritaires : la durée de séjour et le temps d'occupation de la salle. Une cible de classification peut compléter l'étude pour distinguer une prise en charge ambulatoire d'une hospitalisation conventionnelle. Chaque prédiction doit être associée à un instant de décision précis. Pour proposer une date lors de la consultation préparatoire, seules les informations connues à ce moment peuvent être utilisées.
+
+Cette contrainte exclut notamment la date de sortie et les horaires réellement observés comme variables explicatives d'une prédiction réalisée avant l'admission. Leur utilisation constituerait une fuite de données et produirait des performances artificiellement élevées. Les codes d'actes prévus, le diagnostic connu, l'âge, le sexe, le chirurgien ou la spécialité peuvent être envisagés si leur disponibilité au moment de la décision est confirmée.
+
+\subsection{Protocole expérimental proposé}
+
+Le protocole devra comparer un modèle de référence simple à plusieurs modèles adaptés aux données tabulaires. La préparation comprendra la correction des durées aberrantes, l'imputation explicite des catégories manquantes, le regroupement médicalement justifié des codes rares et l'encodage des variables catégorielles.
+
+La séparation entre apprentissage, validation et test sera chronologique afin de reproduire une utilisation sur des périodes futures. Les séjours d'un même patient devront également être regroupés dans une seule partition lorsque cela est compatible avec la séparation temporelle, afin d'éviter qu'un historique individuel ne se retrouve artificiellement des deux côtés de l'évaluation. Les transformations seront ajustées uniquement sur l'ensemble d'apprentissage.
+
+Pour les durées, l'erreur absolue moyenne et les quantiles d'erreur seront plus faciles à interpréter opérationnellement qu'un score isolé. Des intervalles ou quantiles prédictifs permettront de réserver une marge adaptée à l'incertitude. Pour la classification ambulatoire, la précision, le rappel, le score F1, la calibration et la matrice de confusion seront rapportés. L'évaluation finale devra surtout mesurer l'effet des erreurs de prédiction sur le planning : dépassement de vacation, saturation des lits, attente et robustesse aux aléas.
+
+\aremplir{ajouter les résultats des modèles, leur comparaison, les courbes de calibration et l'analyse des erreurs après implémentation.}
