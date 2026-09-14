@@ -1,0 +1,107 @@
+
+% ---------- Ensembles ----------
+\begin{frame}{Variables (1/2) : Ensembles}
+  \begin{table}
+    \centering
+    \begin{tabular}{ll}
+      \toprule
+      \textbf{Notation} & \textbf{Description} \\
+      \midrule
+      $P = \{1, \ldots, n\}$ & Ensemble des patients à planifier \\
+      $S = \{1, \ldots, m\}$ & Ensemble des salles opératoires \\
+      $T = \{1, \ldots, H\}$ & Jours sur lesquels il faut planifier \\
+      $C = \{c_1, \ldots, c_k\}$ & Ensemble des chirurgiens \\
+      $V_{c,s,t}$ & $= 1$ si le chirurgien $c$ a une vacation \\
+                  & dans la salle $s$ le jour $t$, $0$ sinon \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+\end{frame}
+
+% ---------- Paramètres ----------
+\begin{frame}{Variables (2/2) : Paramètres}
+  \begin{table}
+    \centering
+    \scriptsize
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabular}{lll}
+      \toprule
+      \textbf{Notation} & \textbf{Description} & \textbf{Origine} \\
+      \midrule
+      $d_i$ & Durée opératoire prédite du patient $i$ & BDD (heures bloc) \\
+      $S_i$ & Durée de séjour prédite (en jours) & BDD (durée séjour) \\
+      $a_i$ & $= 1$ si ambulatoire, $0$ sinon & BDD (séjour = 1j) \\
+      $C_{\text{vac}}$ & Capacité d'une vacation & -- \\
+      $C_{\max}$ & Capacité temporelle totale du bloc/jour & -- \\
+      $L_{\max}$ & Capacité maximale en lits & Clinique \\
+      $A_{\max}$ & Capacité maximale en places ambu. & Clinique \\
+      $L_{\text{cible}}(t)$ & Occupation cible des lits au jour $t$ & $\pm 2$ lits \\
+      $A_{\text{cible}}(J)$ & Occupation cible des places ambu. & Hôpital \\
+      $\tau_{\text{Urgence}}(J)$ & Temps réservé urgences (bloc) & BDD \\
+      $L_{\text{Urgence}}(J)$ & Lits réservés urgences & BDD \\
+      $A_{\text{Urgence}}(J)$ & Places ambu. réservées urgences & BDD \\
+      \midrule
+      $x_{i,s,t} \in \{0,1\}$ & $= 1$ si patient $i$ opéré salle $s$ jour $t$ & Variable \\
+      $L(\tau)$ & Occupation lits classiques jour $\tau$ & Calculé \\
+      $A(\tau)$ & Occupation places ambu. jour $\tau$ & Calculé \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+\end{frame}
+
+% ---------- Contraintes (1/2) ----------
+\begin{frame}{Contraintes (1/2)}
+  \small
+  \textbf{C1 : Chaque patient correspond à une seule opération :}
+  $$\sum_{s \in S} \sum_{t \in T} x_{i,s,t} = 1 \quad \forall\, i \in P$$
+
+  \vspace{0.3em}
+  \textbf{C2 : Capacité de vacation (marge urgences) :}
+  \begin{quote}
+    \small\textit{On réserve une marge temporelle pour les urgences chirurgicales du jour.}
+  \end{quote}
+  $$\sum_{i \in P} d_i \cdot x_{i,s,t} \leq C_{\text{vac}} - \tau_{\text{Urgence}}(t) \quad \forall\, s \in S,\; \forall\, t \in T$$
+
+  \vspace{0.3em}
+  \textbf{C3 : Planning des chirurgiens :}
+  \begin{quote}
+    \small\textit{On ne peut planifier des interventions sur des créneaux non libres.}
+  \end{quote}
+  $$x_{i,s,t} \leq V_{\text{chir}_i, s, t} \quad \forall\, i \in P,\; s \in S,\; t \in T$$
+\end{frame}
+
+% ---------- Contraintes (2/2) ----------
+\begin{frame}{Contraintes (2/2)}
+  \small
+  \textbf{C4 : Capacité en lits (marge urgences) :}
+  \begin{quote}
+    \small\textit{On réserve des lits pour les urgences du jour.}
+  \end{quote}
+  $$L(\tau) \leq L_{\max} - L_{\text{Urgence}}(\tau) \quad \forall\, \tau \in T$$
+
+  \vspace{0.8em}
+  \textbf{C5 : Capacité en places ambulatoires (marge urgences) :}
+  \begin{quote}
+    \small\textit{On réserve des places pour les urgences ambulatoires du jour.}
+  \end{quote}
+  $$A(\tau) = \!\!\!\sum_{\substack{i \in P \\ a_i = 1}} \sum_{s \in S} x_{i,s,\tau} \leq A_{\max} - A_{\text{Urgence}}(\tau) \quad \forall\, \tau \in T$$
+\end{frame}
+
+% ---------- Fonction objectif ----------
+\begin{frame}{Fonction objectif}
+  \small
+  Minimiser les fluctuations d'occupation et optimiser l'utilisation du bloc :
+
+  $$\min \quad \underbrace{\alpha \sum_{J \in T} \bigl(L(J) - L_{\text{cible}}(J)\bigr)^{\!2}}_{\text{Lissage lits}}
+  \;+\; \underbrace{\beta \sum_{J \in T} \bigl(A(J) - A_{\text{cible}}(J)\bigr)^{\!2}}_{\text{Lissage ambulatoire}}$$
+
+  $$+\; \underbrace{\gamma \sum_{J \in T} \left( \sum_{i \in P} \sum_{s \in S} d_i\, x_{i,s,J} - \bigl[C_{\max} - \tau_{\text{Urgence}}(J)\bigr] \right)^{\!2}}_{\text{Utilisation du bloc (marge urgences)}}$$
+
+  \vspace{0.3em}
+  \begin{itemize}
+    \item Terme 1 : pénalise les \textbf{pics et creux} d'occupation des lits.
+    \item Terme 2 : lisse la charge des \textbf{places ambulatoires}.
+    \item Terme 3 : pénalise l'écart entre la capacité bloc (urgences comprises) et la capacité réelle.
+    \item $\alpha, \beta, \gamma > 0$ : poids de pondération à ajuster.
+  \end{itemize}
+\end{frame}
