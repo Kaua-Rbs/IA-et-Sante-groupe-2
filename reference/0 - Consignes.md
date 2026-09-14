@@ -30,13 +30,17 @@ Le système absorbe les décisions prises en amont au lieu de réguler la demand
 ---
 
 # Le résultat : des pics et des creux
+
 ## Le remplissage des lits de chirurgie est erratique
 
 Même capacité, demande très variable : la difficulté est autant le timing que le volume.
 
 **Lits chirurgicaux occupés — hors ambulatoire**
-- Capacité : 42 lits
-- Occupation variable (ex: 15 à 42 lits)
+- Capacité : 45 lits
+- Occupation variable (ex: 15 à 45 lits)
+
+**Ambulatoire**
+- Capacité 21 lits
 
 ---
 
