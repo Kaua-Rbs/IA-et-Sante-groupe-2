@@ -1,0 +1,582 @@
+% =============================================================================
+% Soutenance intermédiaire — Fil rouge
+% Fusion des trois supports : (1) État de l'art, (2) Modélisation,
+% (3) Métaheuristiques.
+%
+% Thème : Mid-Century Modern (beamerthememidcenturymodern.sty, thème Kraft).
+%
+% Compilation (LuaLaTeX requis par le thème) :
+%   lualatex Soutenance_intermediaire.tex
+%   biber    Soutenance_intermediaire
+%   lualatex Soutenance_intermediaire.tex
+%   lualatex Soutenance_intermediaire.tex
+% =============================================================================
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage{beamerthememidcenturymodern}
+\mcmTheme{Kraft}
+
+\usepackage[french]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{bbm}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage[backend=biber,style=authoryear,sorting=nyt]{biblatex}
+\addbibresource{Etatdelart.bib}
+
+% --- Logo (facultatif : commenter si absent) ---
+\titlegraphic{\includegraphics[height=0.8cm]{logos/your-logo-kraft.pdf}}
+
+% --- Pages de section automatiques ---
+\AtBeginSection[]{%
+  \begin{frame}[plain]
+    \sectionpage
+  \end{frame}
+}
+
+\AtEveryCite{\color{mcmPrimary}}
+
+% --- Métadonnées ---
+\title[Optimisation blocs \& lits]{Optimisation conjointe des blocs opératoires et des lits d'hospitalisation}
+\subtitle{État de l'art, modélisation et métaheuristiques}
+\author{Soutenance intermédiaire -- Fil rouge}
+\institute{Projet Altao}
+\date{14 septembre 2026}
+
+\begin{document}
+
+% =====================================================================
+% PAGE DE TITRE
+% =====================================================================
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% =====================================================================
+% SOMMAIRE
+% =====================================================================
+\begin{frame}{Sommaire}
+  \tableofcontents
+\end{frame}
+
+% =====================================================================
+\section{État de l'art}
+% =====================================================================
+
+% ---------- Méthodes existantes : RO classique ----------
+\begin{frame}{Méthodes existantes : recherche opérationnelle}
+  \textbf{Trois niveaux de décision, largement étudiés séparément :}
+  \vspace{0.3em}
+  \begin{table}
+    \centering\small
+    \begin{tabular}{lll}
+      \toprule
+      \textbf{Niveau} & \textbf{Horizon} & \textbf{Décisions} \\
+      \midrule
+      Stratégique & 1--5 ans & Dimensionnement des salles \\
+      Tactique & 1--3 mois & Programme maître de chirurgie (MSS) \\
+      Opérationnel & jour -- semaines & Affectation salle / patient / lit \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+  \begin{block}{Formulation dominante}
+    \textbf{Programmation linéaire (mixte)} : variables d'affectation
+    patient~$\rightarrow$~bloc~$\rightarrow$~lit, sous contraintes de capacité
+    et de durées, fonction objectif minimisant retards et dépassements.
+  \end{block}
+\end{frame}
+
+% ---------- Heuristiques vs métaheuristiques ----------
+\begin{frame}{Heuristiques et métaheuristiques}
+  \small
+  Le problème d'ordonnancement bloc/lits est \alert{NP-difficile} : la
+  programmation linéaire exacte devient vite trop coûteuse en calcul. Deux
+  familles de méthodes approchées coexistent.
+  \vspace{0.2em}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Heuristique}
+        \small
+        \begin{itemize}
+          \item Règle empirique conçue pour \textbf{un problème précis}
+          \item Rapide, peu coûteuse en calcul
+          \item Aucune garantie d'optimalité : risque d'optimum local
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Métaheuristique}
+        \small
+        \begin{itemize}
+          \item Cadre \textbf{générique}, applicable à des problèmes
+          NP-difficiles variés
+          \item Explore plus largement l'espace des solutions
+          \item Meilleure qualité de solution, au prix d'un calcul plus long
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---------- Limites + synthèse ----------
+\begin{frame}{Limites identifiées dans la littérature}
+  \begin{alertblock}{Limite principale}
+    Blocs opératoires et lits d'hospitalisation sont \textbf{le plus souvent
+    optimisés séparément} : le bloc est planifié, puis le lit est recherché
+    a posteriori.
+  \end{alertblock}
+  \begin{itemize}
+    \item Peu de modèles \textbf{conjoints} bloc + lit dans les approches
+    classiques (programmation linéaire).
+    \item Les incertitudes (urgences, variabilité des durées) sont rarement
+    intégrées de façon robuste dans les modèles conjoints.
+  \end{itemize}
+  \begin{center}
+    \large \textcolor{mcmPrimary}{\textbf{$\Rightarrow$ Optimisation conjointe blocs + lits}}
+  \end{center}
+\end{frame}
+
+% =====================================================================
+\section{Modélisation}
+% =====================================================================
+
+
+% ---------- Ensembles ----------
+\begin{frame}{Variables (1/2) : Ensembles}
+  \begin{table}
+    \centering
+    \begin{tabular}{ll}
+      \toprule
+      \textbf{Notation} & \textbf{Description} \\
+      \midrule
+      $P = \{1, \ldots, n\}$ & Ensemble des patients à planifier \\
+      $S = \{1, \ldots, m\}$ & Ensemble des salles opératoires \\
+      $T = \{1, \ldots, H\}$ & Jours sur lesquels il faut planifier \\
+      $C = \{c_1, \ldots, c_k\}$ & Ensemble des chirurgiens \\
+      $V_{c,s,t}$ & $= 1$ si le chirurgien $c$ a une vacation \\
+                  & dans la salle $s$ le jour $t$, $0$ sinon \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+\end{frame}
+
+% ---------- Paramètres ----------
+\begin{frame}{Variables (2/2) : Paramètres}
+  \begin{table}
+    \centering
+    \scriptsize
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabular}{lll}
+      \toprule
+      \textbf{Notation} & \textbf{Description} & \textbf{Origine} \\
+      \midrule
+      $d_i$ & Durée opératoire prédite du patient $i$ & BDD (heures bloc) \\
+      $S_i$ & Durée de séjour prédite (en jours) & BDD (durée séjour) \\
+      $a_i$ & $= 1$ si ambulatoire, $0$ sinon & BDD (séjour = 1j) \\
+      $C_{\text{vac}}$ & Capacité d'une vacation & -- \\
+      $C_{\max}$ & Capacité temporelle totale du bloc/jour & -- \\
+      $L_{\max}$ & Capacité maximale en lits & Clinique \\
+      $A_{\max}$ & Capacité maximale en places ambu. & Clinique \\
+      $L_{\text{cible}}(t)$ & Occupation cible des lits au jour $t$ & $\pm 2$ lits \\
+      $A_{\text{cible}}(J)$ & Occupation cible des places ambu. & Hôpital \\
+      $\tau_{\text{Urgence}}(J)$ & Temps réservé urgences (bloc) & BDD \\
+      $L_{\text{Urgence}}(J)$ & Lits réservés urgences & BDD \\
+      $A_{\text{Urgence}}(J)$ & Places ambu. réservées urgences & BDD \\
+      \midrule
+      $x_{i,s,t} \in \{0,1\}$ & $= 1$ si patient $i$ opéré salle $s$ jour $t$ & Variable \\
+      $L(\tau)$ & Occupation lits classiques jour $\tau$ & Calculé \\
+      $A(\tau)$ & Occupation places ambu. jour $\tau$ & Calculé \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+\end{frame}
+
+% ---------- Contraintes (1/2) ----------
+\begin{frame}{Contraintes (1/2)}
+  \small
+  \textbf{C1 : Chaque patient correspond à une seule opération :}
+  $$\sum_{s \in S} \sum_{t \in T} x_{i,s,t} = 1 \quad \forall\, i \in P$$
+
+  \vspace{0.3em}
+  \textbf{C2 : Capacité de vacation (marge urgences) :}
+  \begin{quote}
+    \small\textit{On réserve une marge temporelle pour les urgences chirurgicales du jour.}
+  \end{quote}
+  $$\sum_{i \in P} d_i \cdot x_{i,s,t} \leq C_{\text{vac}} - \tau_{\text{Urgence}}(t) \quad \forall\, s \in S,\; \forall\, t \in T$$
+
+  \vspace{0.3em}
+  \textbf{C3 : Planning des chirurgiens :}
+  \begin{quote}
+    \small\textit{On ne peut planifier des interventions sur des créneaux non libres.}
+  \end{quote}
+  $$x_{i,s,t} \leq V_{\text{chir}_i, s, t} \quad \forall\, i \in P,\; s \in S,\; t \in T$$
+\end{frame}
+
+% ---------- Contraintes (2/2) ----------
+\begin{frame}{Contraintes (2/2)}
+  \small
+  \textbf{C4 : Capacité en lits (marge urgences) :}
+  \begin{quote}
+    \small\textit{On réserve des lits pour les urgences du jour.}
+  \end{quote}
+  $$L(\tau) \leq L_{\max} - L_{\text{Urgence}}(\tau) \quad \forall\, \tau \in T$$
+
+  \vspace{0.8em}
+  \textbf{C5 : Capacité en places ambulatoires (marge urgences) :}
+  \begin{quote}
+    \small\textit{On réserve des places pour les urgences ambulatoires du jour.}
+  \end{quote}
+  $$A(\tau) = \!\!\!\sum_{\substack{i \in P \\ a_i = 1}} \sum_{s \in S} x_{i,s,\tau} \leq A_{\max} - A_{\text{Urgence}}(\tau) \quad \forall\, \tau \in T$$
+\end{frame}
+
+% ---------- Fonction objectif ----------
+\begin{frame}{Fonction objectif}
+  \small
+  Minimiser les fluctuations d'occupation et optimiser l'utilisation du bloc :
+
+  $$\min \quad \underbrace{\alpha \sum_{J \in T} \bigl(L(J) - L_{\text{cible}}(J)\bigr)^{\!2}}_{\text{Lissage lits}}
+  \;+\; \underbrace{\beta \sum_{J \in T} \bigl(A(J) - A_{\text{cible}}(J)\bigr)^{\!2}}_{\text{Lissage ambulatoire}}$$
+
+  $$+\; \underbrace{\gamma \sum_{J \in T} \left( \sum_{i \in P} \sum_{s \in S} d_i\, x_{i,s,J} - \bigl[C_{\max} - \tau_{\text{Urgence}}(J)\bigr] \right)^{\!2}}_{\text{Utilisation du bloc (marge urgences)}}$$
+
+  \vspace{0.3em}
+  \begin{itemize}
+    \item Terme 1 : pénalise les \textbf{pics et creux} d'occupation des lits.
+    \item Terme 2 : lisse la charge des \textbf{places ambulatoires}.
+    \item Terme 3 : pénalise l'écart entre la capacité bloc (urgences comprises) et la capacité réelle.
+    \item $\alpha, \beta, \gamma > 0$ : poids de pondération à ajuster.
+  \end{itemize}
+\end{frame}
+
+% =====================================================================
+\section{Métaheuristiques}
+% =====================================================================
+
+% ---------- Rappel du problème ----------
+\begin{frame}{Rappel : un problème d'affectation combinatoire}
+  \begin{block}{Ce qu'il faut décider chaque jour}
+    Affecter des \textbf{patients} à des \textbf{vacations de bloc} (créneaux
+    de 4h) et des \textbf{lits}, sous contraintes :
+  \end{block}
+  \begin{columns}
+    \begin{column}{0.55\textwidth}
+      \begin{itemize}
+        \item Durée opératoire prédite par patient
+        \item Capacité de chaque vacation / spécialité
+        \item Compatibilité chirurgien -- créneau
+        \item Disponibilité des lits en aval
+        \item Marge à garder pour les urgences
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \centering
+      \begin{tikzpicture}[scale=0.9]
+        \draw[thick, mcmPrimary] (0,0) rectangle (2.2,1.6);
+        \node at (1.1,0.8) {\footnotesize Vacation};
+        \foreach \x/\y in {0.3/1.9, 1.0/2.1, 1.7/1.9} {
+          \draw[fill=mcmPrimaryMuted] (\x,\y) circle (0.28);
+        }
+        \node[align=center, font=\scriptsize] at (1.1,2.7) {Patients à\\placer};
+        \draw[-{Latex}, mcmPrimary] (1.1,1.75) -- (1.1,1.65);
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+  \begin{alertblock}{Le point clé}
+    Chaque combinaison possible est une solution candidate -- et leur nombre
+    explose avec le nombre de patients et de créneaux.
+  \end{alertblock}
+\end{frame}
+
+% ---------- Pourquoi pas une méthode exacte ----------
+\begin{frame}{Pourquoi une méthode exacte ne suffit pas}
+  \begin{block}{Un problème NP-difficile}
+    Ce type d'affectation sous contraintes multiples appartient à la famille
+    des problèmes de \textbf{scheduling combinatoire} : le nombre de
+    combinaisons croît de façon exponentielle avec le nombre de patients et de
+    ressources.
+  \end{block}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Approche exacte}
+        \begin{itemize}
+          \item Garantit l'optimum
+          \item Temps de calcul explose vite
+          \item Inutilisable à l'échelle d'un hôpital, en temps utile
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Métaheuristique}
+        \begin{itemize}
+          \item Pas de garantie d'optimum absolu
+          \item Très bonne solution en temps raisonnable
+          \item S'adapte à des contraintes complexes et changeantes
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+  \centering
+  \textit{$\Rightarrow$ on échange une garantie théorique contre une décision
+  exploitable chaque jour.}
+\end{frame}
+
+% ---------- Recuit simulé ----------
+\begin{frame}{Recuit simulé : explorer avant de se figer}
+  \begin{columns}
+    \begin{column}{0.55\textwidth}
+      \textbf{Principe}
+      \begin{itemize}
+        \item Part d'une solution (un planning) et la modifie légèrement
+        \item Accepte parfois une solution \textit{moins bonne}, avec une
+        probabilité qui diminue au fil du temps (température)
+        \item Évite de rester bloqué sur une première solution correcte mais
+        médiocre
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \centering
+      \begin{tikzpicture}[scale=0.85]
+        \draw[-{Latex}] (0,0) -- (4.2,0) node[right, font=\scriptsize] {itérations};
+        \draw[-{Latex}] (0,0) -- (0,2.6) node[above, font=\scriptsize] {qualité};
+        \draw[thick, mcmPrimary] plot[smooth] coordinates {(0,0.6) (0.6,1.4) (1.1,0.9) (1.7,1.8) (2.3,1.3) (3.0,2.1) (3.6,2.3) (4.0,2.3)};
+        \node[font=\scriptsize, align=center] at (2.0,-0.5) {accepte parfois\\de redescendre};
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+  \begin{block}{Pourquoi ce choix ici}
+    Utile en phase de \textbf{construction initiale} d'un planning de
+    vacations : il balaie largement l'espace des combinaisons possibles sans
+    s'enfermer trop vite dans une solution locale.
+  \end{block}
+\end{frame}
+
+% ---------- Recherche Tabou ----------
+\begin{frame}{Recherche Tabou : ne pas refaire les mêmes erreurs}
+  \begin{columns}
+    \begin{column}{0.55\textwidth}
+      \textbf{Principe}
+      \begin{itemize}
+        \item Explore les plannings voisins du planning courant
+        \item Choisit le meilleur voisin, même s'il n'améliore pas tout de suite
+        \item Mémorise une \textbf{liste taboue} des derniers mouvements pour
+        interdire d'y revenir
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \centering
+      \begin{tikzpicture}[scale=0.8]
+        \node[draw, circle, fill=mcmExample!25] (a) at (0,0) {A};
+        \node[draw, circle] (b) at (1.6,0.8) {B};
+        \node[draw, circle, fill=mcmAlert!25] (c) at (1.6,-0.8) {C};
+        \node[draw, circle] (d) at (3.2,0) {D};
+        \draw[-{Latex}] (a) -- (b);
+        \draw[-{Latex}, dashed, mcmAlert] (b) -- (a) node[midway, above, font=\tiny] {tabou};
+        \draw[-{Latex}] (b) -- (d);
+        \draw[-{Latex}, dashed] (a) -- (c);
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+  \begin{block}{Pourquoi ce choix ici}
+    Utile pour \textbf{raffiner} un planning déjà construit : ajuster finement
+    l'affectation patient/créneau sans reboucler sur les échanges déjà testés.
+  \end{block}
+\end{frame}
+
+% ---------- Algorithme génétique + synthèse ----------
+\begin{frame}{Algorithme génétique et synthèse}
+  \begin{columns}[T]
+    \begin{column}{0.6\textwidth}
+      \small\textbf{Principe}
+      \begin{itemize}\itemsep2pt
+        \item Une \textbf{population} de plannings évolue en parallèle
+        \item Croisement : combine deux bons plannings
+        \item Mutation : introduit de petites variations
+        \item Sélection : garde les plus performants
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.4\textwidth}
+      \centering
+      \begin{tikzpicture}[scale=0.6]
+        \foreach \y in {0,0.55,1.1} {\draw[fill=mcmPrimaryMuted] (0,\y) rectangle (1.0,\y+0.4);}
+        \node[font=\tiny] at (0.5,1.9) {Génér. $n$};
+        \draw[-{Latex}] (1.2,0.85) -- (1.9,0.85);
+        \foreach \y in {0,0.55,1.1} {\draw[fill=mcmExample!25] (2.1,\y) rectangle (3.1,\y+0.4);}
+        \node[font=\tiny] at (2.6,1.9) {Génér. $n{+}1$};
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+  \vspace{2pt}
+  \renewcommand{\arraystretch}{0.9}
+  \begin{table}
+    \centering\scriptsize
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabular}{lll}
+      \toprule
+      \textbf{Méthode} & \textbf{Rôle dans le projet} & \textbf{Force} \\
+      \midrule
+      Recuit simulé & Construction initiale & Large exploration \\
+      Tabou & Raffinement local & Évite les boucles \\
+      Génétique & Recherche de compromis global & Diversité de solutions \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+  \begin{alertblock}{\footnotesize À retenir}
+    \footnotesize Trois logiques complémentaires -- pas rivales -- pour
+    transformer un problème NP-difficile en un planning exploitable chaque jour.
+  \end{alertblock}
+\end{frame}
+
+% =====================================================================
+\section{Suite du travail}
+% =====================================================================
+
+% ---------- Feuille de route ----------
+\begin{frame}{Suite du travail : feuille de route}
+  \begin{block}{Trois chantiers pour la suite du projet}
+    \begin{enumerate}
+      \item \textbf{Implémentation des algorithmes} (recuit simulé, tabou,
+      génétique) en Python.
+      \item \textbf{Tests sur la base de données} réelle de la clinique.
+      \item \textbf{Comparaison des performances} des trois métaheuristiques.
+    \end{enumerate}
+  \end{block}
+  \vspace{0.2em}
+  \begin{center}
+    \begin{tikzpicture}[scale=0.9, every node/.style={font=\scriptsize}]
+      \draw[thick, mcmPrimary, -{Latex}] (0,0) -- (11,0);
+      \foreach \x/\lab in {0.5/Implémentation, 4.0/Tests, 7.5/Comparaison, 10.6/Livrable} {
+        \draw[fill=mcmPrimary] (\x,0) circle (0.12);
+        \node[above=2pt, align=center] at (\x,0) {\lab};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \begin{alertblock}{\footnotesize Objectif}
+    \footnotesize Passer des modèles mathématiques à un \textbf{prototype
+    exécutable et mesuré}, utilisable comme base de décision.
+  \end{alertblock}
+\end{frame}
+
+% ---------- Implémentation des algorithmes ----------
+\begin{frame}{Implémentation des algorithmes}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \small\textbf{Un moteur Python modulaire}
+      \begin{itemize}
+        \item Représentation commune d'un \textbf{planning} (solution)
+        \item Fonction de coût reprenant l'objectif (lissage lits / ambu. / bloc)
+        \item Un module par méthode : \texttt{recuit.py}, \texttt{tabou.py},
+        \texttt{genetique.py}
+        \item Même interface \texttt{solve(instance) -> planning} pour les
+        comparer à conditions égales
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \centering
+      \begin{tikzpicture}[scale=0.75]
+        \draw[thick, mcmPrimary] (0,0) rectangle (3.4,0.6);
+        \node[font=\scriptsize] at (1.7,0.3) {Instance (BDD)};
+        \draw[-{Latex}] (1.7,0) -- (1.7,-0.7);
+        \draw[thick, mcmExample] (0,-0.7) rectangle (3.4,-1.3);
+        \node[font=\scriptsize] at (1.7,-1.0) {Fonction de coût};
+        \draw[-{Latex}] (1.7,-1.3) -- (1.7,-2.0);
+        \foreach \x/\m in {0/RS, 1.15/Tabou, 2.3/AG} {
+          \draw[thick, mcmPrimaryMuted, fill=mcmPrimaryMuted] (\x,-2.0) rectangle (\x+1.0,-2.6);
+          \node[font=\tiny] at (\x+0.5,-2.3) {\m};
+        }
+        \draw[-{Latex}] (1.7,-2.6) -- (1.7,-3.2);
+        \draw[thick, mcmPrimary] (0,-3.2) rectangle (3.4,-3.8);
+        \node[font=\scriptsize] at (1.7,-3.5) {Planning optimal};
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---------- Tests sur la BDD ----------
+\begin{frame}{Tests sur la base de données}
+  \small
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Données utilisées}
+        \begin{itemize}
+          \item Historique d'interventions de la clinique
+          \item Durées opératoires et de séjour
+          \item Part d'ambulatoire, vacations des chirurgiens
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Niveaux de test}
+        \begin{itemize}
+          \item \textbf{Unitaires} : contraintes C1--C5 respectées
+          \item \textbf{Intégration} : lecture BDD $\rightarrow$ planning
+          \item \textbf{Validation} : planning faisable et exploitable
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+  \vspace{0.3em}
+  \begin{exampleblock}{\footnotesize Jeux de tests}
+    \footnotesize Une \textbf{instance jouet} (quelques patients) pour
+    déboguer, puis des \textbf{instances réelles} de taille croissante pour
+    éprouver le passage à l'échelle.
+  \end{exampleblock}
+\end{frame}
+
+
+% ---------- Architecture technique ----------
+\begin{frame}{Architecture technique : choix des frameworks}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Traitement -- Python / FastAPI}
+        \small
+        \begin{itemize}
+          \item Moteur d'optimisation en \textbf{Python}
+          \item \textbf{FastAPI} expose les algorithmes via une API REST
+          \item Validation des données par \textbf{Pydantic}
+          \item Calcul scientifique : \textbf{NumPy / Pandas}
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Interface web -- React}
+        \small
+        \begin{itemize}
+          \item \textbf{React} (Vite) pour un tableau de bord interactif
+          \item Visualisation des plannings et des performances
+          \item Appels à l'API FastAPI
+          \item Comparaison des méthodes en un coup d'œil
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+  \vspace{0.2em}
+  \begin{alertblock}{\footnotesize Pourquoi ce choix}
+    \footnotesize FastAPI est rapide, typé et documenté automatiquement
+    (Swagger) ; React offre une interface réactive et portable, séparant
+    clairement le \textbf{moteur de calcul} de la \textbf{présentation}.
+  \end{alertblock}
+\end{frame}
+
+% =====================================================================
+% BIBLIOGRAPHIE
+% =====================================================================
+\nocite{*}
+\begin{frame}{Références}
+  \footnotesize
+  \printbibliography[heading=none]
+\end{frame}
+
+% =====================================================================
+% SLIDE DE CLÔTURE
+% =====================================================================
+{\setbeamercolor{normal text}{fg=mcmPrimaryFg,bg=mcmPrimary!70}
+\begin{frame}[plain,noframenumbering]
+  \begin{center}
+    \Large
+    Merci de votre attention\\[0.5em]
+    Questions ?
+  \end{center}
+\end{frame}
+}
+
+\end{document}
