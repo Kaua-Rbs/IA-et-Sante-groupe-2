@@ -1,2 +1,6 @@
 # Local reference material and source documents
 /resources/
+*.bbl
+*.nav
+*.snm
+*.synctex.gz
