@@ -26,9 +26,15 @@
 
 
 % --- Pages de section automatiques ---
+% \AtBeginSection[]{%
+%   \begin{frame}[plain]
+%     \sectionpage
+%   \end{frame}
+% }
+
 \AtBeginSection[]{%
-  \begin{frame}[plain]
-    \sectionpage
+  \begin{frame}{Sommaire}
+    \tableofcontents[currentsection]
   \end{frame}
 }
 
