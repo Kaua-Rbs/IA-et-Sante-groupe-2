@@ -1,0 +1,186 @@
+% Durée indicative de la section : 3 min 30 à 4 min 30.
+
+% ---------- Périmètre de la base (~45 s) ----------
+\begin{frame}{Une base de 14\,649 séjours opératoires}
+  \begin{center}
+    \small Une ligne correspond à un \textbf{cas hospitalier associé à une intervention}.
+  \end{center}
+
+  \begin{columns}[T]
+    \begin{column}{0.31\textwidth}
+      \begin{exampleblock}{\centering Volume}
+        \centering
+        {\LARGE\textbf{14\,649}}\\[-1pt]
+        {\small cas hospitaliers}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{block}{\centering Patients}
+        \centering
+        {\LARGE\textbf{11\,108}}\\[-1pt]
+        {\small identifiants distincts}
+      \end{block}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{alertblock}{\centering Variables}
+        \centering
+        {\LARGE\textbf{30}}\\[-1pt]
+        {\small administratives, cliniques et bloc}
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+
+  \vspace{1em}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \footnotesize
+      \textbf{Administratif et clinique}\par
+      Dates (2019--2022), âge, sexe, identifiant patient,
+      diagnostics CIM-10 et actes CCAM.
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \footnotesize
+      \textbf{Parcours opératoire}\par
+      Praticien, chirurgien, type d'intervention, anesthésie
+      et horaires clés du bloc.
+    \end{column}
+  \end{columns}
+
+  \vspace{0.6em}
+  {\footnotesize\textcolor{mcmAlert}{\textbf{Point de vigilance :}}
+  la granularité est le \textbf{séjour}, pas le patient ;
+  2\,546 patients apparaissent dans plusieurs cas.\par}
+\end{frame}
+
+% ---------- Qualité des données (~70 s) ----------
+\begin{frame}{Qualité : deux anomalies structurantes}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{Durée de séjour}
+        \small
+        \begin{itemize}\itemsep3pt
+          \item \textbf{2\,560 incohérences}, soit \textbf{17,5\,\%}
+          \item 1\,884 séjours notés « 1 jour » malgré au moins une nuit
+          \item 31 valeurs proches de dates juliennes
+        \end{itemize}
+      \end{alertblock}
+
+      \begin{block}{Référence fiable}
+        \footnotesize Aucune date manquante ; la sortie ne précède jamais
+        l'entrée et l'intervention est toujours comprise dans le séjour.
+      \end{block}
+    \end{column}
+
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Horaires opératoires à zéro}
+        \centering\scriptsize
+        \begin{tabular}{@{}lr@{}}
+          SAS pré-anesthésie & 133 \\
+          Entrée en salle & 172 \\
+          Incision & 552 \\
+          Sortie de salle & 172 \\
+        \end{tabular}
+      \end{exampleblock}
+
+      \begin{block}{Inversions chronologiques}
+        \small
+        \begin{itemize}\itemsep3pt
+          \item 42 incisions avant l'entrée en salle
+          \item 4 sorties avant l'incision
+          \item aucune sortie avant l'entrée en salle
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+
+  \begin{center}
+    \small\textcolor{mcmPrimary}{\textbf{Ces inversions sont des erreurs de saisie,
+    pas des opérations franchissant minuit.}}
+  \end{center}
+\end{frame}
+
+% ---------- Nettoyage retenu (~65 s) ----------
+\begin{frame}[t]{Nettoyage : 14\,507 lignes exploitables}
+  \begin{center}
+    \begin{tikzpicture}[
+      node distance=0.55cm,
+      every node/.style={font=\small, align=center},
+      box/.style={draw=mcmPrimary, very thick, rounded corners=2pt,
+                  minimum height=1.25cm, text width=3.0cm},
+      processbox/.style={draw=mcmExample, very thick, rounded corners=2pt,
+                        fill=mcmExample!12, minimum height=1.25cm, text width=3.7cm}
+    ]
+      \node[box] (raw) {\Large\textbf{14\,649}\\\footnotesize lignes sources};
+      \node[processbox, right=of raw] (filter) {\textbf{Filtre qualité}\\[-1pt]
+        \footnotesize type d'intervention ou praticien absent};
+      \node[box, right=of filter, fill=mcmPrimaryMuted] (clean) {
+        \Large\textbf{14\,507}\\\footnotesize lignes conservées};
+      \draw[-{Latex}, very thick, mcmPrimary] (raw) -- (filter);
+      \draw[-{Latex}, very thick, mcmPrimary] (filter) -- (clean);
+    \end{tikzpicture}
+  \end{center}
+
+  \begin{columns}[T]
+    \begin{column}{0.47\textwidth}
+      \begin{block}{Suppression ciblée}
+        \small
+        \begin{itemize}\itemsep2pt
+          \item 137 types d'intervention absents
+          \item 98 praticiens absents
+          \item 142 lignes ont au moins 1 des 2 absences
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \begin{exampleblock}{Durée corrigée}
+        \small
+        \[
+          d_{\mathrm{corrigée}}=
+          (\mathrm{sortie}-\mathrm{entrée})+1
+        \]
+        \footnotesize 2\,488 durées corrigées parmi les lignes conservées.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.35em}
+  {\footnotesize\textcolor{mcmAlert}{\textbf{Traçabilité :}}
+  la durée source est conservée ; une colonne corrigée et un indicateur
+  d'incohérence sont ajoutés ; la table nettoyée est exportée séparément.\par}
+\end{frame}
+
+% ---------- Exploitabilité et limites (~60 s) ----------
+\begin{frame}{Ce que la base permet --- et ne permet pas}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Disponible pour prédire}
+        \small
+        \begin{itemize}\itemsep3pt
+          \item durée de séjour corrigée ;
+          \item temps d'occupation de salle après validation ;
+          \item âge, sexe, diagnostics et actes ;
+          \item praticien et type d'intervention.
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{Absent pour ordonnancer}
+        \small
+        \begin{itemize}\itemsep3pt
+          \item identifiant des salles et vacations ;
+          \item capacité journalière en lits ;
+          \item disponibilité des équipes ;
+          \item urgences, annulations et refus de dates.
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.25em}
+  \begin{block}{Conclusion de l'analyse}
+    \centering
+    La base nettoyée suffit pour \textbf{apprendre les durées}.\\
+    L'optimisation nécessitera des \textbf{données métier complémentaires}
+    ou des hypothèses de simulation explicites.
+  \end{block}
+\end{frame}

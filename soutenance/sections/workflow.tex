@@ -1,0 +1,248 @@
+% Durée indicative de la section : 5 min à 5 min 30.
+
+% ---------- Vue d'ensemble (~50 s) ----------
+\begin{frame}{Parcours type : quatre grandes phases}
+  \begin{center}
+    \small Vue volontairement simplifiée d'un \textbf{patient programmé}
+
+    \vspace{0.8em}
+    \begin{tikzpicture}[
+      node distance=0.45cm,
+      every node/.style={align=center},
+      flowphase/.style={draw=mcmPrimary, very thick, rounded corners=2pt,
+                       minimum height=1.55cm, text width=2.55cm, font=\small}
+    ]
+      \node[flowphase, fill=mcmPrimaryMuted] (upstream) {
+        \textbf{Avant l'admission}\\[-1pt]
+        \scriptsize décider et planifier};
+      \node[flowphase, right=of upstream, fill=mcmExample!14] (prepare) {
+        \textbf{Admission et préparation}\\[-1pt]
+        \scriptsize préparer le patient};
+      \node[flowphase, right=of prepare, fill=mcmPrimaryMuted] (or) {
+        \textbf{Bloc opératoire}\\[-1pt]
+        \scriptsize anesthésier et intervenir};
+      \node[flowphase, right=of or, fill=mcmAlert!10] (downstream) {
+        \textbf{Réveil et sortie}\\[-1pt]
+        \scriptsize orienter et libérer};
+
+      \draw[-{Latex}, very thick, mcmPrimary] (upstream) -- (prepare);
+      \draw[-{Latex}, very thick, mcmPrimary] (prepare) -- (or);
+      \draw[-{Latex}, very thick, mcmPrimary] (or) -- (downstream);
+    \end{tikzpicture}
+  \end{center}
+
+  \vspace{0.5em}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Ce que le workflow relie}
+        \small Patient, vacation, équipe, salle opératoire et lit
+        d'hospitalisation appartiennent à un \textbf{même flux}.
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{Objectif de la modélisation}
+        \small Repérer les attentes, les goulots d'étranglement et les
+        informations encore absentes de la BDD.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+
+  \begin{center}
+    \footnotesize Parcours de travail à valider avec les professionnels ;
+    urgences, annulations et soins intensifs restent des variantes.
+  \end{center}
+\end{frame}
+
+% ---------- Avant l'admission (~65 s) ----------
+\begin{frame}{1. Avant l'admission : décider et réserver}
+  \begin{center}
+    \begin{tikzpicture}[
+      node distance=0.45cm,
+      every node/.style={align=center, font=\footnotesize},
+      wfstep/.style={draw=mcmPrimary, thick, rounded corners=2pt,
+                    minimum height=1.05cm, text width=2.65cm},
+      wfcheck/.style={draw=mcmExample, thick, rounded corners=2pt,
+                     fill=mcmExample!12, minimum height=1.05cm, text width=2.2cm}
+    ]
+      \node[wfstep] (consult) {Consultation et\\indication opératoire};
+      \node[wfstep, right=of consult] (anesthesia) {Consultation\\d'anesthésie};
+      \node[wfcheck, right=of anesthesia] (fitness) {Patient apte ?};
+      \node[wfstep, right=of fitness, fill=mcmPrimaryMuted] (planning) {
+        Planification\\date + vacation + salle + lit};
+      \node[wfstep, below=0.45cm of fitness, text width=2.2cm] (exams) {
+        Examens ou\\optimisation médicale};
+
+      \draw[-{Latex}, thick, mcmPrimary] (consult) -- (anesthesia);
+      \draw[-{Latex}, thick, mcmPrimary] (anesthesia) -- (fitness);
+      \draw[-{Latex}, thick, mcmPrimary] (fitness) -- node[above, font=\scriptsize] {oui} (planning);
+      \draw[-{Latex}, thick, mcmAlert] (fitness) -- node[right, font=\scriptsize] {non} (exams);
+      \draw[-{Latex}, thick, mcmAlert] (exams.west) -| (anesthesia.south);
+    \end{tikzpicture}
+  \end{center}
+
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Observation dans la BDD : partielle}
+        \footnotesize
+        \begin{itemize}\itemsep1pt
+          \item date d'intervention, praticien, chirurgien ;
+          \item acte prévu via les codes CCAM ;
+          \item décision, vacation, salle et lit non renseignés.
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{Point critique : disponibilité en amont}
+        \footnotesize Une date ne doit être proposée que si la \textbf{vacation},
+        l'\textbf{équipe}, la \textbf{salle} et l'\textbf{hébergement} sont compatibles.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---------- Admission et préparation (~60 s) ----------
+\begin{frame}{2. Admission et préparation : synchroniser l'arrivée}
+  \begin{center}
+    \begin{tikzpicture}[
+      node distance=0.55cm,
+      every node/.style={align=center, font=\footnotesize},
+      wfstep/.style={draw=mcmPrimary, thick, rounded corners=2pt,
+                    minimum height=1.05cm, text width=2.65cm}
+    ]
+      \node[wfstep] (admission) {Admission};
+      \node[wfstep, right=of admission] (prep) {Accueil et préparation\\préopératoire};
+      \node[wfstep, right=of prep, fill=mcmExample!12] (sas) {
+        SAS pré-anesthésie\\\scriptsize passage optionnel};
+      \node[wfstep, right=of sas, fill=mcmPrimaryMuted] (entry) {Entrée en salle};
+
+      \draw[-{Latex}, thick, mcmPrimary] (admission) -- (prep);
+      \draw[-{Latex}, thick, mcmPrimary] (prep) -- (sas);
+      \draw[-{Latex}, thick, mcmPrimary] (sas) -- (entry);
+      \draw[-{Latex}, thick, dashed, mcmAlert] (prep.south) -- ++(0,-0.35) -|
+        node[pos=0.25, below, font=\scriptsize] {sans SAS} (entry.south);
+    \end{tikzpicture}
+  \end{center}
+
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Ce que la BDD observe}
+        \footnotesize
+        \begin{itemize}\itemsep1pt
+          \item admission : date uniquement ;
+          \item SAS : horaire partiellement disponible ;
+          \item salle : heure d'entrée disponible.
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{Point critique : attente avant la salle}
+        \footnotesize Le délai SAS--salle peut révéler une désynchronisation, mais
+        les valeurs nulles ou à zéro doivent d'abord être clarifiées.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.5em}
+  {\footnotesize\textcolor{mcmPrimary}{\textbf{Limite :}}
+  les tâches de préparation, leur durée et leurs retards ne sont pas observés ;
+  le début réel de l'attente reste inconnu.\par}
+\end{frame}
+
+% ---------- Bloc opératoire (~65 s) ----------
+\begin{frame}{3. Bloc opératoire : mesurer le temps contraint}
+  \begin{center}
+    \begin{tikzpicture}[
+      node distance=0.55cm,
+      every node/.style={align=center, font=\footnotesize},
+      wfstep/.style={draw=mcmPrimary, thick, rounded corners=2pt,
+                    minimum height=1.05cm, text width=2.65cm}
+    ]
+      \node[wfstep, fill=mcmPrimaryMuted] (entry) {Entrée en salle};
+      \node[wfstep, right=of entry] (install) {Installation et\\prise en charge anesthésique};
+      \node[wfstep, right=of install, fill=mcmExample!12] (incision) {
+        Incision et\\intervention};
+      \node[wfstep, right=of incision] (exit) {Sortie de salle};
+
+      \draw[-{Latex}, thick, mcmPrimary] (entry) -- (install);
+      \draw[-{Latex}, thick, mcmPrimary] (install) -- (incision);
+      \draw[-{Latex}, thick, mcmPrimary] (incision) -- (exit);
+    \end{tikzpicture}
+  \end{center}
+
+  \vspace{0.2em}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Deux indicateurs exploitables}
+        \footnotesize
+        \begin{itemize}\itemsep1pt
+          \item entrée en salle $\rightarrow$ incision : installation et préparation ;
+          \item entrée $\rightarrow$ sortie de salle : occupation totale de la salle.
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{Points critiques}
+        \footnotesize
+        \begin{itemize}\itemsep1pt
+          \item préparation trop longue avant l'incision ;
+          \item dépassement de vacation et retards en cascade ;
+          \item zéros et inversions horaires à traiter.
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.5em}
+  {\footnotesize\textcolor{mcmPrimary}{\textbf{Limite de mesure :}}
+  le type d'anesthésie est connu, mais pas ses heures ; la fin de l'acte
+  chirurgical n'est pas horodatée directement.\par}
+\end{frame}
+
+% ---------- Réveil et sortie (~65 s) ----------
+\begin{frame}{4. Réveil et sortie : maîtriser les capacités en aval}
+  \begin{center}
+    \begin{tikzpicture}[
+      every node/.style={align=center, font=\footnotesize},
+      wfstep/.style={draw=mcmPrimary, thick, rounded corners=2pt,
+                    minimum height=0.9cm, text width=2.25cm}
+    ]
+      \node[wfstep] (orexit) at (0,0) {Sortie de salle};
+      \node[wfstep] (recovery) at (2.8,0) {SSPI et réveil\\postopératoire};
+      \node[wfstep, fill=mcmExample!12, text width=1.9cm]
+        (orientation) at (5.45,0) {Orientation};
+      \node[wfstep, text width=2.15cm] (ambulatory) at (8.05,0.75) {
+        Surveillance\\ambulatoire};
+      \node[wfstep, text width=2.15cm] (ward) at (8.05,-0.75) {
+        Unité de soins et\\hospitalisation};
+      \node[wfstep, fill=mcmPrimaryMuted, text width=1.9cm]
+        (discharge) at (10.65,0) {Sortie du patient};
+
+      \draw[-{Latex}, thick, mcmPrimary] (orexit) -- (recovery);
+      \draw[-{Latex}, thick, mcmPrimary] (recovery) -- (orientation);
+      \draw[-{Latex}, thick, mcmPrimary] (orientation) -- (ambulatory);
+      \draw[-{Latex}, thick, mcmPrimary] (orientation) -- (ward);
+      \draw[-{Latex}, thick, mcmPrimary] (ambulatory) -- (discharge);
+      \draw[-{Latex}, thick, mcmPrimary] (ward) -- (discharge);
+    \end{tikzpicture}
+  \end{center}
+
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Observation dans la BDD : partielle}
+        \footnotesize Durée de séjour corrigée, GHM/GHS et date de sortie ; aucune
+        heure de SSPI postopératoire, unité, lit ni destination de sortie.
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{Points critiques : réveil et lits}
+        \footnotesize Une SSPI saturée bloque la sortie de salle ; un lit indisponible
+        reporte l'admission et peut désorganiser le programme opératoire.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.5em}
+  {\small\centering\textcolor{mcmPrimary}{\textbf{Conséquence :}}
+  optimiser le bloc sans représenter les lits déplacerait simplement le
+  goulot d'étranglement vers l'aval.\par}
+\end{frame}
