@@ -47,7 +47,7 @@ Les interventions couvrent la période du 2 janvier 2019 au 30 décembre 2022. L
 
 \subsection{Complétude et qualité}
 
-Aucun doublon exact n'a été détecté. Les variables administratives principales, les dates, les codes GHM et GHS et les quatre horaires opératoires ne contiennent pas de valeur manquante au sens du tableur. Cette complétude apparente ne garantit toutefois pas la validité des valeurs. Les heures égales à minuit représentent entre 0,9\,\% et 3,8\,\% des champs horaires selon l'étape ; elles peuvent correspondre à une heure réelle, à une valeur absente ou à un événement non enregistré. Leur interprétation doit être confirmée avant tout calcul de durée.
+Aucun doublon exact n'a été détecté. Les variables administratives principales, les dates, les codes GHM et GHS et les quatre horaires opératoires ne contiennent pas de valeur manquante au sens du tableur. Cette complétude apparente ne garantit toutefois pas la validité des valeurs : des zéros sont utilisés dans les champs horaires et plusieurs incohérences chronologiques ou arithmétiques sont détaillées ci-dessous.
 
 Les diagnostics associés et les actes secondaires sont, de manière attendue, de moins en moins renseignés lorsque leur rang augmente. Les principales absences sont résumées dans le tableau~\ref{tab:valeurs-manquantes}.
 
@@ -76,7 +76,84 @@ Les diagnostics associés et les actes secondaires sont, de manière attendue, d
 
 Plusieurs en-têtes présentent également des erreurs d'encodage, par exemple \texttt{EntrÈe}, \texttt{AnnÈe} ou le numéro de GHS. Ils devront être normalisés de manière déterministe, sans modifier les valeurs sources. La variable textuelle \texttt{Interv Type} contient 1\,433 modalités pour 14\,512 valeurs renseignées, ce qui suggère un travail d'harmonisation avant son utilisation comme variable catégorielle.
 
-La durée de séjour demande une attention particulière. Sa médiane est d'un jour, son intervalle interquartile est compris entre un et deux jours, et 67,4\,\% des cas prennent la valeur 1, convention utilisée pour l'ambulatoire. Toutefois, 31 cellules contiennent des valeurs de l'ordre de 2\,458\,000 à 2\,459\,900, proches de numéros de jours juliens et incompatibles avec une durée. Une autre observation atteint 94 jours. Ces cas devront être comparés aux dates d'entrée et de sortie puis corrigés ou exclus selon une règle traçable. Pour la majorité des observations valides, la durée correspond à une convention inclusive, c'est-à-dire au nombre de jours calendaires entre l'entrée et la sortie augmenté d'une unité.
+La durée de séjour demande une attention particulière. Sa médiane est d'un jour, son intervalle interquartile est compris entre un et deux jours, et 67,4\,\% des cas prennent la valeur 1, convention utilisée pour l'ambulatoire. La comparaison systématique avec les dates montre cependant que cette variable ne peut pas être utilisée telle quelle.
+
+\subsection{Incohérences détectées et traitement retenu}
+
+\subsubsection{Durée de séjour}
+
+La durée suit une convention inclusive : une entrée et une sortie le même jour correspondent à une durée de 1, un séjour d'une nuit à une durée de 2, et ainsi de suite. Pour chaque ligne, la valeur attendue est donc calculée comme la différence entre la date de sortie et la date d'entrée, augmentée d'un jour.
+
+Cette vérification est possible sur les 14\,649 lignes. Elle donne 12\,089 valeurs conformes et 2\,560 valeurs différentes de la durée attendue, soit 17,5\,\% des séjours. Parmi ces incohérences, 1\,884 lignes, soit 73,6\,\%, portent la valeur enregistrée 1 alors que les dates couvrent au moins une nuit. La répartition de ces lignes selon le nombre réel de nuits est présentée dans le tableau~\ref{tab:duree-un-incoherente}.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Nombre réel de nuits pour les séjours incohérents enregistrés avec une durée égale à 1}
+  \label{tab:duree-un-incoherente}
+  \begin{tabular}{@{}rr@{}}
+    \toprule
+    Nombre de nuits d'après les dates & Nombre de lignes \\
+    \midrule
+    1 & 757 \\
+    2 & 416 \\
+    3 & 240 \\
+    4 & 202 \\
+    5 & 144 \\
+    6 & 71 \\
+    7 & 31 \\
+    8 & 15 \\
+    9 & 6 \\
+    10 & 2 \\
+    \midrule
+    Total & 1\,884 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Les 2\,560 incohérences comprennent également 31 valeurs de l'ordre de 2\,458\,000 à 2\,459\,900, proches de numéros de jours juliens et manifestement incompatibles avec une durée de séjour. Il ne s'agit pas de formules calculées par le tableur, mais de valeurs enregistrées dans les cellules.
+
+Les dates constituent la source la plus fiable pour corriger cette variable : aucune date d'entrée, d'intervention ou de sortie n'est manquante ; aucune sortie ne précède l'entrée ; chaque intervention est comprise entre l'entrée et la sortie ; enfin, la variable \texttt{Année} correspond à l'année d'entrée sur toutes les lignes. La durée recalculée selon la convention inclusive sera donc utilisée pour les analyses, tandis que la valeur d'origine sera conservée pour assurer la traçabilité.
+
+\subsubsection{Horaires du parcours opératoire}
+
+Des valeurs égales à zéro apparaissent dans chacun des quatre champs horaires alors qu'elles ne sont pas considérées comme manquantes par le tableur. Faute de confirmation qu'il s'agit d'événements ayant réellement eu lieu à minuit, elles sont traitées comme des valeurs absentes dans les calculs de durée. Le tableau~\ref{tab:horaires-nuls} en donne le décompte.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Valeurs égales à zéro dans les champs horaires}
+  \label{tab:horaires-nuls}
+  \begin{tabular}{@{}lr@{}}
+    \toprule
+    Champ horaire & Nombre de zéros \\
+    \midrule
+    Entrée dans le SAS pré-anesthésie & 133 \\
+    Entrée en salle d'opération & 172 \\
+    Incision & 552 \\
+    Sortie de salle d'opération & 172 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Après exclusion de ces zéros pour chaque comparaison, les contrôles d'ordre chronologique mettent en évidence les anomalies du tableau~\ref{tab:inversions-horaires}. Le dénominateur varie selon les deux champs nécessaires au contrôle.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Inversions chronologiques relevées dans les horaires opératoires}
+  \label{tab:inversions-horaires}
+  \begin{tabularx}{\textwidth}{@{}Xrr@{}}
+    \toprule
+    Contrôle & Anomalies & Lignes exploitables \\
+    \midrule
+    Sortie de salle antérieure à l'entrée en salle & 0 & 14\,477 \\
+    Sortie de salle antérieure à l'incision & 4 & 14\,026 \\
+    Incision antérieure à l'entrée en salle & 42 & 14\,026 \\
+    Entrée en salle antérieure à l'entrée dans le SAS pré-anesthésie & 309 & 14\,442 \\
+    Sortie de salle antérieure à l'entrée dans le SAS pré-anesthésie & 2 & 14\,442 \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+Ces inversions sont interprétées comme des erreurs de qualité des données et non comme des interventions franchissant minuit. En effet, aucune sortie de salle n'est antérieure à l'entrée en salle. De plus, pour les quatre lignes où la sortie précède l'incision, l'ajout automatique de 24 heures conduirait à des durées entre incision et sortie proches de 24 heures, incompatibles avec les autres horaires observés. Les lignes concernées doivent donc être signalées ou exclues des calculs correspondants, sans correction automatique par passage au jour suivant.
 
 \subsection{Première description de la population}
 
