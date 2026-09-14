@@ -46,7 +46,7 @@ Although the patient identifier is anonymized or pseudonymized, the workbook sti
 
 The repository is currently at the exploratory-analysis stage:
 
-- [`EDA_donees_bloc.ipynb`](EDA_donees_bloc.ipynb) provides an initial, unexecuted data-analysis workflow;
+- [`EDA_donees_bloc.ipynb`](EDA_donees_bloc.ipynb) provides an executable data-analysis and initial cleaning workflow;
 - [`data_dictionary_donees_bloc.md`](data_dictionary_donees_bloc.md) documents and validates the workbook schema;
 - [`docs/patient-workflow.md`](docs/patient-workflow.md) provides a first activity-diagram draft of the planned surgical-patient journey;
 - [`requirements.txt`](requirements.txt) lists the Python dependencies required by the notebook.
@@ -95,11 +95,14 @@ Obtain the workbook through the team's authorized sharing channel and keep it in
 resources/donees bloc anonyme pour centrale 2026.xlsx
 ```
 
-The notebook currently looks for the workbook in its working directory. Before running it, update its `DATA_FILE` configuration cell to:
+The notebook expects the workbook at this location through its `DATA_FILE` configuration:
 
 ```python
 DATA_FILE = Path("resources/donees bloc anonyme pour centrale 2026.xlsx")
 ```
+
+When executed, the notebook writes the filtered table to the ignored file
+`resources/donnees_bloc_nettoyees.xlsx`. The source workbook is not overwritten.
 
 ### 3. Start JupyterLab
 
