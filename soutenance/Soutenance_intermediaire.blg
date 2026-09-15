@@ -1,15 +1,15 @@
-[1] Config.pm:307> INFO - This is Biber 2.19
-[2] Config.pm:310> INFO - Logfile is 'Soutenance_intermediaire.blg'
-[944] biber-MSWIN64:340> INFO - === 
-[1288] Biber.pm:419> INFO - Reading 'Soutenance_intermediaire.bcf'
-[1822] Biber.pm:976> INFO - Using all citekeys in bib section 0
-[1904] Biber.pm:4419> INFO - Processing section 0
-[2030] Biber.pm:4610> INFO - Looking for bibtex file 'Etatdelart.bib' for section 0
-[2227] bibtex.pm:1713> INFO - LaTeX decoding ...
-[2278] bibtex.pm:1519> INFO - Found BibTeX data source 'Etatdelart.bib'
-[2730] UCollate.pm:68> INFO - Overriding locale 'fr-FR' defaults 'variable = shifted' with 'variable = non-ignorable'
-[2736] UCollate.pm:68> INFO - Overriding locale 'fr-FR' defaults 'normalization = NFD' with 'normalization = prenormalized'
-[2737] Biber.pm:4239> INFO - Sorting list 'nyt/global//global/global' of type 'entry' with template 'nyt' and locale 'fr-FR'
-[2737] Biber.pm:4245> INFO - No sort tailoring available for locale 'fr-FR'
-[2785] bbl.pm:660> INFO - Writing 'Soutenance_intermediaire.bbl' with encoding 'UTF-8'
-[2808] bbl.pm:763> INFO - Output to Soutenance_intermediaire.bbl
+[0] Config.pm:307> INFO - This is Biber 2.19
+[0] Config.pm:310> INFO - Logfile is 'Soutenance_intermediaire.blg'
+[165] biber-MSWIN64:340> INFO - === 
+[213] Biber.pm:419> INFO - Reading 'Soutenance_intermediaire.bcf'
+[361] Biber.pm:976> INFO - Using all citekeys in bib section 0
+[379] Biber.pm:4419> INFO - Processing section 0
+[399] Biber.pm:4610> INFO - Looking for bibtex file 'Etatdelart.bib' for section 0
+[486] bibtex.pm:1713> INFO - LaTeX decoding ...
+[499] bibtex.pm:1519> INFO - Found BibTeX data source 'Etatdelart.bib'
+[601] UCollate.pm:68> INFO - Overriding locale 'fr-FR' defaults 'variable = shifted' with 'variable = non-ignorable'
+[601] UCollate.pm:68> INFO - Overriding locale 'fr-FR' defaults 'normalization = NFD' with 'normalization = prenormalized'
+[601] Biber.pm:4239> INFO - Sorting list 'nyt/global//global/global' of type 'entry' with template 'nyt' and locale 'fr-FR'
+[601] Biber.pm:4245> INFO - No sort tailoring available for locale 'fr-FR'
+[609] bbl.pm:660> INFO - Writing 'Soutenance_intermediaire.bbl' with encoding 'UTF-8'
+[615] bbl.pm:763> INFO - Output to Soutenance_intermediaire.bbl
