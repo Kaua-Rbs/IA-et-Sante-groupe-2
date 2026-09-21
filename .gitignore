@@ -1,2 +1,5 @@
 # Local reference material and source documents
 /resources/
+
+# Python virtual environment
+/venv/
