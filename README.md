@@ -101,8 +101,9 @@ The notebook expects the workbook at this location through its `DATA_FILE` confi
 DATA_FILE = Path("resources/donees bloc anonyme pour centrale 2026.xlsx")
 ```
 
-When executed, the notebook writes the filtered table to the ignored file
-`resources/donnees_bloc_nettoyees.xlsx`. The source workbook is not overwritten.
+When executed, the notebook writes the fully preprocessed table to the ignored Parquet file
+`resources/donnees_bloc_pretraitees.parquet`. The export runs after all exclusions and derived
+measures, preserves numeric and datetime types, and does not overwrite the source workbook.
 
 ### 3. Start JupyterLab
 
