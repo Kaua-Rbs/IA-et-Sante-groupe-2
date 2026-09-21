@@ -47,6 +47,8 @@ Although the patient identifier is anonymized or pseudonymized, the workbook sti
 The repository is currently at the exploratory-analysis stage:
 
 - [`EDA_donees_bloc.ipynb`](EDA_donees_bloc.ipynb) provides an executable data-analysis and initial cleaning workflow;
+- [`preprocessing_los.ipynb`](preprocessing_los.ipynb) creates a leakage-conscious length-of-stay modeling table;
+- [`preprocessing_surgery_duration.ipynb`](preprocessing_surgery_duration.ipynb) creates a leakage-conscious operating-room-duration modeling table;
 - [`dashboard.py`](dashboard.py) provides an interactive, aggregate view of the preprocessed data;
 - [`data_dictionary_donees_bloc.md`](data_dictionary_donees_bloc.md) documents and validates the workbook schema;
 - [`docs/patient-workflow.md`](docs/patient-workflow.md) provides a first activity-diagram draft of the planned surgical-patient journey;
@@ -61,6 +63,8 @@ Predictive models, scheduling algorithms, comparative experiments, and an operat
 ```text
 .
 ├── EDA_donees_bloc.ipynb          # Initial exploratory data analysis
+├── preprocessing_los.ipynb        # Length-of-stay model preprocessing
+├── preprocessing_surgery_duration.ipynb # Surgery-duration model preprocessing
 ├── dashboard.py                    # Interactive aggregate-data dashboard
 ├── data_dictionary_donees_bloc.md # Description of the 30 source columns
 ├── docs/
@@ -117,7 +121,18 @@ jupyter lab
 
 Open `EDA_donees_bloc.ipynb`, select the virtual-environment kernel, and run the cells in order.
 
-### 4. Start the dashboard
+### 4. Prepare model datasets
+
+After running the EDA notebook, run the two model-specific preprocessing notebooks:
+
+- `preprocessing_los.ipynb` writes `resources/model_los_dataset.parquet`;
+- `preprocessing_surgery_duration.ipynb` writes `resources/model_surgery_duration_dataset.parquet`.
+
+Both outputs contain patient-disjoint temporal train, validation, and test splits. Columns beginning
+with `split_` are audit metadata and must not be passed to a model. The notebooks retain categorical
+features as strings so their encoding can be fitted inside each model pipeline without leakage.
+
+### 5. Start the dashboard
 
 After the notebook has created the preprocessed Parquet file, run:
 
