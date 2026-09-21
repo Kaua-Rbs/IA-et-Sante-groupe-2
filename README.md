@@ -47,19 +47,21 @@ Although the patient identifier is anonymized or pseudonymized, the workbook sti
 The repository is currently at the exploratory-analysis stage:
 
 - [`EDA_donees_bloc.ipynb`](EDA_donees_bloc.ipynb) provides an executable data-analysis and initial cleaning workflow;
+- [`dashboard.py`](dashboard.py) provides an interactive, aggregate view of the preprocessed data;
 - [`data_dictionary_donees_bloc.md`](data_dictionary_donees_bloc.md) documents and validates the workbook schema;
 - [`docs/patient-workflow.md`](docs/patient-workflow.md) provides a first activity-diagram draft of the planned surgical-patient journey;
-- [`requirements.txt`](requirements.txt) lists the Python dependencies required by the notebook.
+- [`requirements.txt`](requirements.txt) lists the Python dependencies required by the notebook and dashboard.
 
 The notebook covers schema inspection, missing values, duplicate rows, derived ages and durations, monthly and weekday activity, common clinical categories, operating-room timing, and duration comparisons by intervention type. Identifier columns are omitted from row-level previews and charts.
 
-Predictive models, scheduling algorithms, comparative experiments, and an end-user application have not yet been implemented.
+Predictive models, scheduling algorithms, comparative experiments, and an operational decision-support application have not yet been implemented.
 
 ## Repository structure
 
 ```text
 .
 ├── EDA_donees_bloc.ipynb          # Initial exploratory data analysis
+├── dashboard.py                    # Interactive aggregate-data dashboard
 ├── data_dictionary_donees_bloc.md # Description of the 30 source columns
 ├── docs/
 │   └── patient-workflow.md        # Versioned patient-journey diagram
@@ -114,6 +116,20 @@ jupyter lab
 ```
 
 Open `EDA_donees_bloc.ipynb`, select the virtual-environment kernel, and run the cells in order.
+
+### 4. Start the dashboard
+
+After the notebook has created the preprocessed Parquet file, run:
+
+```bash
+streamlit run dashboard.py
+```
+
+Use the sidebar to select a variable and one or more values—for example,
+`interv_type = Varices`. The dashboard compares the selection with the complete dataset, shows
+room-time and corrected-stay distributions, provides other numeric measures, breaks the selection
+down by a second category, and plots activity over time. It intentionally presents aggregate
+results only and does not expose patient or staff-level rows.
 
 ## Planned methodology
 
