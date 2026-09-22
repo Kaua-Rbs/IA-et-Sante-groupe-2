@@ -1,0 +1,8 @@
+---
+- name: Deploy a new server
+  hosts: all
+  roles:
+    - common
+    - firewall
+    - podman
+    - hestia

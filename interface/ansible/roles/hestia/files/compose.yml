@@ -1,0 +1,44 @@
+services:
+  postgres:
+    image: postgres:latest # To download a specific version, here the version 17.4 of Postgresql
+    container_name: postgres
+    volumes:
+      - ./postgresql_data:/var/lib/postgresql/data
+      - ./initdb.d:/docker-entrypoint-initdb.d
+    env_file:
+      - .env    
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432" # HOST_PORT:CONTAINER_PORT
+    networks:
+      - internal
+
+  pgadmin:
+    image: dpage/pgadmin4:latest # To download the latest image
+    container_name: pgadmin
+    volumes:
+      - ./pgadmin_working_dir:/var/lib/pgadmin
+      - ./pgadmin_config_dir:/pgadmin4
+    env_file:
+      - .env    
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      - postgres
+    ports:
+      - "5433:3000" # HOST_PORT:CONTAINER_PORT
+    networks:
+      - internal
+
+  # TODO : import the app, from github registry (CI/CD)
+
+networks:
+  internal:
+    driver: bridge
+    x-podman:
+      dns_enabled: true
