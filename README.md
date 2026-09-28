@@ -59,7 +59,13 @@ The repository is currently at the exploratory-analysis stage:
 
 The notebook covers schema inspection, missing values, duplicate rows, derived ages and durations, monthly and weekday activity, common clinical categories, operating-room timing, and duration comparisons by intervention type. Identifier columns are omitted from row-level previews and charts.
 
-Predictive models and an operational decision-support application have not yet been implemented. The scheduling layer is available as a standalone module whose methods are validated against an exact brute-force optimum on a small instance.
+An initial asynchronous coordination skeleton is available in [`hospital_sim/`](hospital_sim/),
+with adapter interfaces, versioned state, explicit proposal validation and acceptance, and a
+synthetic disruption demonstration. See the [coordination-core guide](docs/coordination-core.md)
+for its boundaries and integration points. It is infrastructure for future simulation and agents,
+not a clinical scheduler or a complete multi-agent system.
+
+Predictive models and an operational decision-support application have not yet been implemented. The scheduling layer is available as a standalone module whose methods are validated against an exact brute-force optimum on a small instance. The coordination skeleton is not yet wired to the optimizer.
 
 ## Repository structure
 

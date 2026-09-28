@@ -16,3 +16,6 @@ resultats/
 
 # Outils OpenCode locaux (config/skills personnels, node_modules volumineux)
 .opencode/
+
+# Generated exports
+/artifacts/
