@@ -62,7 +62,7 @@ synthetic disruption demonstration. See the [coordination-core guide](docs/coord
 for its boundaries and integration points. A room-only Mesa simulation now connects the cleaned
 workbook to this coordinator and compares static and reactive baseline schedules.
 
-Trained ML models, metaheuristic solvers, and an operational decision-support application remain to be integrated. The simulation currently uses historical median duration estimates and a simple scheduling baseline.
+The [optimizer package](optimiseur/README.md) supplies five metaheuristics, a standalone CLI, charts, a Tkinter interface, and an [explanatory notebook](notebooks/guide_optimisation.ipynb). Trained ML models and an operational decision-support application remain to be integrated. The simulation currently uses historical median duration estimates and a simple scheduling baseline.
 
 ## Repository structure
 

@@ -1,12 +1,13 @@
-# Local reference material and source documents
+# Local data, environments and caches
 /resources/
-
-# Python virtual environment
 /venv/
-
-# Python runtime caches
+.venv/
 __pycache__/
 *.py[cod]
-
-# Generated exports
+.ipynb_checkpoints/
+# Generated results
 /artifacts/
+resultats/
+# Local tools and download metadata
+.opencode/
+*:Zone.Identifier
