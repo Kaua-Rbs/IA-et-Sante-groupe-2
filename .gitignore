@@ -1,5 +1,18 @@
 # Local reference material and source documents
 /resources/
 
-# Python virtual environment
+# Environnement Python
+.venv/
 /venv/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Sorties generees par l'optimiseur (CSV/PNG)
+resultats/
+
+# Metadonnees Windows telechargees
+*:Zone.Identifier
+
+# Outils OpenCode locaux (config/skills personnels, node_modules volumineux)
+.opencode/
