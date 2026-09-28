@@ -77,8 +77,11 @@ class Coordinator(Generic[StateT, ScheduleT]):
             raise RuntimeError("Use the coordinator from a single event loop")
         self._loop = loop
 
-    def submit(self, event: HospitalEvent) -> None:
-        """Apply an event atomically, then request asynchronous replanning."""
+    def submit(self, event: HospitalEvent, *, replan: bool = True) -> None:
+        """Apply an event; observations invalidate proposals without requesting a solve.
+
+        An already pending request is preserved and uses the latest state.
+        """
         self._check_loop()
         if event.event_id in self._seen_events:
             raise ValueError("Duplicate event identifier")
@@ -94,8 +97,8 @@ class Coordinator(Generic[StateT, ScheduleT]):
         self._event_received_at = monotonic()
         self._proposal = None
         self._schedule_needs_review = self._state.accepted_schedule is not None
-        self._pending = True
-        if self._task is None or self._task.done():
+        self._pending = self._pending or replan
+        if self._pending and (self._task is None or self._task.done()):
             self._task = asyncio.create_task(self._run(), name="hospital-coordinator")
 
     def _validate(self, proposal: Proposal[ScheduleT]) -> ValidationResult:

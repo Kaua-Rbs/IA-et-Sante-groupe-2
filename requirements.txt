@@ -7,3 +7,4 @@ seaborn>=0.13
 plotly>=5.24
 streamlit>=1.50
 jupyterlab>=4.3
+mesa[network]==3.5.1

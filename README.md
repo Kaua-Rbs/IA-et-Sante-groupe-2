@@ -44,7 +44,7 @@ Although the patient identifier is anonymized or pseudonymized, the workbook sti
 
 ## Current state
 
-The repository is currently at the exploratory-analysis stage:
+The repository includes exploratory analysis and an initial simulation benchmark:
 
 - [`EDA_donees_bloc.ipynb`](EDA_donees_bloc.ipynb) provides an executable data-analysis and initial cleaning workflow;
 - [`preprocessing_los.ipynb`](preprocessing_los.ipynb) creates a leakage-conscious length-of-stay modeling table;
@@ -52,17 +52,17 @@ The repository is currently at the exploratory-analysis stage:
 - [`dashboard.py`](dashboard.py) provides an interactive, aggregate view of the preprocessed data;
 - [`data_dictionary_donees_bloc.md`](data_dictionary_donees_bloc.md) documents and validates the workbook schema;
 - [`docs/patient-workflow.md`](docs/patient-workflow.md) provides a first activity-diagram draft of the planned surgical-patient journey;
-- [`requirements.txt`](requirements.txt) lists the Python dependencies required by the notebook and dashboard.
+- [`requirements.txt`](requirements.txt) lists the Python dependencies required by the notebooks, dashboard, and Mesa simulation.
 
 The notebook covers schema inspection, missing values, duplicate rows, derived ages and durations, monthly and weekday activity, common clinical categories, operating-room timing, and duration comparisons by intervention type. Identifier columns are omitted from row-level previews and charts.
 
 An initial asynchronous coordination skeleton is available in [`hospital_sim/`](hospital_sim/),
 with adapter interfaces, versioned state, explicit proposal validation and acceptance, and a
 synthetic disruption demonstration. See the [coordination-core guide](docs/coordination-core.md)
-for its boundaries and integration points. It is infrastructure for future simulation and agents,
-not a clinical scheduler or a complete multi-agent system.
+for its boundaries and integration points. A room-only Mesa simulation now connects the cleaned
+workbook to this coordinator and compares static and reactive baseline schedules.
 
-Predictive models, real scheduling algorithms, comparative experiments, and an operational decision-support application have not yet been implemented.
+Trained ML models, metaheuristic solvers, and an operational decision-support application remain to be integrated. The simulation currently uses historical median duration estimates and a simple scheduling baseline.
 
 ## Repository structure
 
@@ -84,7 +84,7 @@ Predictive models, real scheduling algorithms, comparative experiments, and an o
 
 ### 1. Create a Python environment
 
-Python 3.10 or newer is recommended.
+Python 3.12 or newer is required to install the full dependencies, including Mesa 3.5.1.
 
 ```bash
 python3 -m venv .venv
@@ -249,3 +249,17 @@ At least one teammate should approve a pull request before it is merged. Reviewe
 Several business rules must be confirmed before modeling results can be used operationally, particularly the meaning of zero-valued timestamps, whether interventions can cross midnight, the precise role represented by `Praticien`, and whether `Date Inter` is always the principal intervention date.
 
 All current analyses are exploratory. Any future recommendation system must be validated on real hospital workflows and should support—not replace—clinical and operational judgment.
+
+## Mesa simulation on historical workloads
+
+A room-only Mesa 3.5.1 experiment connects the cleaned Excel dataset to the
+coordination core. It compares static and reactive baseline scheduling under
+explicit resource assumptions. Python 3.12+ is required for this experiment.
+
+```bash
+python -m pip install -r requirements.txt
+python -m hospital_sim.experiment --output artifacts/mesa-first-run
+```
+
+See [the simulation guide](docs/mesa-historical-simulation.md) for data mapping,
+assumptions, commands, metrics, and the adapter interface for future metaheuristics.

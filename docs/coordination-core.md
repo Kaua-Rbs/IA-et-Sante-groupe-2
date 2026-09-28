@@ -1,10 +1,10 @@
 # Coordination core for the hospital simulation
 
-This is asynchronous coordination infrastructure for future agents, not a complete multi-agent optimizer. Clinical rules, real models and solvers, Mesa, backend endpoints, and frontend integration are not implemented.
+This is asynchronous coordination infrastructure for future agents, not a complete multi-agent optimizer. Clinical rules, real models and metaheuristic solvers, backend endpoints, and frontend integration remain unimplemented. A room-only Mesa adapter and historical workload experiment are now available; see [the simulation guide](mesa-historical-simulation.md).
 
 ## Run and verify
 
-Python 3.10 or newer is required, with no dependencies beyond the standard library. From the repository root:
+The standalone coordinator demo requires Python 3.10 or newer, with no dependencies beyond the standard library. The Mesa historical experiment and full requirements need Python 3.12 or newer. From the repository root:
 
 ```bash
 python -m hospital_sim.demo
@@ -37,7 +37,7 @@ Prediction protocols are synchronous and are not called by the coordinator. The 
 
 Use the coordinator on one running asyncio event loop. State application and validation are synchronous and must be fast and nonblocking.
 
-1. `submit(event)` applies an event, increments the state version, clears any exposed proposal, and marks an existing accepted schedule for review.
+1. `submit(event, replan=True)` applies an event, increments the state version, clears any exposed proposal, and marks an existing accepted schedule for review. Use `replan=False` to synchronize an observation without creating a new scheduling request; an already pending request is preserved.
 2. At most one solver request runs. Further events immediately update the state and are coalesced into one pending request against the latest snapshot.
 3. Outdated results are discarded before validation. Candidates bearing the wrong request version are rejected.
 4. A current feasible candidate becomes available through `coordinator.proposal`, without changing the accepted schedule.
@@ -61,4 +61,4 @@ Timeouts and shutdown require cooperative asyncio cancellation. Future CPU-bound
 
 ## Next step
 
-Once the scheduling scope is decided, connect a real state/scheduler adapter and the shared validator, then add a Mesa driver and additional event handlers. The coordinator remains the sole owner of accepted state: future resource agents or cooperating optimization workers submit proposals rather than directly changing the schedule.
+Once the scheduling scope is decided, connect a real state/scheduler adapter and the shared validator, then extend the existing room-only Mesa driver with additional event handlers. The coordinator remains the sole owner of accepted state: future resource agents or cooperating optimization workers submit proposals rather than directly changing the schedule.
