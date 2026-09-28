@@ -1,0 +1,14 @@
+# Cœur du moteur d'optimisation et visualisation
+numpy
+pandas
+matplotlib
+seaborn
+
+# Lecture du classeur Excel et export Parquet (EDA)
+openpyxl
+pyarrow
+
+# Exécution des notebooks
+jupyter
+nbformat
+ipykernel
