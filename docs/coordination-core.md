@@ -1,6 +1,6 @@
 # Coordination core for the hospital simulation
 
-This is asynchronous coordination infrastructure for future agents, not a complete multi-agent optimizer. Clinical rules, real models and metaheuristic solvers, backend endpoints, and frontend integration remain unimplemented. A room-only Mesa adapter and historical workload experiment are now available; see [the simulation guide](mesa-historical-simulation.md).
+This is asynchronous coordination infrastructure for future agents, not a complete multi-agent optimizer. Clinical rules, trained prediction models, backend endpoints, and frontend integration remain unimplemented. Five metaheuristic adapters now support the room-only experiment; see [the assembly guide](metaheuristics-mesa-assembly.md). A room-only Mesa adapter and historical workload experiment are now available; see [the simulation guide](mesa-historical-simulation.md).
 
 ## Run and verify
 

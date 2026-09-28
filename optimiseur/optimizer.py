@@ -24,6 +24,8 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 
+from .search_control import controlled_search
+
 # Noms des methodes : source de verite unique, reutilisee par plotting.py,
 # app_gui.py et run_demo.py.
 METHODE_RECUIT = "Recuit simule"
@@ -216,6 +218,8 @@ class RunResult:
     meilleure_fitness: float
     historique: pd.DataFrame  # colonnes : HISTORY_COLUMNS
     duree_s: float = field(default=0.0)
+    evaluations: int = 0
+    stop_reason: str = "iterations"
 
 
 def format_duree(duree_s: float) -> str:
@@ -246,6 +250,7 @@ def _record_every(n_iter: int, n_points: int = 300) -> int:
     return max(1, n_iter // n_points)
 
 
+@controlled_search
 def simulated_annealing(
     problem: PlanningProblem,
     T0: float = 50.0,
@@ -275,6 +280,7 @@ def simulated_annealing(
     return _finalize(METHODE_RECUIT, best, best_f, rows, t0, current_f, n_iter)
 
 
+@controlled_search
 def tabu_search(
     problem: PlanningProblem,
     n_iter: int = 250,
@@ -315,6 +321,7 @@ def tabu_search(
     return _finalize(METHODE_TABOU, best, best_f, rows, t0, current_f, n_iter)
 
 
+@controlled_search
 def tabu_simulated_annealing(
     problem: PlanningProblem,
     n_iter: int = 400,
@@ -370,6 +377,7 @@ def tabu_simulated_annealing(
     return _finalize(METHODE_HYBRIDE, best, best_f, rows, t0, current_f, n_iter)
 
 
+@controlled_search
 def genetic_algorithm(
     problem: PlanningProblem,
     pop_size: int = 40,
@@ -396,7 +404,7 @@ def genetic_algorithm(
         return population[idx]
 
     def crossover(p1, p2):
-        if rng.random() > p_cross:
+        if len(pids) < 2 or rng.random() > p_cross:
             return dict(p1)
         cut = rng.randint(1, len(pids) - 1)
         return {pid: (p1[pid] if i < cut else p2[pid]) for i, pid in enumerate(pids)}
@@ -425,6 +433,7 @@ def genetic_algorithm(
     )
 
 
+@controlled_search
 def ant_colony_optimization(
     problem: PlanningProblem,
     n_ants: int = 15,
@@ -559,9 +568,22 @@ def exact_bruteforce(problem: PlanningProblem):
 
 
 def small_validation_instance(seed: int = 1):
-    """Petite instance (7 patients, 4 vacations) assez petite pour un
-    calcul exact par force brute, utilisee pour verifier l'optimalite."""
-    patients_df, vacations_df = generate_test_data(
-        n_patients=7, n_days=1, vacations_par_jour_par_specialite=1, seed=seed
-    )
-    return patients_df, vacations_df
+    """Sept patients, deux vacations compatibles : 128 affectations possibles."""
+    patients = pd.DataFrame({
+        "patient_id": range(7), "specialite": ["X"] * 7,
+        "duree_operatoire": [30, 40, 50, 60, 70, 80, 90],
+        "duree_sejour": [0] * 7,
+    })
+    vacations = pd.DataFrame({
+        "vacation_id": [0, 1], "jour": [0, 0],
+        "specialite": ["X", "X"], "capacite_min": [240, 240],
+    })
+    return patients, vacations
+
+METHOD_NAMES = {
+    "simulated_annealing": METHODE_RECUIT,
+    "tabu_search": METHODE_TABOU,
+    "genetic_algorithm": METHODE_GENETIQUE,
+    "tabu_simulated_annealing": METHODE_HYBRIDE,
+    "ant_colony_optimization": METHODE_FOURMIS,
+}

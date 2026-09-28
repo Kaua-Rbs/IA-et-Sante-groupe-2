@@ -7,7 +7,7 @@ from statistics import mean
 
 import mesa
 
-from .contracts import EventKind, HospitalEvent, Snapshot
+from .contracts import EventKind, HospitalEvent, Proposal, Snapshot
 from .coordinator import Coordinator
 from .domain import CaseState, HospitalState, RoomState, Schedule, SimulationConfig
 from .historical_data import DailyScenario
@@ -169,24 +169,51 @@ def metrics(model, initial, schedules, outcomes, replans):
     }
 
 
-async def run_day(scenario, config, policy="reactive", scheduler=None, timeout_seconds=5.0):
+class _InitialReplay:
+    """Replay a saved plan through the same validation and acceptance boundary."""
+    def __init__(self, initial, scheduler):
+        self.initial = initial
+        self.scheduler = scheduler
+
+    async def propose(self, request):
+        if self.initial is not None:
+            schedule, self.initial = self.initial, None
+            return Proposal(schedule, request.snapshot.version)
+        return await self.scheduler.propose(request)
+
+
+async def run_day(scenario, config, policy="reactive", scheduler=None, timeout_seconds=5.0,
+                  initial_schedule=None, initial_report=None):
     """Run a deterministic scenario; injected schedulers use only public state."""
     if policy not in ("static", "reactive"):
         raise ValueError("Policy must be static or reactive")
     model = HospitalModel(scenario, config)
     adapter = ObservationAdapter()
     initial_state = replace(model.observed_state(), minute=config.opening)
+    scheduler = scheduler or BaselineScheduler()
+    replay = _InitialReplay(initial_schedule, scheduler)
     coordinator = Coordinator(Snapshot(config.opening, 0, initial_state),
-                              adapter, scheduler or BaselineScheduler(), RoomValidator(),
+                              adapter, replay, RoomValidator(),
                               timeout_seconds=timeout_seconds)
     schedules = []
     initial = Schedule((), tuple(c.case_id for c in scenario.cases))
     replans = 0
     outcome_index = 0
     async with coordinator:
+        if initial_schedule is not None:
+            # Accept the common initial plan before the first disruption is revealed.
+            coordinator.submit(HospitalEvent(
+                "initial-plan", config.opening, EventKind.SIMULATION_OBSERVATION,
+                {"state": initial_state},
+            ))
+            await coordinator.wait_idle()
+            if coordinator.proposal is not None:
+                coordinator.accept(coordinator.snapshot.version)
+            initial = coordinator.snapshot.accepted_schedule or initial
+            schedules.append(schedule_record(initial, config.opening, "initial"))
         while model.has_work():
             model.step()
-            first = model.minute == config.opening
+            first = model.minute == config.opening and initial_schedule is None
             replan = first or (policy == "reactive" and model.availability_changed)
             if replan and not first:
                 replans += 1
@@ -213,10 +240,25 @@ async def run_day(scenario, config, policy="reactive", scheduler=None, timeout_s
         "case_id": a.case.case_id, "status": a.status,
         "room_id": a.actual_room, "start": a.actual_start, "finish": a.actual_finish,
     } for a in model.episodes.values()]
+    measured = metrics(model, initial, schedules, coordinator.outcomes, replans)
+    reports = list(getattr(scheduler, "reports", []))
+    if initial_report is not None:
+        initial_seconds = initial_report["elapsed_seconds"]
+        initial_solver_seconds = next((o.solver_seconds for o in coordinator.outcomes
+                                       if o.request_version == 1 and o.solver_seconds), 0.0)
+        measured["initial_planning_seconds"] = initial_seconds
+        measured["replanning_solver_seconds"] = measured["solver_seconds"] - initial_solver_seconds
+        measured["solver_seconds"] = initial_seconds + measured["replanning_solver_seconds"]
+        reports = [initial_report] + reports
+    if reports:
+        measured["fitness_evaluations"] = sum(r["evaluations"] for r in reports)
+        measured["search_failures"] = sum(r["stop_reason"] in
+            ("worker_error", "invalid_result", "cancelled", "initial_failure") for r in reports)
+        measured["search_deadline_stops"] = sum(r["stop_reason"] == "deadline" for r in reports)
     return {
         "date": scenario.date.isoformat(), "policy": policy,
         "scenario": "outage" if config.outage else "no_outage",
-        "metrics": metrics(model, initial, schedules, coordinator.outcomes, replans),
+        "metrics": measured, "search_reports": reports,
         "schedule_history": schedules, "executed_schedule": executed,
         "events": model.events,
     }

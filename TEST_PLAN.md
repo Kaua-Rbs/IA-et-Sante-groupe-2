@@ -8,11 +8,11 @@ reproductibles.
 
 ```bash
 # toute la suite (depuis la racine du depot)
-.venv/bin/python -m unittest discover -t . -s tests -v
+venv/bin/python -m unittest discover -t . -s tests -v
 
 # un seul module / une seule classe
-.venv/bin/python -m unittest tests.test_optimizer -v
-.venv/bin/python -m unittest tests.test_optimizer.TestFitness -v
+venv/bin/python -m unittest tests.test_optimizer -v
+venv/bin/python -m unittest tests.test_optimizer.TestFitness -v
 ```
 
 Aucune dependance supplementaire : tout repose sur `unittest` (stdlib). La
@@ -22,14 +22,14 @@ si la ressource est absente.
 
 ## Resultat attendu
 
-`Ran 44 tests ... OK` en une dizaine de secondes. Toute regression doit se
+La suite complete doit terminer avec OK (tests tkinter optionnels). Toute regression doit se
 traduire par un test en echec, pas par une inspection manuelle.
 
 ## Ce qui est couvert
 
 ### Environnement (`test_environment.py`)
 - imports des dependances requises (numpy, pandas, matplotlib, seaborn,
-  openpyxl, pyarrow, nbformat) et Python 3.14 ;
+  openpyxl, pyarrow, nbformat) et Python >= 3.12 ;
 - tkinter local : import, creation d'une fenetre (si `DISPLAY`), import de
   `app_gui`.
 
@@ -79,7 +79,7 @@ traduire par un test en echec, pas par une inspection manuelle.
 ## Hors perimetre (verification manuelle)
 
 - Rendu visuel de `optimiseur/app_gui.py` : lancer
-  `.venv/bin/python -m optimiseur.app_gui` et verifier les 6 onglets (un test
+  `venv/bin/python -m optimiseur.app_gui` et verifier les 6 onglets (un test
   automatique construit la fenetre et lance une optimisation, mais pas la boucle
   d'evenements interactive).
 - Qualite clinique du proxy `specialite` (CCAM/GHM) : validation metier requise.
@@ -89,8 +89,16 @@ traduire par un test en echec, pas par une inspection manuelle.
 
 ## Checklist de non-regression avant commit
 
-1. `.venv/bin/python -m unittest discover -t . -s tests -v` -> OK.
-2. `.venv/bin/python -m optimiseur.run_demo --n-patients 30 --n-days 5 --out resultats`
+1. `venv/bin/python -m unittest discover -t . -s tests -v` -> OK.
+2. `venv/bin/python -m optimiseur.run_demo --n-patients 30 --n-days 5 --out resultats`
    -> 5 `[OPTIMUM ATTEINT]`.
 3. Si le schema de donnees change : regenerer le Parquet EDA et relancer la
    suite (les tests reels se declenchent automatiquement).
+
+## Couplage Mesa
+
+Voir tests/test_metaheuristics_mesa.py : decodeur commun, ordre strict des
+objectifs, reference exacte a 128 affectations, budgets des cinq methodes,
+solutions initiales partagees, sorties de processus et absence de fuite des
+durees observees. Le guide docs/metaheuristics-mesa-assembly.md donne les
+commandes de verification sur donnees historiques et instances generees.

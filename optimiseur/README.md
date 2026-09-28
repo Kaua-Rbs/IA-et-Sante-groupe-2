@@ -41,7 +41,7 @@ resultats/                # sorties générées : CSV + PNG (non versionné)
 .venv/bin/python -m unittest discover -t . -s tests -v
 ```
 
-44 tests (stdlib `unittest`, ~10 s, sans affichage) : modèle et fonction de
+Suite `unittest` (sans affichage) : modèle et fonction de
 coût, les 5 métaheuristiques (qui doivent atteindre l'optimum exact sur la
 petite instance), pont de données, graphiques, CLI `optimiseur.run_demo` et
 intégrité des notebooks. Les tests nécessitant le Parquet EDA réel ou tkinter
@@ -49,16 +49,9 @@ sont sautés automatiquement si la ressource est absente. Détail : `TEST_PLAN.m
 
 ## Installation
 
-Le Python système est 3.14 et `ensurepip` / `python3-venv` peuvent être absents.
-Créer l'environnement avec `virtualenv` puis installer les dépendances :
-
-```bash
-python3 -m virtualenv .venv          # PAS python3 -m venv
-.venv/bin/pip install -r requirements.txt
-```
-
-Toujours utiliser `.venv/bin/python` (versions de fait : pandas 3.0, numpy 2.5,
-matplotlib 3.11, pyarrow 25).
+Python 3.12 ou plus récent est requis pour le dépôt assemblé avec Mesa 3.5.1.
+Utiliser l'environnement existant (ici `venv/bin/python`) ou créer un environnement
+avec `python3 -m venv .venv`, puis installer `requirements.txt`.
 
 Tkinter est fourni avec la plupart des distributions Python (Windows, macOS).
 Ici `python3-tk` est installé au niveau système ; si `import tkinter` échoue :
@@ -155,9 +148,8 @@ Les poids (`w_vacation`, `w_lits`, `w_balance`) sont réglables dans `PlanningPr
 
 `optimiseur.optimizer.exact_bruteforce()` calcule l'optimum exact par
 énumération complète sur une petite instance (`small_validation_instance`,
-7 patients). C'est la seule taille où un calcul exact reste possible : au-delà,
-le nombre de combinaisons explose, ce qui est précisément la raison d'être des
-métaheuristiques. `run_demo` affiche automatiquement cette vérification.
+7 patients, 2 vacations compatibles, soit 128 affectations). Le coût de cette
+énumération dépend du produit des nombres de choix par patient. `run_demo` affiche automatiquement cette vérification.
 
 ## Limites connues / pistes d'amélioration
 
@@ -168,3 +160,10 @@ métaheuristiques. `run_demo` affiche automatiquement cette vérification.
   pour de plus gros volumes ou une meilleure qualité de convergence.
 - Le graphique de planning peut devenir dense au-delà d'une trentaine de
   vacations — envisager une vue filtrée par jour pour de gros volumes.
+
+## Couplage Mesa
+
+Le [guide de couplage](../docs/metaheuristics-mesa-assembly.md) décrit le modèle
+de salles, son objectif distinct et les budgets communs. Les algorithmes acceptent
+aussi `initial_solution` et un `SearchControl` optionnels; les appels historiques
+conservent leur comportement.

@@ -5,6 +5,10 @@ identical historical cases. It uses Mesa **3.5.1**, patient-episode agents, and 
 existing asynchronous coordinator. It does not reconstruct the hospital's actual
 rooms, waiting list, or original scheduling decisions.
 
+The five metaheuristics are now connected through the shared room decoder.
+See [the assembly guide](metaheuristics-mesa-assembly.md) for all-method commands,
+budgets, generated workloads and the comparison protocol.
+
 ## Run
 
 Use Python **3.12 or newer**, from the repository root:
@@ -94,7 +98,7 @@ sooner than predicted.
 The baseline sorts waiting cases by predicted duration, then episode ID, and
 assigns each to the earliest available room (room ID breaks ties). Cases without
 a start before closing remain explicitly unassigned. It is a benchmark for the
-pending metaheuristics.
+metaheuristic comparisons.
 
 **Static:** retain initial room assignments and order; shift execution later when
 occupancy, turnover or closure requires it.

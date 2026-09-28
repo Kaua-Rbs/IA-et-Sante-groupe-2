@@ -62,7 +62,7 @@ synthetic disruption demonstration. See the [coordination-core guide](docs/coord
 for its boundaries and integration points. A room-only Mesa simulation now connects the cleaned
 workbook to this coordinator and compares static and reactive baseline schedules.
 
-The [optimizer package](optimiseur/README.md) supplies five metaheuristics, a standalone CLI, charts, a Tkinter interface, and an [explanatory notebook](notebooks/guide_optimisation.ipynb). Trained ML models and an operational decision-support application remain to be integrated. The simulation currently uses historical median duration estimates and a simple scheduling baseline.
+The [optimizer package](optimiseur/README.md) supplies five metaheuristics, a standalone CLI, charts, a Tkinter interface, and an [explanatory notebook](notebooks/guide_optimisation.ipynb). Trained ML models and an operational decision-support application remain to be integrated. The simulation uses historical median duration estimates and compares the baseline with all five methods through a shared room decoder. See [the assembly guide](docs/metaheuristics-mesa-assembly.md).
 
 ## Repository structure
 
@@ -253,7 +253,7 @@ All current analyses are exploratory. Any future recommendation system must be v
 ## Mesa simulation on historical workloads
 
 A room-only Mesa 3.5.1 experiment connects the cleaned Excel dataset to the
-coordination core. It compares static and reactive baseline scheduling under
+coordination core. It compares static and reactive scheduling under
 explicit resource assumptions. Python 3.12+ is required for this experiment.
 
 ```bash
@@ -263,3 +263,7 @@ python -m hospital_sim.experiment --output artifacts/mesa-first-run
 
 See [the simulation guide](docs/mesa-historical-simulation.md) for data mapping,
 assumptions, commands, metrics, and the adapter interface for future metaheuristics.
+
+Run all methods with `--methods baseline annealing tabu genetic hybrid aco`.
+The [assembly guide](docs/metaheuristics-mesa-assembly.md) provides exact small
+benchmarks, generated 100/300-case workloads, and paired comparison commands.
