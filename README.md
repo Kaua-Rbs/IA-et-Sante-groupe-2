@@ -52,11 +52,14 @@ The repository is currently at the exploratory-analysis stage:
 - [`dashboard.py`](dashboard.py) provides an interactive, aggregate view of the preprocessed data;
 - [`data_dictionary_donees_bloc.md`](data_dictionary_donees_bloc.md) documents and validates the workbook schema;
 - [`docs/patient-workflow.md`](docs/patient-workflow.md) provides a first activity-diagram draft of the planned surgical-patient journey;
-- [`requirements.txt`](requirements.txt) lists the Python dependencies required by the notebook and dashboard.
+- [`optimiseur/`](optimiseur/README.md) provides five metaheuristics (simulated annealing, tabu search, genetic algorithm, a tabu × annealing hybrid, and ant-colony optimization), a Tkinter GUI, a headless demo CLI, and a bridge from the preprocessed EDA Parquet to the optimizer input schema;
+- [`notebooks/guide_optimisation.ipynb`](notebooks/guide_optimisation.ipynb) walks from the EDA data to the five methods;
+- [`tests/`](tests) contains the unittest suite documented in [`TEST_PLAN.md`](TEST_PLAN.md);
+- [`requirements.txt`](requirements.txt) lists the Python dependencies required by the notebooks, dashboard, and optimizer.
 
 The notebook covers schema inspection, missing values, duplicate rows, derived ages and durations, monthly and weekday activity, common clinical categories, operating-room timing, and duration comparisons by intervention type. Identifier columns are omitted from row-level previews and charts.
 
-Predictive models, scheduling algorithms, comparative experiments, and an operational decision-support application have not yet been implemented.
+Predictive models and an operational decision-support application have not yet been implemented. The scheduling layer is available as a standalone module whose methods are validated against an exact brute-force optimum on a small instance.
 
 ## Repository structure
 
@@ -67,6 +70,10 @@ Predictive models, scheduling algorithms, comparative experiments, and an operat
 ├── preprocessing_surgery_duration.ipynb # Surgery-duration model preprocessing
 ├── dashboard.py                    # Interactive aggregate-data dashboard
 ├── data_dictionary_donees_bloc.md # Description of the 30 source columns
+├── optimiseur/                     # Operating-room scheduling metaheuristics
+├── notebooks/
+│   └── guide_optimisation.ipynb   # Step-by-step optimizer guide
+├── tests/                          # Unittest suite (see TEST_PLAN.md)
 ├── docs/
 │   └── patient-workflow.md        # Versioned patient-journey diagram
 ├── requirements.txt               # Python analysis dependencies
