@@ -9,6 +9,8 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{amsmath}
+\usepackage{tikz}
+\usetikzlibrary{babel}
 \graphicspath{{figures/}}
 
 \setbeamercolor{frametitle}{fg=white,bg=blue!55!black}
@@ -55,6 +57,62 @@
        convergence a budget egal (300 patients, 3\,s).}
     \end{column}
   \end{columns}
+\end{frame}
+
+% Couplage hospital_sim : campagne median/oracle, 1 152 executions.
+% Sources : artifacts/full-duration-comparison/{median,oracle}/large/summary.csv
+% Filtre : scenario=outage, policy=reactive. Moyennes par taille sur
+% 6 methodes x 3 graines x 2 echantillons, soit 36 executions par mode.
+% 100 cas : termines 96.2222 / 99.5833 ; depassement 952.8333 / 942.8056 min.
+% 300 cas : termines 286.9722 / 300 ; depassement 3104.8333 / 3714.9722 min.
+% L'oracle connait les durees d'occupation, mais pas les fermetures futures.
+\begin{frame}[t]{Intégration SMA : métaheuristiques + Mesa}
+  \small
+  \centering
+  \textbf{Simulation à la minute :} un agent par épisode, des salles comme ressources.
+
+  \vspace{3pt}
+  \begin{tikzpicture}[
+      box/.style={draw=blue!55!black,fill=blue!5!white,
+                  text width=3.05cm,minimum height=1.15cm,align=center,
+                  font=\scriptsize,inner sep=4pt},
+      flow/.style={->,>=stealth,thick,draw=blue!55!black}]
+    \node[box] (data) at (0,0) {\textbf{Durées d'occupation}\\Médianes ou oracle (exactes)};
+    \node[box] (solver) at (4.5,0) {\textbf{Planificateur}\\5 méthodes + glouton};
+    \node[box] (mesa) at (9,0) {\textbf{Exécution Mesa}\\Patients en attente, en cours, terminés};
+    \draw[flow] (data) -- (solver);
+    \draw[flow] (solver) -- node[above,font=\tiny,align=center]{planning\\validé} (mesa);
+    \draw[flow] (mesa.south) -- ++(0,-0.5) -| (solver.south);
+    \node[font=\scriptsize,text=blue!55!black,anchor=north] at (6.75,-1.32)
+      {Fermeture / réouverture : replanifier les cas en attente};
+  \end{tikzpicture}
+
+  \vspace{-3pt}
+  {\scriptsize\textbf{Charges générées : fermeture d'une salle, politique réactive}}
+  \vspace{2pt}
+
+  {\scriptsize
+  \setlength{\tabcolsep}{11pt}
+  \begin{tabular}{lrrrr}
+    \toprule
+    & \multicolumn{2}{c}{Interventions terminées}
+    & \multicolumn{2}{c}{Dépassement cumulé (min)} \\
+    \cmidrule(lr){2-3}\cmidrule(lr){4-5}
+    Charge & Médianes & Oracle & Médianes & Oracle \\
+    \midrule
+    100 cas & 96{,}2 & \textbf{99{,}6} & 953 & \textbf{943} \\
+    300 cas & 287{,}0 & \textbf{300{,}0} & 3\,105 & 3\,715 \\
+    \bottomrule
+  \end{tabular}}
+
+  \vspace{4pt}
+  {\small\color{blue!55!black}\textbf{Durées exactes : davantage de cas réalisés, parfois plus de dépassement.}}
+
+  \vspace{3pt}
+  {\tiny Moyennes : 6 méthodes $\times$ 3 graines $\times$ 2 échantillons par taille ;
+  1\,000 évaluations / recherche.\\
+  Mêmes salles et durées réelles entre modes ; dépassement incluant la remise en état.
+  Oracle = information parfaite, pas une prédiction ML.}
 \end{frame}
 
 % =============================================================================
