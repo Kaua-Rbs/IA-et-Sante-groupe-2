@@ -82,4 +82,147 @@
   \end{columns}
 \end{frame}
 
+% =============================================================================
+% Slide Machine Learning
+% =============================================================================
+\begin{frame}{Machine Learning : prédiction et planification robuste}
+
+\vspace{-0.45cm}
+
+\begin{columns}[T,onlytextwidth]
+
+% ============================================================
+% 1. PREDICTION
+% ============================================================
+\begin{column}{0.31\textwidth}
+
+\begin{block}{1. Prédire les besoins des patients}
+\scriptsize
+
+\textbf{Performance vs. baselines simples}
+
+\vspace{0.18cm}
+
+{\Large\color{mcmPrimary}\textbf{-47.2\%}}\\
+\textbf{MAE -- durée au bloc}\\
+29.1 $\rightarrow$ 15.4 min
+
+\vspace{0.2cm}
+
+{\Large\color{mcmPrimary}\textbf{-60.2\%}}\\
+\textbf{MAE -- durée de séjour}\\
+1.107 $\rightarrow$ 0.441 jours
+
+\vspace{0.25cm}
+
+{\Large\color{mcmPrimary}\textbf{F1 = 0.922}}\\
+\textbf{Type de prise en charge}\\
+hospitalisation vs. ambulatoire
+
+\vspace{0.30cm}
+
+\textit{Évaluation sur patients hors entraînement}
+
+\end{block}
+
+\end{column}
+
+
+% ============================================================
+% 2. PLANIFICATION
+% ============================================================
+\begin{column}{0.34\textwidth}
+
+\begin{block}{2. Améliorer la planification}
+\scriptsize
+
+\textbf{Prédictions ML intégrées à l'optimiseur}
+
+\vspace{0.18cm}
+
+{\Large\color{mcmPrimary}\textbf{21.8--27.0\%}}\\
+\textbf{de réduction de l'objectif}\\
+sur les grandes instances
+
+\vspace{0.25cm}
+
+\textbf{Gains par ressource}
+
+\vspace{0.12cm}
+
+Lits
+\hfill
+{\color{mcmPrimary}\textbf{33.9--37.4\%}}
+
+\vspace{0.10cm}
+
+Places ambulatoires
+\hfill
+{\color{mcmPrimary}\textbf{40.5--48.8\%}}
+
+\vspace{0.30cm}
+
+\textit{Compromis : critère bloc légèrement dégradé
+($-3.2\%$ à $-9.0\%$)}
+
+\end{block}
+
+\end{column}
+
+
+% ============================================================
+% 3. ROBUSTESSE
+% ============================================================
+\begin{column}{0.31\textwidth}
+
+\begin{block}{3. Tester l'incertitude sur le LOS}
+\scriptsize
+
+\textbf{Incertitude sur la durée de séjour}
+
+\vspace{0.18cm}
+
+{\Large\color{mcmPrimary}\textbf{\pm 1.02 jours}}\\
+\textbf{Intervalle conforme à 90\%}
+
+\vspace{0.12cm}
+
+MAE = \textbf{0.412 jour}
+\qquad
+$R^2 = \textbf{0.789}$
+
+\vspace{0.30cm}
+
+\textbf{Sensibilité au LOS stochastique}
+
+\vspace{0.15cm}
+
+SA / Tabu / Hybride
+\hfill
+{\color{mcmPrimary}\textbf{\leq 1.2\%}}
+
+\vspace{0.10cm}
+
+ACO
+\hfill
+{\color{mcmPrimary}\textbf{0.1\%}}
+
+\vspace{0.10cm}
+
+GA
+\hfill
+{\color{mcmPrimary}\textbf{4.2\%}}
+
+\vspace{0.30cm}
+
+\textit{Incertitude propagée dans l'optimiseur}
+
+\end{block}
+
+\end{column}
+
+\end{columns}
+
+\end{frame}
+
 \end{document}
