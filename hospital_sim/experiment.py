@@ -16,7 +16,7 @@ from time import monotonic
 
 from .domain import Outage, Schedule, SimulationConfig
 from .historical_data import load_historical
-from .instances import exact_reference, opening_request, sampled_scenario, scale_rooms, small_reference
+from .instances import exact_reference, opening_request, sampled_scenario, scale_rooms, small_reference, with_duration_mode
 from .metaheuristics import METHODS, MetaheuristicScheduler, SearchSettings
 from .room_problem import RoomAllocationProblem
 from .simulation import run_day
@@ -42,6 +42,9 @@ def parser():
                            help="Seven synthetic cases; use --closing 11:00 --outage-start 09:00 --outage-end 10:00")
     selection.add_argument("--synthetic-cases", nargs="+", type=int,
                            help="Sample larger held-out workloads; room count scales to target load")
+    result.add_argument("--duration-mode", choices=["median", "oracle"], default="median",
+                        help="median: historical estimates (fixture estimates for small reference); "
+                             "oracle: perfect knowledge of realized room occupancy, not an ML prediction")
     result.add_argument("--instance-seeds", nargs="+", type=int, default=[0])
     result.add_argument("--target-load", type=float, default=0.8)
     result.add_argument("--rooms", type=int, default=2, help="Room count for historical/small instances")
@@ -151,7 +154,9 @@ async def execute(args):
         raise ValueError("Evaluation budget must be positive")
     base = SimulationConfig(args.rooms, args.opening, args.closing, args.turnover)
     data = None if args.small_reference else load_historical(args.input)
-    instances = select_instances(args, data, base)
+    # Size generated resources from the original estimates in BOTH modes.
+    instances = [(key, with_duration_mode(scenario, args.duration_mode), config, metadata)
+                 for key, scenario, config, metadata in select_instances(args, data, base)]
     policies = ["static", "reactive"] if args.policy == "both" else [args.policy]
     methods, seeds = list(dict.fromkeys(args.methods)), sorted(set(args.seeds))
     configurations = {key: configs_for(args, config) for key, _, config, _ in instances}
@@ -163,6 +168,13 @@ async def execute(args):
     if any(args.output.iterdir()):
         raise ValueError("Output directory must be empty; choose a new --output path")
     manifest = {
+        "duration_mode": args.duration_mode,
+        "duration_information": (
+            "Perfect knowledge: scheduling estimates equal realized room occupancy; not an ML prediction."
+            if args.duration_mode == "oracle" else
+            "Synthetic fixture estimates." if args.small_reference else
+            "2019–2021 procedure medians with overall training-median fallback."),
+        "generated_room_sizing": "Original median estimates, before applying duration mode.",
         "dataset_sha256": data.fingerprint if data else None, "code": git_metadata(),
         "dependencies": {name: version(name) for name in ("mesa", "pandas", "numpy", "openpyxl", "networkx", "scipy")},
         "python": platform.python_version(), "data_quality": data.quality if data else {"source": "synthetic reference"},
@@ -177,7 +189,11 @@ async def execute(args):
         "exact_references": references,
         "assumptions": [
             "Cases are ready at opening; identical synthetic rooms; no staff, beds or specialty constraints.",
-            "Predictions use 2019–2021 medians; held-out durations are private to execution.",
+            ("Oracle deliberately exposes realized durations as scheduling estimates; future closures remain hidden."
+             if args.duration_mode == "oracle" else
+             "Fixture estimates are used; realized durations are private to execution."
+             if args.small_reference else
+             "Predictions use 2019–2021 medians; held-out durations are private to execution."),
             "Sampled stress instances resample complete 2022 case rows with replacement.",
             "Durations round up to whole minutes and stay unchanged under rescheduling.",
             "Closures forbid starts; ongoing cases finish. Closure and reopening are revealed at closure start.",
@@ -194,6 +210,7 @@ async def execute(args):
                 settings = SearchSettings(method, seed, args.max_evaluations, args.budget_mode)
                 initial, initial_report = await plan_initial(scenario, config, settings, args.solver_budget)
                 initial_record = {
+                    "duration_mode": args.duration_mode,
                     "schedule": asdict(initial), "report": initial_report,
                     "exact_objective_gap": (
                         initial_report["objective"]["cost"] - references[key]["objective"]["cost"]
@@ -208,10 +225,10 @@ async def execute(args):
                             scenario, execution_config, policy, scheduler, args.solver_budget,
                             initial_schedule=initial, initial_report=initial_report,
                         )
-                        result.update(instance_id=key, method=method, seed=seed)
+                        result.update(instance_id=key, method=method, seed=seed, duration_mode=args.duration_mode)
                         stem = f"{key}-{method}-{seed}-{result['scenario']}-{policy}"
                         (args.output / f"{stem}.json").write_text(json.dumps(result, indent=2) + "\n")
-                        row = {k: result[k] for k in ("instance_id", "date", "method", "seed", "scenario", "policy")}
+                        row = {k: result[k] for k in ("instance_id", "date", "method", "seed", "scenario", "policy", "duration_mode")}
                         row.update(result["metrics"])
                         row["initial_objective_gap"] = initial_record["exact_objective_gap"]
                         rows.append(row)

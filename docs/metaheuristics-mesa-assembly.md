@@ -222,3 +222,9 @@ no-outage policy equivalence, evaluation limits, absence of original identifiers
 in exports, and unchanged source-workbook hashes. No solver or validator failures
 occurred in these runs. These are integration checks with one solver seed, not a
 statistical ranking of the methods or a claim of clinical effectiveness.
+
+## Oracle duration experiment
+
+Use `--duration-mode oracle` for explicit perfect knowledge of room occupancy durations.
+The default remains `median`; resources and execution outcomes are held fixed between
+modes. See the [oracle guide](oracle-simulation.md) for paired commands and interpretation.

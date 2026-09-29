@@ -62,7 +62,7 @@ synthetic disruption demonstration. See the [coordination-core guide](docs/coord
 for its boundaries and integration points. A room-only Mesa simulation now connects the cleaned
 workbook to this coordinator and compares static and reactive baseline schedules.
 
-The [optimizer package](optimiseur/README.md) supplies five metaheuristics, a standalone CLI, charts, a Tkinter interface, and an [explanatory notebook](notebooks/guide_optimisation.ipynb). Trained ML models and an operational decision-support application remain to be integrated. The simulation uses historical median duration estimates and compares the baseline with all five methods through a shared room decoder. See [the assembly guide](docs/metaheuristics-mesa-assembly.md).
+The [optimizer package](optimiseur/README.md) supplies five metaheuristics, a standalone CLI, charts, a Tkinter interface, and an [explanatory notebook](notebooks/guide_optimisation.ipynb). Trained ML models and an operational decision-support application remain to be integrated. The simulation uses historical median duration estimates and compares the baseline with all five methods through a shared room decoder. See [the assembly guide](docs/metaheuristics-mesa-assembly.md). An explicit [oracle duration mode](docs/oracle-simulation.md) supports comparison with perfect knowledge of room occupancy. The [experimental comparison](docs/metaheuristics-mesa-comparison.md) ([version française](docs/metaheuristics-mesa-comparison-fr.md)) reports 576 runs across small, historical and generated workloads, with [aggregate results](docs/comparison-results/) and [reproduction commands](scripts/run_comparison_campaign.sh).
 
 ## Repository structure
 

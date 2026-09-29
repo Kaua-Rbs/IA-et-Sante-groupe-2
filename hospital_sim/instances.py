@@ -12,6 +12,22 @@ from .historical_data import DailyScenario
 from .room_problem import RoomAllocationProblem
 
 
+def with_duration_mode(scenario, mode):
+    """Oracle explicite : expose les durees realisees comme estimations.
+
+    Appliquer apres le dimensionnement des salles pour comparer les modes
+    avec les memes ressources. Ne modifie ni la source ni les realisations.
+    """
+    if mode == "median":
+        return scenario
+    if mode != "oracle":
+        raise ValueError("Unknown duration mode")
+    return replace(scenario, cases=tuple(
+        replace(case, predicted_minutes=ceil(scenario.realized_minutes[case.case_id]))
+        for case in scenario.cases
+    ), realized_minutes=dict(scenario.realized_minutes))
+
+
 def opening_request(scenario, config, deadline):
     # No future closure is observable at initial planning.
     state = HospitalState(

@@ -102,3 +102,12 @@ objectifs, reference exacte a 128 affectations, budgets des cinq methodes,
 solutions initiales partagees, sorties de processus et absence de fuite des
 durees observees. Le guide docs/metaheuristics-mesa-assembly.md donne les
 commandes de verification sur donnees historiques et instances generees.
+
+## Oracle duration mode
+
+`tests/test_oracle_simulation.py` verifies explicit opt-in, unchanged default
+predictions, rounded perfect-duration inputs without mutating outcomes, hidden
+future closures, exact ongoing availability, execution/turnover consistency,
+identical generated room sizing between modes, mode labels in exports, and an
+exact small reference evaluated with oracle durations. Run both modes on the
+same workbook dates and seeds when comparing operational results.
