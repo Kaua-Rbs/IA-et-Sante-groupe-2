@@ -22,6 +22,7 @@ matplotlib.use("Agg")  # rendu vers fichiers, sans fenetre
 
 from . import optimizer as op
 from . import plotting as pl
+from . import aleas as al
 
 
 def main():
@@ -83,6 +84,53 @@ def main():
         ecart = r.meilleure_fitness - f_exact
         statut = "OPTIMUM ATTEINT" if abs(ecart) < 1e-9 else f"ecart = {ecart:.4f}"
         print(f"   - {nom:<15s} fitness = {r.meilleure_fitness:10.6f}   [{statut}]")
+
+    print("5) Generation des plannings alternatifs (Nominal, Robuste bufferise, Date A/B)...")
+    alts = al.generer_plannings_alternatifs(
+        problem,
+        solution_nominale=meilleure_solution,
+        seed=args.seed,
+    )
+    pl.plot_comparaison_alternatives(alts).savefig(
+        os.path.join(args.out, "plannings_alternatifs.png"), dpi=150
+    )
+    df_date_ab = al.extraire_options_date_a_b(
+        problem,
+        alts["Nominal"].solution,
+        alts["Alternatif_Date_B"].solution,
+    )
+    df_date_ab.to_csv(os.path.join(args.out, "planning_alternatif_date_a_b.csv"), index=False)
+    taux_diff = alts["Alternatif_Date_B"].taux_patients_differents * 100
+    print(f"   -> Plannings alternatifs generes ({taux_diff:.1f}% des patients ont une Date B alternative)")
+
+    print("6) Simulation d'aleas et adaptation dynamique du bloc...")
+    jour_alea = 1 if args.n_days > 1 else 0
+    scenario = al.generer_scenario_aleas(
+        problem,
+        meilleure_solution,
+        jour_courant=jour_alea,
+        n_urgences=2 if args.n_patients >= 15 else 1,
+        n_annulations=1,
+        proba_retard_bloc=0.5,
+        max_retard_min=45.0,
+        proba_baisse_lits=1.0,
+        lits_perdus=max(2, args.lits_capacity // 10),
+        seed=args.seed,
+    )
+    adap_res = al.adapter_planning(
+        problem,
+        meilleure_solution,
+        scenario,
+        jour_courant=jour_alea,
+        seed=args.seed,
+    )
+    pl.plot_adaptation_dynamique(adap_res).savefig(
+        os.path.join(args.out, "aleas_adaptation.png"), dpi=150
+    )
+    with open(os.path.join(args.out, "rapport_adaptation.txt"), "w", encoding="utf-8") as f:
+        f.write(adap_res.rapport)
+
+    print(f"   -> Adaptation dynamique terminee ({adap_res.perturbation_count} deplacement(s), {len(adap_res.urgences_affectees)} urgence(s) integree(s))")
 
     print(f"\nTermine. Resultats et graphiques dans le dossier : {os.path.abspath(args.out)}")
 

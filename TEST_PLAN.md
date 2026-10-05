@@ -22,7 +22,7 @@ si la ressource est absente.
 
 ## Resultat attendu
 
-`Ran 44 tests ... OK` en une dizaine de secondes. Toute regression doit se
+`Ran 57 tests ... OK` en une dizaine de secondes. Toute regression doit se
 traduire par un test en echec, pas par une inspection manuelle.
 
 ## Ce qui est couvert
@@ -65,13 +65,24 @@ traduire par un test en echec, pas par une inspection manuelle.
 - **donnees reelles** (si le Parquet est present) : pipeline + optimisation des
   5 methodes, fitness finies.
 
-### Graphiques (`test_plotting.py`)
+### Aleas et adaptation dynamique (`test_aleas.py`)
+- Structures d'aleas (`Urgence`, `Annulation`, `IndisponibiliteLits`, `RetardBloc`, `ScenarioAleas`) et methodes d'ajout ;
+- `generer_scenario_aleas` : reproductibilite et coherence du scenario genere ;
+- `generer_plannings_alternatifs` : presence des 4 profils (Nominal, Robuste_Buffer, Securite_Lits, Alternatif_Date_B), marges positives et taux de divergence ;
+- `extraire_options_date_a_b` : tableau exhaustif Date A / Date B et recommandations cliniques ;
+- `adapter_planning` :
+  - **Gel temporel** : sanctuarisation des interventions des jours passes ($j < j_{\text{courant}}$) ;
+  - **Annulations et Urgences** : retrait effectif des annulations et affectation stricte des urgences dans leur fenetre temporelle autorisee ;
+  - **Moindre perturbation** : penalite de stabilite evitant les deplacements non indispensables ;
+  - **Rapport** d'arbitrage lisible et chiffre.
+
+### Graphiques (`test_plotting.py` et `test_aleas.py`)
 - `COULEURS` couvre exactement les 5 methodes ;
-- chaque fonction renvoie une `Figure` et peut etre sauvegardee en PNG.
+- chaque fonction renvoie une `Figure` et peut etre sauvegardee en PNG (y compris `plot_adaptation_dynamique`, `plot_comparaison_alternatives` et `plot_occupation_lits_aleas`).
 
 ### Integration (`test_integration.py`)
 - `optimiseur.run_demo` en sous-processus : code retour 0, 5 `[OPTIMUM ATTEINT]`,
-  les 5 noms de methodes, et presence des 6 fichiers attendus ;
+  les 5 noms de methodes, plannings alternatifs, adaptation dynamique et presence de tous les fichiers attendus ;
 - `notebooks/guide_optimisation.ipynb` : notebook valide, sans cellule en erreur ;
 - `EDA_donees_bloc.ipynb` : **non modifie** (aucune cellule executee, aucune
   sortie).
