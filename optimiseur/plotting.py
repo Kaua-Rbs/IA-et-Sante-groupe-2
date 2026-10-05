@@ -14,9 +14,14 @@ import matplotlib.pyplot as plt
 
 from .optimizer import (
     METHODE_FOURMIS,
+    METHODE_FOURMIS_TABOU,
     METHODE_GENETIQUE,
+    METHODE_GEN_RECUIT,
+    METHODE_GEN_TABOU,
     METHODE_HYBRIDE,
     METHODE_RECUIT,
+    METHODE_SMA,
+    METHODE_SMA_HYBRIDE,
     METHODE_TABOU,
     PlanningProblem,
     RunResult,
@@ -29,6 +34,17 @@ COULEURS = {
     METHODE_GENETIQUE: "#55A868",
     METHODE_HYBRIDE: "#8172B3",
     METHODE_FOURMIS: "#CCB974",
+}
+
+# Palette etendue aux methodes ajoutees (hybrides + SMA) ; les couleurs des
+# 5 methodes historiques restent identiques.
+COULEURS_ETENDUES = {
+    **COULEURS,
+    METHODE_GEN_TABOU: "#64B5CD",
+    METHODE_GEN_RECUIT: "#DA8BC3",
+    METHODE_FOURMIS_TABOU: "#8C8C8C",
+    METHODE_SMA: "#E24A33",
+    METHODE_SMA_HYBRIDE: "#988ED5",
 }
 
 
@@ -54,7 +70,7 @@ def plot_convergence(resultats: dict[str, RunResult], ax=None):
             h["time_s"] * facteur,
             h["meilleure_fitness"],
             label=nom,
-            color=COULEURS.get(nom),
+            color=COULEURS_ETENDUES.get(nom),
             linewidth=2,
         )
     ax.set_yscale("symlog", linthresh=1.0)
@@ -73,7 +89,7 @@ def plot_comparaison_barres(resultats: dict[str, RunResult], ax=None):
     noms = list(resultats.keys())
     finals = [resultats[n].meilleure_fitness for n in noms]
     durees = [resultats[n].duree_s for n in noms]
-    couleurs = [COULEURS.get(n, "grey") for n in noms]
+    couleurs = [COULEURS_ETENDUES.get(n, "grey") for n in noms]
     facteur, unite = _unite_temps(durees)
 
     if ax is None:
@@ -438,5 +454,130 @@ def plot_occupation_lits_aleas(
     ax.set_ylabel("Nombre de lits")
     ax.set_title("Occupation des lits et impact des indisponibilites")
     ax.legend()
+    fig.tight_layout()
+    return fig
+
+
+# --------------------------------------------------------------------------
+# Figures multi-graines (benchmark)
+# --------------------------------------------------------------------------
+
+def plot_boxplot_graines(resultats: dict[str, list[RunResult]], ax=None, titre: str = "Qualite finale sur les graines"):
+    """Boite a moustaches de la fitness finale de chaque methode, une boite
+    par methode sur l'ensemble des graines."""
+    noms = list(resultats.keys())
+    donnees = [[r.meilleure_fitness for r in resultats[nom]] for nom in noms]
+
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(9, max(4, 0.45 * len(noms))))
+    else:
+        fig = ax.figure
+
+    boites = ax.boxplot(donnees, tick_labels=noms, showmeans=True, patch_artist=True)
+    for boite_mediane in boites["medians"]:
+        boite_mediane.set_color("black")
+    for patch, nom in zip(boites["boxes"], noms):
+        patch.set_facecolor(COULEURS_ETENDUES.get(nom, "grey"))
+        patch.set_alpha(0.75)
+    ax.set_ylabel("Fitness finale (plus proche de 0 = mieux)")
+    ax.set_title(titre)
+    ax.tick_params(axis="x", rotation=20)
+    ax.grid(axis="y", alpha=0.3)
+    fig.tight_layout()
+    return fig
+
+
+def _grille_commune(historiques: list, n_points: int = 200) -> np.ndarray:
+    """Grille temporelle commune pour comparer des convergences de durees
+    differentes (interpolation lineaire de chaque courbe)."""
+    duree_max = max(float(h["time_s"].max()) for h in historiques)
+    if duree_max <= 0.0:
+        duree_max = 1e-9
+    return np.linspace(0.0, duree_max, n_points)
+
+
+def plot_convergence_mediane(
+    resultats: dict[str, list[RunResult]],
+    ax=None,
+    titre: str = "Convergence mediane (bande : intervalle interquartile)",
+):
+    """Courbe de convergence agregee : mediane des meilleures fitness en
+    fonction du temps, avec bande IQR sur les graines."""
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(8, 4.8))
+    else:
+        fig = ax.figure
+
+    for nom, liste in resultats.items():
+        historiques = [r.historique for r in liste if len(r.historique) > 0]
+        if not historiques:
+            continue
+        grille = _grille_commune(historiques)
+        courbes = np.vstack(
+            [np.interp(grille, h["time_s"].to_numpy(), h["meilleure_fitness"].to_numpy()) for h in historiques]
+        )
+        couleur = COULEURS_ETENDUES.get(nom)
+        ax.plot(grille, np.median(courbes, axis=0), label=nom, color=couleur, linewidth=2)
+        ax.fill_between(
+            grille,
+            np.percentile(courbes, 25, axis=0),
+            np.percentile(courbes, 75, axis=0),
+            color=couleur,
+            alpha=0.15,
+        )
+
+    ax.set_yscale("symlog", linthresh=1.0)
+    ax.set_xlabel("Temps ecoule (s)")
+    ax.set_ylabel("Meilleure qualite trouvee (fitness)")
+    ax.set_title(titre)
+    ax.legend(fontsize=8)
+    ax.grid(alpha=0.3)
+    fig.tight_layout()
+    return fig
+
+
+def plot_taux_succes(taux: dict[str, float], ax=None, titre: str = "Taux d'optimum exact"):
+    """Barres du taux de graines ayant atteint l'optimum exact (0 a 1)."""
+    noms = list(taux.keys())
+    valeurs = [100.0 * taux[nom] for nom in noms]
+    couleurs = [COULEURS_ETENDUES.get(nom, "grey") for nom in noms]
+
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(9, 4.5))
+    else:
+        fig = ax.figure
+
+    barres = ax.bar(noms, valeurs, color=couleurs)
+    ax.bar_label(barres, fmt="%.0f %%", padding=2, fontsize=8)
+    ax.set_ylabel("Graines ayant atteint l'optimum (%)")
+    ax.set_ylim(0, 105)
+    ax.set_title(titre)
+    ax.tick_params(axis="x", rotation=20)
+    ax.grid(axis="y", alpha=0.3)
+    fig.tight_layout()
+    return fig
+
+
+def plot_qualite_temps(resultats: dict[str, list[RunResult]], ax=None, titre: str = "Compromis qualite / temps"):
+    """Nuage de points : fitness moyenne (y) contre temps moyen (x),
+    une etiquette par methode."""
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(8, 5.5))
+    else:
+        fig = ax.figure
+
+    for nom, liste in resultats.items():
+        if not liste:
+            continue
+        fitness_moyenne = float(np.mean([r.meilleure_fitness for r in liste]))
+        temps_moyen = float(np.mean([r.duree_s for r in liste]))
+        couleur = COULEURS_ETENDUES.get(nom, "grey")
+        ax.scatter(temps_moyen, fitness_moyenne, s=70, color=couleur, edgecolor="black", zorder=3)
+        ax.annotate(nom, (temps_moyen, fitness_moyenne), fontsize=7, xytext=(4, 4), textcoords="offset points")
+
+    ax.set_xlabel("Temps moyen par execution (s)")
+    ax.set_ylabel("Fitness finale moyenne")
+    ax.set_title(titre)
+    ax.grid(alpha=0.3)
     fig.tight_layout()
     return fig

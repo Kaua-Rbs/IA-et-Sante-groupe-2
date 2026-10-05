@@ -4,6 +4,11 @@ pandas>=2.2
 matplotlib>=3.9
 seaborn>=0.13
 
+# Systèmes multi-agents (SMA et SMA × métaheuristiques)
+# networkx est requis à l'import par mesa 3.5 (dépendance non déclarée en amont)
+mesa>=3.5,<4
+networkx>=3.2
+
 # Lecture du classeur Excel et export Parquet (EDA)
 openpyxl>=3.1
 pyarrow>=17.0

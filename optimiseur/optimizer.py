@@ -6,11 +6,14 @@ Coeur du moteur d'optimisation du bloc operatoire.
 Entree  : deux tables pandas (patients, vacations)
 Sortie  : un planning optimise (dict patient_id -> vacation_id) pour
           chacune des metaheuristiques (recuit simule, tabou, genetique,
-          hybride tabou x recuit, fourmis/ACO), accompagne de l'historique
-          de convergence.
+          hybride tabou x recuit, fourmis/ACO, hybrides genetiques
+          genetique x tabou, genetique x recuit, fourmis x tabou) et des
+          systemes multi-agents (SMA et SMA x metaheuristiques, dans
+          multiagent.py), accompagne de l'historique de convergence.
 
 Aucune dependance autre que pandas / numpy pour le calcul. matplotlib
-n'est utilise que dans plotting.py.
+n'est utilise que dans plotting.py ; mesa n'est importe que par
+multiagent.py (import paresseux depuis optimize_planning).
 """
 
 from __future__ import annotations
@@ -32,8 +35,47 @@ METHODE_TABOU = "Tabou"
 METHODE_GENETIQUE = "Genetique"
 METHODE_HYBRIDE = "Tabou x Recuit"
 METHODE_FOURMIS = "Fourmis (ACO)"
+# Hybrides ajoutes (meme fonction objectif et meme convention Solution).
+METHODE_GEN_TABOU = "Genetique x Tabou"
+METHODE_GEN_RECUIT = "Genetique x Recuit"
+METHODE_FOURMIS_TABOU = "Fourmis x Tabou"
+# Systemes multi-agents (implementes dans multiagent.py, import paresseux).
+METHODE_SMA = "SMA"
+METHODE_SMA_HYBRIDE = "SMA x Metaheuristiques"
+
+# Methodes historiques : defaut de optimize_planning (retrocompatibilite).
+METHODES_HISTORIQUES = (
+    METHODE_RECUIT,
+    METHODE_TABOU,
+    METHODE_GENETIQUE,
+    METHODE_HYBRIDE,
+    METHODE_FOURMIS,
+)
+# Toutes les methodes, historiques puis ajoutees, dans l'ordre d'affichage.
+TOUTES_METHODES = METHODES_HISTORIQUES + (
+    METHODE_GEN_TABOU,
+    METHODE_GEN_RECUIT,
+    METHODE_FOURMIS_TABOU,
+    METHODE_SMA,
+    METHODE_SMA_HYBRIDE,
+)
 
 HISTORY_COLUMNS = ["iteration", "time_s", "fitness_courante", "meilleure_fitness"]
+
+# Correspondance nom de methode -> nom du kwarg attendu par optimize_planning.
+# Reutilisee par benchmark.py et coordination_bridge.py.
+KWARGS_PAR_METHODE = {
+    METHODE_RECUIT: "sa_kwargs",
+    METHODE_TABOU: "tabu_kwargs",
+    METHODE_GENETIQUE: "ga_kwargs",
+    METHODE_HYBRIDE: "hybrid_kwargs",
+    METHODE_FOURMIS: "aco_kwargs",
+    METHODE_GEN_TABOU: "gen_tabu_kwargs",
+    METHODE_GEN_RECUIT: "gen_recuit_kwargs",
+    METHODE_FOURMIS_TABOU: "fourmis_tabu_kwargs",
+    METHODE_SMA: "sma_kwargs",
+    METHODE_SMA_HYBRIDE: "sma_hybride_kwargs",
+}
 
 # --------------------------------------------------------------------------
 # 1. Generation d'un jeu de donnees de test
@@ -222,6 +264,22 @@ class PlanningProblem:
         vacs = np.fromiter(solution.values(), dtype=int, count=len(solution))
         return self._occupation(pids, vacs)
 
+    def violations(self, solution: Solution) -> tuple[float, float]:
+        """Depassements physiques ``(vacations, lits)`` en unites naturelles
+        (minutes, lits-jours) ; ``(0.0, 0.0)`` signifie faisable.
+
+        Contrairement a ``fitness``, ce diagnostic ignore le critere souple
+        d'equilibrage des charges : il ne sert qu'a verifier les contraintes
+        dures (utilise par le validateur de coordination)."""
+        pids = np.fromiter(solution.keys(), dtype=int, count=len(solution))
+        vacs = np.fromiter(solution.values(), dtype=int, count=len(solution))
+        charge = np.zeros(self.n_vacations)
+        np.add.at(charge, vacs, self._pat_duree[pids])
+        depassement_vac = float(np.maximum(0, charge - self._vac_capacity).sum())
+        occ = self._occupation(pids, vacs)
+        depassement_lits = float(np.maximum(0, occ - self._lits_capacity_arr).sum())
+        return depassement_vac, depassement_lits
+
 
 # --------------------------------------------------------------------------
 # 3. Les metaheuristiques
@@ -264,22 +322,43 @@ def _record_every(n_iter: int, n_points: int = 300) -> int:
     return max(1, n_iter // n_points)
 
 
+def _budget_atteint(t0: float, time_budget_s: float | None) -> bool:
+    """Vrai si le budget temps (en secondes) est depasse."""
+    return time_budget_s is not None and (time.perf_counter() - t0) >= time_budget_s
+
+
+def _kwargs_methode(seed: int, time_budget_s: float | None, kwargs: dict | None) -> dict:
+    """Fusionne seed et budget avec les kwargs specifiques d'une methode."""
+    base: dict = {"seed": seed}
+    if time_budget_s is not None:
+        base["time_budget_s"] = time_budget_s
+    base.update(kwargs or {})
+    return base
+
+
 def simulated_annealing(
     problem: PlanningProblem,
     T0: float = 50.0,
     alpha: float = 0.95,
     n_iter: int = 3000,
     seed: int = 0,
+    solution_initiale: Solution | None = None,
+    time_budget_s: float | None = None,
 ) -> RunResult:
     rng = random.Random(seed)
-    current = problem.random_solution(rng)
+    if solution_initiale is not None:
+        current = dict(solution_initiale)
+    else:
+        current = problem.random_solution(rng)
     current_f = problem.fitness(current)
     best, best_f = dict(current), current_f
     T = T0
     rows: list[tuple] = []
     step = _record_every(n_iter)
     t0 = time.perf_counter()
+    nb_iter = 0
     for k in range(n_iter):
+        nb_iter = k + 1
         neighbor, _ = problem.neighbor(current, rng)
         f_new = problem.fitness(neighbor)
         delta = f_new - current_f
@@ -290,7 +369,9 @@ def simulated_annealing(
         T *= alpha
         if k % step == 0:
             rows.append((k, time.perf_counter() - t0, current_f, best_f))
-    return _finalize(METHODE_RECUIT, best, best_f, rows, t0, current_f, n_iter)
+        if _budget_atteint(t0, time_budget_s):
+            break
+    return _finalize(METHODE_RECUIT, best, best_f, rows, t0, current_f, nb_iter)
 
 
 def tabu_search(
@@ -299,16 +380,23 @@ def tabu_search(
     tabu_size: int = 20,
     neighborhood_size: int = 15,
     seed: int = 0,
+    solution_initiale: Solution | None = None,
+    time_budget_s: float | None = None,
 ) -> RunResult:
     rng = random.Random(seed)
-    current = problem.random_solution(rng)
+    if solution_initiale is not None:
+        current = dict(solution_initiale)
+    else:
+        current = problem.random_solution(rng)
     current_f = problem.fitness(current)
     best, best_f = dict(current), current_f
     tabu_list: deque = deque(maxlen=tabu_size)
     rows: list[tuple] = []
     step = _record_every(n_iter)
     t0 = time.perf_counter()
+    nb_iter = 0
     for k in range(n_iter):
+        nb_iter = k + 1
         candidats = []
         for _ in range(neighborhood_size):
             voisin, mouvement = problem.neighbor(current, rng)
@@ -330,7 +418,9 @@ def tabu_search(
 
         if k % step == 0:
             rows.append((k, time.perf_counter() - t0, current_f, best_f))
-    return _finalize(METHODE_TABOU, best, best_f, rows, t0, current_f, n_iter)
+        if _budget_atteint(t0, time_budget_s):
+            break
+    return _finalize(METHODE_TABOU, best, best_f, rows, t0, current_f, nb_iter)
 
 
 def tabu_simulated_annealing(
@@ -341,6 +431,8 @@ def tabu_simulated_annealing(
     T0: float = 20.0,
     alpha: float = 0.97,
     seed: int = 0,
+    solution_initiale: Solution | None = None,
+    time_budget_s: float | None = None,
 ) -> RunResult:
     """Hybride tabou x recuit simule.
 
@@ -351,7 +443,10 @@ def tabu_simulated_annealing(
     probabilite exp(delta / T). Le meilleur global reste memorise.
     """
     rng = random.Random(seed)
-    current = problem.random_solution(rng)
+    if solution_initiale is not None:
+        current = dict(solution_initiale)
+    else:
+        current = problem.random_solution(rng)
     current_f = problem.fitness(current)
     best, best_f = dict(current), current_f
     tabu_list: deque = deque(maxlen=tabu_size)
@@ -359,7 +454,9 @@ def tabu_simulated_annealing(
     rows: list[tuple] = []
     step = _record_every(n_iter)
     t0 = time.perf_counter()
+    nb_iter = 0
     for k in range(n_iter):
+        nb_iter = k + 1
         candidats = []
         for _ in range(neighborhood_size):
             voisin, mouvement = problem.neighbor(current, rng)
@@ -385,7 +482,9 @@ def tabu_simulated_annealing(
 
         if k % step == 0:
             rows.append((k, time.perf_counter() - t0, current_f, best_f))
-    return _finalize(METHODE_HYBRIDE, best, best_f, rows, t0, current_f, n_iter)
+        if _budget_atteint(t0, time_budget_s):
+            break
+    return _finalize(METHODE_HYBRIDE, best, best_f, rows, t0, current_f, nb_iter)
 
 
 def genetic_algorithm(
@@ -396,11 +495,18 @@ def genetic_algorithm(
     p_mut: float = 0.08,
     elitisme: bool = True,
     seed: int = 0,
+    population_initiale: list[Solution] | None = None,
+    time_budget_s: float | None = None,
+    etat: dict | None = None,
 ) -> RunResult:
     rng = random.Random(seed)
     pids = list(range(problem.n_patients))
 
-    population = [problem.random_solution(rng) for _ in range(pop_size)]
+    if population_initiale:
+        population = [dict(ind) for ind in population_initiale]
+        pop_size = len(population)
+    else:
+        population = [problem.random_solution(rng) for _ in range(pop_size)]
     fitnesses = [problem.fitness(ind) for ind in population]
     best_idx = int(np.argmax(fitnesses))
     best, best_f = dict(population[best_idx]), fitnesses[best_idx]
@@ -428,7 +534,9 @@ def genetic_algorithm(
 
     rows: list[tuple] = []
     t0 = time.perf_counter()
+    nb_gen = 0
     for g in range(n_gen):
+        nb_gen = g + 1
         new_pop = [dict(best)] if elitisme else []
         while len(new_pop) < pop_size:
             new_pop.append(mutate(crossover(select(), select())))
@@ -438,9 +546,48 @@ def genetic_algorithm(
         if fitnesses[gbest_idx] > best_f:
             best, best_f = dict(population[gbest_idx]), fitnesses[gbest_idx]
         rows.append((g, time.perf_counter() - t0, float(np.mean(fitnesses)), best_f))
+        if _budget_atteint(t0, time_budget_s):
+            break
+    if etat is not None:
+        etat["population"] = [dict(ind) for ind in population]
+        etat["meilleure_solution"] = dict(best)
+        etat["meilleure_fitness"] = best_f
     return _finalize(
-        METHODE_GENETIQUE, best, best_f, rows, t0, float(np.mean(fitnesses)), n_gen
+        METHODE_GENETIQUE, best, best_f, rows, t0, float(np.mean(fitnesses)), nb_gen
     )
+
+
+def _construire_solutions_fourmis(
+    problem: PlanningProblem,
+    tau: np.ndarray,
+    rng: random.Random,
+    n_ants: int,
+    alpha: float,
+    beta: float,
+) -> list[tuple[Solution, float]]:
+    """Construit n_ants solutions par phéromones + heuristique de charge,
+    triees de la meilleure a la moins bonne."""
+    solutions = []
+    for _ in range(n_ants):
+        charge = np.zeros(problem.n_vacations)
+        sol: Solution = {}
+        for pid in range(problem.n_patients):
+            options = problem._options_for(pid)
+            duree = problem._pat_duree[pid]
+            # heuristic : vacation peu chargee et capable d'accueillir le patient
+            eta = 1.0 / (1.0 + charge[options] / np.maximum(problem._vac_capacity[options], 1.0))
+            poids = (tau[pid, options] ** alpha) * (eta ** beta)
+            total = poids.sum()
+            if total <= 0:
+                probs = np.full(len(options), 1.0 / len(options))
+            else:
+                probs = poids / total
+            choix = int(rng.choices(list(options), weights=probs.tolist(), k=1)[0])
+            sol[pid] = choix
+            charge[choix] += duree
+        solutions.append((sol, problem.fitness(sol)))
+    solutions.sort(key=lambda s: s[1], reverse=True)
+    return solutions
 
 
 def ant_colony_optimization(
@@ -452,6 +599,10 @@ def ant_colony_optimization(
     rho: float = 0.3,
     Q: float = 1.0,
     seed: int = 0,
+    pheromones_initiaux: np.ndarray | None = None,
+    meilleure_solution_initiale: Solution | None = None,
+    time_budget_s: float | None = None,
+    etat: dict | None = None,
 ) -> RunResult:
     """Optimisation par colonie de fourmis (ACO) pour l'affectation
     patients -> vacations.
@@ -463,35 +614,25 @@ def ant_colony_optimization(
     Les pheromones s'evaporent puis sont renforcees par la meilleure fourmi.
     """
     rng = random.Random(seed)
-    tau = np.ones((problem.n_patients, problem.n_vacations))
+    if pheromones_initiaux is not None:
+        tau = np.array(pheromones_initiaux, dtype=float, copy=True)
+    else:
+        tau = np.ones((problem.n_patients, problem.n_vacations))
 
-    best, best_f = None, -np.inf
+    if meilleure_solution_initiale is not None:
+        best = dict(meilleure_solution_initiale)
+        best_f = problem.fitness(best)
+    else:
+        best, best_f = None, -np.inf
     rows: list[tuple] = []
     step = _record_every(n_iter)
     t0 = time.perf_counter()
+    nb_iter = 0
+    iter_best_f = best_f
 
     for k in range(n_iter):
-        solutions = []
-        for _ in range(n_ants):
-            charge = np.zeros(problem.n_vacations)
-            sol: Solution = {}
-            for pid in range(problem.n_patients):
-                options = problem._options_for(pid)
-                duree = problem._pat_duree[pid]
-                # heuristic : vacation peu chargee et capable d'accueillir le patient
-                eta = 1.0 / (1.0 + charge[options] / np.maximum(problem._vac_capacity[options], 1.0))
-                poids = (tau[pid, options] ** alpha) * (eta ** beta)
-                total = poids.sum()
-                if total <= 0:
-                    probs = np.full(len(options), 1.0 / len(options))
-                else:
-                    probs = poids / total
-                choix = int(rng.choices(list(options), weights=probs.tolist(), k=1)[0])
-                sol[pid] = choix
-                charge[choix] += duree
-            solutions.append((sol, problem.fitness(sol)))
-
-        solutions.sort(key=lambda s: s[1], reverse=True)
+        nb_iter = k + 1
+        solutions = _construire_solutions_fourmis(problem, tau, rng, n_ants, alpha, beta)
         iter_best, iter_best_f = solutions[0]
         if iter_best_f > best_f:
             best, best_f = dict(iter_best), iter_best_f
@@ -505,8 +646,264 @@ def ant_colony_optimization(
 
         if k % step == 0:
             rows.append((k, time.perf_counter() - t0, iter_best_f, best_f))
+        if _budget_atteint(t0, time_budget_s):
+            break
 
-    return _finalize(METHODE_FOURMIS, best, best_f, rows, t0, iter_best_f, n_iter)
+    if etat is not None:
+        etat["pheromones"] = tau
+        etat["meilleure_solution"] = dict(best)
+        etat["meilleure_fitness"] = best_f
+    return _finalize(METHODE_FOURMIS, best, best_f, rows, t0, iter_best_f, nb_iter)
+
+
+# --------------------------------------------------------------------------
+# 3bis. Hybrides supplementaires (memetiques et ACO intensifie)
+# --------------------------------------------------------------------------
+
+def _genetic_memetique(
+    problem: PlanningProblem,
+    nom: str,
+    recherche_locale,
+    pop_size: int,
+    n_gen: int,
+    p_cross: float,
+    p_mut: float,
+    elitisme: bool,
+    seed: int,
+    population_initiale: list[Solution] | None,
+    time_budget_s: float | None,
+    etat: dict | None,
+) -> RunResult:
+    """Boucle genetique commune : le meilleur individu de chaque generation
+    est intensifie par ``recherche_locale(solution, rng) -> RunResult``
+    (strategie lamarckienne : le resultat ameliore remplace l'individu)."""
+    rng = random.Random(seed)
+    pids = list(range(problem.n_patients))
+
+    if population_initiale:
+        population = [dict(ind) for ind in population_initiale]
+        pop_size = len(population)
+    else:
+        population = [problem.random_solution(rng) for _ in range(pop_size)]
+    fitnesses = [problem.fitness(ind) for ind in population]
+    best_idx = int(np.argmax(fitnesses))
+    best, best_f = dict(population[best_idx]), fitnesses[best_idx]
+
+    def select():
+        min_f = min(fitnesses)
+        shifted = [f - min_f + 1e-6 for f in fitnesses]
+        total = sum(shifted)
+        probs = [s / total for s in shifted]
+        idx = rng.choices(range(len(population)), weights=probs, k=1)[0]
+        return population[idx]
+
+    def crossover(p1, p2):
+        if rng.random() > p_cross:
+            return dict(p1)
+        cut = rng.randint(1, len(pids) - 1)
+        return {pid: (p1[pid] if i < cut else p2[pid]) for i, pid in enumerate(pids)}
+
+    def mutate(ind):
+        ind2 = dict(ind)
+        for pid in pids:
+            if rng.random() < p_mut:
+                ind2[pid] = int(rng.choice(problem._options_for(pid)))
+        return ind2
+
+    rows: list[tuple] = []
+    t0 = time.perf_counter()
+    nb_gen = 0
+    moyenne = float(np.mean(fitnesses))
+    for g in range(n_gen):
+        nb_gen = g + 1
+        new_pop = [dict(best)] if elitisme else []
+        while len(new_pop) < pop_size:
+            new_pop.append(mutate(crossover(select(), select())))
+        population = new_pop
+        fitnesses = [problem.fitness(ind) for ind in population]
+
+        # intensification du meilleur individu de la generation
+        gbest_idx = int(np.argmax(fitnesses))
+        resultat_local = recherche_locale(population[gbest_idx], rng)
+        if resultat_local.meilleure_fitness > fitnesses[gbest_idx]:
+            population[gbest_idx] = resultat_local.meilleure_solution
+            fitnesses[gbest_idx] = resultat_local.meilleure_fitness
+        if fitnesses[gbest_idx] > best_f:
+            best, best_f = dict(population[gbest_idx]), fitnesses[gbest_idx]
+
+        moyenne = float(np.mean(fitnesses))
+        rows.append((g, time.perf_counter() - t0, moyenne, best_f))
+        if _budget_atteint(t0, time_budget_s):
+            break
+
+    if etat is not None:
+        etat["population"] = [dict(ind) for ind in population]
+        etat["meilleure_solution"] = dict(best)
+        etat["meilleure_fitness"] = best_f
+    return _finalize(nom, best, best_f, rows, t0, moyenne, nb_gen)
+
+
+def genetic_tabu(
+    problem: PlanningProblem,
+    pop_size: int = 30,
+    n_gen: int = 80,
+    p_cross: float = 0.8,
+    p_mut: float = 0.08,
+    tabu_n_iter: int = 15,
+    tabu_neighborhood_size: int = 8,
+    tabu_size: int = 20,
+    elitisme: bool = True,
+    seed: int = 0,
+    population_initiale: list[Solution] | None = None,
+    time_budget_s: float | None = None,
+    etat: dict | None = None,
+) -> RunResult:
+    """Genetique x Tabou : algorithme memetique ou chaque generation est
+    suivie d'une courte recherche tabou sur son meilleur individu."""
+
+    def recherche_locale(solution, rng):
+        return tabu_search(
+            problem,
+            n_iter=tabu_n_iter,
+            tabu_size=tabu_size,
+            neighborhood_size=tabu_neighborhood_size,
+            seed=rng.randrange(2**32),
+            solution_initiale=solution,
+        )
+
+    return _genetic_memetique(
+        problem,
+        METHODE_GEN_TABOU,
+        recherche_locale,
+        pop_size,
+        n_gen,
+        p_cross,
+        p_mut,
+        elitisme,
+        seed,
+        population_initiale,
+        time_budget_s,
+        etat,
+    )
+
+
+def genetic_recuit(
+    problem: PlanningProblem,
+    pop_size: int = 30,
+    n_gen: int = 80,
+    p_cross: float = 0.8,
+    p_mut: float = 0.08,
+    sa_n_iter: int = 20,
+    sa_T0: float = 10.0,
+    sa_alpha: float = 0.9,
+    elitisme: bool = True,
+    seed: int = 0,
+    population_initiale: list[Solution] | None = None,
+    time_budget_s: float | None = None,
+    etat: dict | None = None,
+) -> RunResult:
+    """Genetique x Recuit : algorithme memetique ou chaque generation est
+    suivie d'une courte descente de recuit simule sur son meilleur individu."""
+
+    def recherche_locale(solution, rng):
+        return simulated_annealing(
+            problem,
+            T0=sa_T0,
+            alpha=sa_alpha,
+            n_iter=sa_n_iter,
+            seed=rng.randrange(2**32),
+            solution_initiale=solution,
+        )
+
+    return _genetic_memetique(
+        problem,
+        METHODE_GEN_RECUIT,
+        recherche_locale,
+        pop_size,
+        n_gen,
+        p_cross,
+        p_mut,
+        elitisme,
+        seed,
+        population_initiale,
+        time_budget_s,
+        etat,
+    )
+
+
+def fourmis_tabu(
+    problem: PlanningProblem,
+    n_ants: int = 15,
+    n_iter: int = 100,
+    alpha: float = 1.0,
+    beta: float = 2.0,
+    rho: float = 0.3,
+    Q: float = 1.0,
+    tabu_n_iter: int = 15,
+    tabu_neighborhood_size: int = 8,
+    tabu_size: int = 20,
+    seed: int = 0,
+    pheromones_initiaux: np.ndarray | None = None,
+    meilleure_solution_initiale: Solution | None = None,
+    time_budget_s: float | None = None,
+    etat: dict | None = None,
+) -> RunResult:
+    """Fourmis x Tabou : chaque iteration ACO intensifie sa meilleure fourmi
+    par une courte recherche tabou, puis depose les pheromones depuis la
+    solution amelioree."""
+    rng = random.Random(seed)
+    if pheromones_initiaux is not None:
+        tau = np.array(pheromones_initiaux, dtype=float, copy=True)
+    else:
+        tau = np.ones((problem.n_patients, problem.n_vacations))
+
+    if meilleure_solution_initiale is not None:
+        best = dict(meilleure_solution_initiale)
+        best_f = problem.fitness(best)
+    else:
+        best, best_f = None, -np.inf
+    rows: list[tuple] = []
+    step = _record_every(n_iter)
+    t0 = time.perf_counter()
+    nb_iter = 0
+    iter_best_f = best_f
+
+    for k in range(n_iter):
+        nb_iter = k + 1
+        solutions = _construire_solutions_fourmis(problem, tau, rng, n_ants, alpha, beta)
+        iter_best, iter_best_f = solutions[0]
+
+        # intensification tabou de la meilleure fourmi
+        resultat_tabu = tabu_search(
+            problem,
+            n_iter=tabu_n_iter,
+            tabu_size=tabu_size,
+            neighborhood_size=tabu_neighborhood_size,
+            seed=rng.randrange(2**32),
+            solution_initiale=iter_best,
+        )
+        if resultat_tabu.meilleure_fitness > iter_best_f:
+            iter_best = resultat_tabu.meilleure_solution
+            iter_best_f = resultat_tabu.meilleure_fitness
+
+        if iter_best_f > best_f:
+            best, best_f = dict(iter_best), iter_best_f
+
+        tau *= (1.0 - rho)
+        depot = Q / (1.0 + max(-iter_best_f, 0.0))
+        for pid, vac_idx in iter_best.items():
+            tau[pid, vac_idx] += depot
+
+        if k % step == 0:
+            rows.append((k, time.perf_counter() - t0, iter_best_f, best_f))
+        if _budget_atteint(t0, time_budget_s):
+            break
+
+    if etat is not None:
+        etat["pheromones"] = tau
+        etat["meilleure_solution"] = dict(best)
+        etat["meilleure_fitness"] = best_f
+    return _finalize(METHODE_FOURMIS_TABOU, best, best_f, rows, t0, iter_best_f, nb_iter)
 
 
 # --------------------------------------------------------------------------
@@ -523,21 +920,78 @@ def optimize_planning(
     ga_kwargs: dict | None = None,
     hybrid_kwargs: dict | None = None,
     aco_kwargs: dict | None = None,
+    methodes: list[str] | str | None = None,
+    gen_tabu_kwargs: dict | None = None,
+    gen_recuit_kwargs: dict | None = None,
+    fourmis_tabu_kwargs: dict | None = None,
+    sma_kwargs: dict | None = None,
+    sma_hybride_kwargs: dict | None = None,
+    time_budget_s: float | None = None,
 ) -> dict[str, RunResult]:
     """Point d'entree principal : prend deux DataFrames pandas (patients,
     vacations) et renvoie un dict {nom_methode: RunResult} contenant, pour
     chaque metaheuristique, le meilleur planning trouve et son historique
     de convergence.
+
+    ``methodes`` : ``None`` (defaut) = les 5 methodes historiques pour rester
+    retrocompatible ; ``"toutes"`` = les 10 methodes (hybrides, SMA et
+    SMA x metaheuristiques compris) ; sinon une liste de noms parmi
+    ``TOUTES_METHODES``.
+
+    ``time_budget_s`` : budget temps par methode (None = pas de limite).
     """
     problem = PlanningProblem(patients_df, vacations_df, lits_capacity=lits_capacity)
 
-    return {
-        METHODE_RECUIT: simulated_annealing(problem, seed=seed, **(sa_kwargs or {})),
-        METHODE_TABOU: tabu_search(problem, seed=seed, **(tabu_kwargs or {})),
-        METHODE_GENETIQUE: genetic_algorithm(problem, seed=seed, **(ga_kwargs or {})),
-        METHODE_HYBRIDE: tabu_simulated_annealing(problem, seed=seed, **(hybrid_kwargs or {})),
-        METHODE_FOURMIS: ant_colony_optimization(problem, seed=seed, **(aco_kwargs or {})),
+    if methodes is None:
+        noms = list(METHODES_HISTORIQUES)
+    elif isinstance(methodes, str):
+        if methodes != "toutes":
+            raise ValueError("methodes doit etre None, 'toutes' ou une liste de noms")
+        noms = list(TOUTES_METHODES)
+    else:
+        noms = list(methodes)
+    inconnues = [nom for nom in noms if nom not in TOUTES_METHODES]
+    if inconnues:
+        raise ValueError(f"methodes inconnues : {inconnues}")
+
+    kwargs_par_methode = {
+        METHODE_RECUIT: sa_kwargs,
+        METHODE_TABOU: tabu_kwargs,
+        METHODE_GENETIQUE: ga_kwargs,
+        METHODE_HYBRIDE: hybrid_kwargs,
+        METHODE_FOURMIS: aco_kwargs,
+        METHODE_GEN_TABOU: gen_tabu_kwargs,
+        METHODE_GEN_RECUIT: gen_recuit_kwargs,
+        METHODE_FOURMIS_TABOU: fourmis_tabu_kwargs,
+        METHODE_SMA: sma_kwargs,
+        METHODE_SMA_HYBRIDE: sma_hybride_kwargs,
     }
+    def _lancer(nom: str) -> RunResult:
+        kwargs = _kwargs_methode(seed, time_budget_s, kwargs_par_methode[nom])
+        if nom == METHODE_RECUIT:
+            return simulated_annealing(problem, **kwargs)
+        if nom == METHODE_TABOU:
+            return tabu_search(problem, **kwargs)
+        if nom == METHODE_GENETIQUE:
+            return genetic_algorithm(problem, **kwargs)
+        if nom == METHODE_HYBRIDE:
+            return tabu_simulated_annealing(problem, **kwargs)
+        if nom == METHODE_FOURMIS:
+            return ant_colony_optimization(problem, **kwargs)
+        if nom == METHODE_GEN_TABOU:
+            return genetic_tabu(problem, **kwargs)
+        if nom == METHODE_GEN_RECUIT:
+            return genetic_recuit(problem, **kwargs)
+        if nom == METHODE_FOURMIS_TABOU:
+            return fourmis_tabu(problem, **kwargs)
+        # SMA : import paresseux pour ne pas dependre de mesa hors de ce cas
+        from . import multiagent
+
+        if nom == METHODE_SMA:
+            return multiagent.systeme_multiagent(problem, **kwargs)
+        return multiagent.systeme_multiagent_hybride(problem, **kwargs)
+
+    return {nom: _lancer(nom) for nom in TOUTES_METHODES if nom in noms}
 
 
 def solution_to_dataframe(problem: PlanningProblem, solution: Solution) -> pd.DataFrame:

@@ -1,0 +1,127 @@
+
+% ---------- Feuille de route ----------
+\begin{frame}{Suite du travail : feuille de route}
+  \begin{block}{Trois chantiers pour la suite du projet}
+    \begin{enumerate}
+      \item \textbf{Implémentation des algorithmes} (recuit simulé, tabou,
+      génétique) en Python.
+      \item \textbf{Tests sur la base de données} réelle de la clinique.
+      \item \textbf{Comparaison des performances} des trois métaheuristiques.
+    \end{enumerate}
+  \end{block}
+  \vspace{0.2em}
+  \begin{center}
+    \begin{tikzpicture}[scale=0.9, every node/.style={font=\scriptsize}]
+      \draw[thick, mcmPrimary, -{Latex}] (0,0) -- (11,0);
+      \foreach \x/\lab in {0.5/Implémentation, 4.0/Tests, 7.5/Comparaison, 10.6/Livrable} {
+        \draw[fill=mcmPrimary] (\x,0) circle (0.12);
+        \node[above=2pt, align=center] at (\x,0) {\lab};
+      }
+    \end{tikzpicture}
+  \end{center}
+  \begin{alertblock}{\footnotesize Objectif}
+    \footnotesize Passer des modèles mathématiques à un \textbf{prototype
+    exécutable et mesuré}, utilisable comme base de décision.
+  \end{alertblock}
+\end{frame}
+
+% ---------- Implémentation des algorithmes ----------
+\begin{frame}{Implémentation des algorithmes}
+  \begin{columns}[T]
+    \begin{column}{0.55\textwidth}
+      \small\textbf{Un moteur Python modulaire}
+      \begin{itemize}
+        \item Représentation commune d'un \textbf{planning} (solution)
+        \item Fonction de coût reprenant l'objectif (lissage lits / ambu. / bloc)
+        \item Un module par méthode : \texttt{recuit.py}, \texttt{tabou.py},
+        \texttt{genetique.py}
+        \item Même interface \texttt{solve(instance) -> planning} pour les
+        comparer à conditions égales
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \centering
+      \begin{tikzpicture}[scale=0.75]
+        \draw[thick, mcmPrimary] (0,0) rectangle (3.4,0.6);
+        \node[font=\scriptsize] at (1.7,0.3) {Instance (BDD)};
+        \draw[-{Latex}] (1.7,0) -- (1.7,-0.7);
+        \draw[thick, mcmExample] (0,-0.7) rectangle (3.4,-1.3);
+        \node[font=\scriptsize] at (1.7,-1.0) {Fonction de coût};
+        \draw[-{Latex}] (1.7,-1.3) -- (1.7,-2.0);
+        \foreach \x/\m in {0/RS, 1.15/Tabou, 2.3/AG} {
+          \draw[thick, mcmPrimaryMuted, fill=mcmPrimaryMuted] (\x,-2.0) rectangle (\x+1.0,-2.6);
+          \node[font=\tiny] at (\x+0.5,-2.3) {\m};
+        }
+        \draw[-{Latex}] (1.7,-2.6) -- (1.7,-3.2);
+        \draw[thick, mcmPrimary] (0,-3.2) rectangle (3.4,-3.8);
+        \node[font=\scriptsize] at (1.7,-3.5) {Planning optimal};
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---------- Tests sur la BDD ----------
+\begin{frame}{Tests sur la base de données}
+  \small
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Données utilisées}
+        \begin{itemize}
+          \item Historique d'interventions de la clinique
+          \item Durées opératoires et de séjour
+          \item Part d'ambulatoire, vacations des chirurgiens
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Niveaux de test}
+        \begin{itemize}
+          \item \textbf{Unitaires} : contraintes C1--C5 respectées
+          \item \textbf{Intégration} : lecture BDD $\rightarrow$ planning
+          \item \textbf{Validation} : planning faisable et exploitable
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+  \vspace{0.3em}
+  \begin{exampleblock}{\footnotesize Jeux de tests}
+    \footnotesize Une \textbf{instance jouet} (quelques patients) pour
+    déboguer, puis des \textbf{instances réelles} de taille croissante pour
+    éprouver le passage à l'échelle.
+  \end{exampleblock}
+\end{frame}
+
+
+% ---------- Architecture technique ----------
+\begin{frame}{Architecture technique : choix des frameworks}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Traitement -- Python / FastAPI}
+        \small
+        \begin{itemize}
+          \item Moteur d'optimisation en \textbf{Python}
+          \item \textbf{FastAPI} expose les algorithmes via une API REST
+          \item Validation des données par \textbf{Pydantic}
+          \item Calcul scientifique : \textbf{NumPy / Pandas}
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Interface web -- React}
+        \small
+        \begin{itemize}
+          \item \textbf{React} (Vite) pour un tableau de bord interactif
+          \item Visualisation des plannings et des performances
+          \item Appels à l'API FastAPI
+          \item Comparaison des méthodes en un coup d'œil
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+  \vspace{0.2em}
+  \begin{alertblock}{\footnotesize Pourquoi ce choix}
+    \footnotesize FastAPI est rapide, typé et documenté automatiquement
+    (Swagger) ; React offre une interface réactive et portable, séparant
+    clairement le \textbf{moteur de calcul} de la \textbf{présentation}.
+  \end{alertblock}
+\end{frame}

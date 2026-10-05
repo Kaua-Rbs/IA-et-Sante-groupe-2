@@ -78,5 +78,39 @@ class TestUnitesDeTemps(unittest.TestCase):
         self.assertEqual(pl.plot_convergence(resultats).axes[0].get_xlabel(), "Temps ecoule (s)")
 
 
+class TestFiguresMultiGraines(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.patients, cls.vacations = op.small_validation_instance(seed=1)
+        cls.resultats_simples = op.optimize_planning(cls.patients, cls.vacations, **SMALL_KWARGS)
+        cls.multi = {nom: [res, res] for nom, res in cls.resultats_simples.items()}
+
+    def test_couleurs_etendues_couvrent_les_10_methodes(self):
+        self.assertEqual(set(pl.COULEURS_ETENDUES), set(op.TOUTES_METHODES))
+
+    def test_fonctions_renvoient_une_figure(self):
+        figures = {
+            "boxplot": pl.plot_boxplot_graines(self.multi),
+            "convergence_mediane": pl.plot_convergence_mediane(self.multi),
+            "taux_succes": pl.plot_taux_succes({nom: 1.0 for nom in self.multi}),
+            "qualite_temps": pl.plot_qualite_temps(self.multi),
+        }
+        for nom, fig in figures.items():
+            with self.subTest(figure=nom):
+                self.assertIsInstance(fig, Figure)
+
+    def test_savefig(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            for nom, fig in {
+                "boxplot": pl.plot_boxplot_graines(self.multi),
+                "convergence_mediane": pl.plot_convergence_mediane(self.multi),
+                "taux_succes": pl.plot_taux_succes({nom: 0.5 for nom in self.multi}),
+                "qualite_temps": pl.plot_qualite_temps(self.multi),
+            }.items():
+                path = Path(tmp) / f"{nom}.png"
+                fig.savefig(path)
+                self.assertTrue(path.exists() and path.stat().st_size > 0)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -1,0 +1,63 @@
+\begin{frame}{Introduction}
+
+  \begin{block}{Sujet du projet}
+    Notre projet porte sur \textbf{l'optimisation conjointe des blocs opératoires et des lits d'hospitalisation} (ambulatoire et conventionnelle).
+
+    L'objectif est de concevoir un \textbf{outil d'aide à la décision} capable de planifier les interventions chirurgicales en tenant compte simultanément des ressources du bloc opératoire et des capacités d'hospitalisation.
+  \end{block}
+
+  \vspace{0.3em}
+
+  \begin{alertblock}{Pourquoi ce problème ?}
+    Le bloc opératoire mobilise des ressources coûteuses et interdépendantes : salle d'opération, chirurgien, équipe d'anesthésie, personnel soignant et lit d'hospitalisation. Une décision prise uniquement à partir du planning du chirurgien peut déplacer la contrainte vers les lits ou les équipes soignantes.
+  \end{alertblock}
+\end{frame}
+\begin{frame}{Introduction}  
+  \begin{block}{Objectif global}
+    À partir des données historiques de la clinique, notre système :
+    \begin{itemize}
+      \item prédit la durée d'une intervention et la durée de séjour du patient ;
+      \item propose au chirurgien \textbf{deux créneaux optimaux} (une date principale et une alternative) afin d'améliorer la planification hospitalière.
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+
+% ---------- Flux poussé vs flux tiré ----------
+\begin{frame}{Contexte : du flux poussé au flux tiré}
+
+  \begin{columns}[T]
+
+    \begin{column}{0.48\textwidth}
+
+      \begin{block}{Organisation actuelle : flux poussé}
+        \begin{itemize}
+          \item Le chirurgien choisit une date selon son planning.
+          \item Les blocs, les lits et les équipes s'adaptent ensuite.
+          \item Cela crée des pics et des creux d'activité.
+        \end{itemize}
+      \end{block}
+
+    \end{column}
+
+    \begin{column}{0.48\textwidth}
+
+      \begin{block}{Approche proposée : flux tiré}
+        \begin{itemize}
+          \item La planification dépend des ressources disponibles.
+          \item Les blocs et les lits sont optimisés conjointement.
+          \item Le chirurgien conserve la décision finale parmi deux propositions.
+        \end{itemize}
+      \end{block}
+
+    \end{column}
+
+  \end{columns}
+
+  \vspace{0.4em}
+
+  \begin{alertblock}{Idée centrale du projet}
+    Passer d'une planification centrée sur le chirurgien à une planification centrée sur la disponibilité réelle des ressources hospitalières.
+  \end{alertblock}
+
+\end{frame}

@@ -52,10 +52,12 @@ The repository is currently at the exploratory-analysis stage:
 - [`dashboard.py`](dashboard.py) provides an interactive, aggregate view of the preprocessed data;
 - [`data_dictionary_donees_bloc.md`](data_dictionary_donees_bloc.md) documents and validates the workbook schema;
 - [`docs/patient-workflow.md`](docs/patient-workflow.md) provides a first activity-diagram draft of the planned surgical-patient journey;
-- [`optimiseur/`](optimiseur/README.md) provides five metaheuristics (simulated annealing, tabu search, genetic algorithm, a tabu × annealing hybrid, and ant-colony optimization), a Tkinter GUI, a headless demo CLI, and a bridge from the preprocessed EDA Parquet to the optimizer input schema;
-- [`notebooks/guide_optimisation.ipynb`](notebooks/guide_optimisation.ipynb) walks from the EDA data to the five methods;
+- [`optimiseur/`](optimiseur/README.md) provides ten optimization methods (simulated annealing, tabu search, genetic algorithm, a tabu × annealing hybrid, ant-colony optimization, three genetic/ant hybrids, and two Mesa multi-agent systems), a benchmark harness, an asynchronous re-planning bridge to `hospital_sim/`, a Tkinter GUI, a headless demo CLI, and a bridge from the preprocessed EDA Parquet to the optimizer input schema;
+- [`notebooks/guide_optimisation.ipynb`](notebooks/guide_optimisation.ipynb) walks from the EDA data to the five historical methods;
+- [`hospital_sim/`](hospital_sim/) provides the asynchronous coordination core (adapters, versioned state, explicit acceptance, disruptions);
+- [`rapport/RAPPORT.md`](rapport/RAPPORT.md) and [`rapport/figures/`](rapport/figures) contain the comparative report and its figures;
 - [`tests/`](tests) contains the unittest suite documented in [`TEST_PLAN.md`](TEST_PLAN.md);
-- [`requirements.txt`](requirements.txt) lists the Python dependencies required by the notebooks, dashboard, and optimizer.
+- [`requirements.txt`](requirements.txt) lists the Python dependencies required by the notebooks, dashboard, optimizer, and multi-agent layer.
 
 The notebook covers schema inspection, missing values, duplicate rows, derived ages and durations, monthly and weekday activity, common clinical categories, operating-room timing, and duration comparisons by intervention type. Identifier columns are omitted from row-level previews and charts.
 
@@ -65,7 +67,7 @@ synthetic disruption demonstration. See the [coordination-core guide](docs/coord
 for its boundaries and integration points. It is infrastructure for future simulation and agents,
 not a clinical scheduler or a complete multi-agent system.
 
-Predictive models and an operational decision-support application have not yet been implemented. The scheduling layer is available as a standalone module whose methods are validated against an exact brute-force optimum on a small instance. The coordination skeleton is not yet wired to the optimizer.
+Predictive models and an operational decision-support application have not yet been implemented. The scheduling layer is available as a standalone module whose ten methods are validated against an exact brute-force optimum on a small instance, with a multi-seed benchmark on small and large instances. The coordination skeleton is wired to the optimizer through `optimiseur/coordination_bridge.py`, which re-plans after hospital events (resource unavailability, emergency arrival) and validates every proposal before explicit acceptance.
 
 ## Repository structure
 
@@ -76,12 +78,15 @@ Predictive models and an operational decision-support application have not yet b
 ├── preprocessing_surgery_duration.ipynb # Surgery-duration model preprocessing
 ├── dashboard.py                    # Interactive aggregate-data dashboard
 ├── data_dictionary_donees_bloc.md # Description of the 30 source columns
-├── optimiseur/                     # Operating-room scheduling metaheuristics
+├── optimiseur/                     # Scheduling methods, SMA, benchmark, GUI
+├── hospital_sim/                   # Asynchronous coordination skeleton
+├── rapport/                        # Comparative report and figures
 ├── notebooks/
 │   └── guide_optimisation.ipynb   # Step-by-step optimizer guide
 ├── tests/                          # Unittest suite (see TEST_PLAN.md)
 ├── docs/
-│   └── patient-workflow.md        # Versioned patient-journey diagram
+│   ├── patient-workflow.md        # Versioned patient-journey diagram
+│   └── coordination-core.md       # Coordination boundaries and integration points
 ├── requirements.txt               # Python analysis dependencies
 ├── resources/                     # Local-only data and project briefs (ignored)
 └── README.md

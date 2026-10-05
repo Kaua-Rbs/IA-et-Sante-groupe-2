@@ -37,7 +37,18 @@ from . import optimizer as op
 from . import plotting as pl
 from . import aleas as al
 
-METHODES = [op.METHODE_RECUIT, op.METHODE_TABOU, op.METHODE_GENETIQUE, op.METHODE_HYBRIDE, op.METHODE_FOURMIS]
+METHODES = [
+    op.METHODE_RECUIT,
+    op.METHODE_TABOU,
+    op.METHODE_GENETIQUE,
+    op.METHODE_HYBRIDE,
+    op.METHODE_FOURMIS,
+    op.METHODE_GEN_TABOU,
+    op.METHODE_GEN_RECUIT,
+    op.METHODE_FOURMIS_TABOU,
+    op.METHODE_SMA,
+    op.METHODE_SMA_HYBRIDE,
+]
 
 
 class BlocOperatoireApp(tk.Tk):
@@ -352,7 +363,7 @@ class BlocOperatoireApp(tk.Tk):
 
         self.btn_run.config(state="disabled")
         self.progress.start(12)
-        self.status_var.set("Optimisation en cours (metaheuristiques)...")
+        self.status_var.set("Optimisation en cours (10 methodes)...")
 
         # Les tk.Variable ne doivent etre lues que depuis le thread principal :
         # on capture la valeur ici, avant de la transmettre au thread de calcul.
@@ -367,7 +378,8 @@ class BlocOperatoireApp(tk.Tk):
                 self.patients_df, self.vacations_df, lits_capacity=lits_capacity
             )
             resultats = op.optimize_planning(
-                self.patients_df, self.vacations_df, lits_capacity=lits_capacity
+                self.patients_df, self.vacations_df, lits_capacity=lits_capacity,
+                methodes="toutes",
             )
             self._queue.put(("ok", problem, resultats))
         except Exception as exc:  # remonte l'erreur au thread principal

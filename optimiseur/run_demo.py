@@ -3,13 +3,15 @@ run_demo.py
 -----------
 Demonstration complete, sans interface graphique : genere un jeu de
 donnees de test, lance les metaheuristiques (recuit simule, tabou,
-genetique, hybride tabou x recuit, fourmis/ACO), sauvegarde les
-graphiques de comparaison, et verifie l'optimalite sur une petite
-instance de reference.
+genetique, hybride tabou x recuit, fourmis/ACO ; avec --toutes : plus les
+hybrides genetique x tabou, genetique x recuit, fourmis x tabou et les SMA),
+sauvegarde les graphiques de comparaison, et verifie l'optimalite sur une
+petite instance de reference.
 
 Usage (depuis la racine du depot) :
     python -m optimiseur.run_demo
     python -m optimiseur.run_demo --n-patients 50 --n-days 6 --out dossier_resultats
+    python -m optimiseur.run_demo --toutes --budget 2
 """
 
 from __future__ import annotations
@@ -32,6 +34,17 @@ def main():
     parser.add_argument("--lits-capacity", type=int, default=42)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--out", type=str, default="resultats")
+    parser.add_argument(
+        "--toutes",
+        action="store_true",
+        help="lance les 10 methodes (hybrides et SMA compris) au lieu des 5 historiques",
+    )
+    parser.add_argument(
+        "--budget",
+        type=float,
+        default=None,
+        help="budget temps par methode en secondes (defaut : parametres propres a chaque methode)",
+    )
     args = parser.parse_args()
 
     os.makedirs(args.out, exist_ok=True)
@@ -45,9 +58,17 @@ def main():
     problem = op.PlanningProblem(patients_df, vacations_df, lits_capacity=args.lits_capacity)
 
     print("2) Optimisation avec les metaheuristiques...")
-    resultats = op.optimize_planning(patients_df, vacations_df, lits_capacity=args.lits_capacity, seed=args.seed)
+    methodes = "toutes" if args.toutes else None
+    resultats = op.optimize_planning(
+        patients_df,
+        vacations_df,
+        lits_capacity=args.lits_capacity,
+        seed=args.seed,
+        methodes=methodes,
+        time_budget_s=args.budget,
+    )
     for nom, r in resultats.items():
-        print(f"   - {nom:<15s} fitness finale = {r.meilleure_fitness:10.3f}   temps = {op.format_duree(r.duree_s):>9s}")
+        print(f"   - {nom:<25s} fitness finale = {r.meilleure_fitness:10.3f}   temps = {op.format_duree(r.duree_s):>9s}")
 
     print("3) Sauvegarde des graphiques de comparaison...")
     pl.plot_convergence(resultats).savefig(os.path.join(args.out, "convergence.png"), dpi=150)
@@ -71,19 +92,33 @@ def main():
     pat_s, vac_s = op.small_validation_instance(seed=args.seed)
     prob_s = op.PlanningProblem(pat_s, vac_s)
     _, f_exact = op.exact_bruteforce(prob_s)
-    res_s = op.optimize_planning(
-        pat_s, vac_s,
+    kwargs_petite = dict(
         sa_kwargs=dict(n_iter=500),
         tabu_kwargs=dict(n_iter=100, neighborhood_size=10),
         ga_kwargs=dict(pop_size=20, n_gen=60),
         hybrid_kwargs=dict(n_iter=200, neighborhood_size=10),
         aco_kwargs=dict(n_ants=10, n_iter=80),
     )
+    if args.toutes:
+        kwargs_petite.update(
+            gen_tabu_kwargs=dict(n_gen=10**6),
+            gen_recuit_kwargs=dict(n_gen=10**6),
+            fourmis_tabu_kwargs=dict(n_iter=10**6),
+            sma_kwargs=dict(n_steps=10**6),
+            sma_hybride_kwargs=dict(n_steps=10**6),
+        )
+    res_s = op.optimize_planning(
+        pat_s,
+        vac_s,
+        methodes=methodes,
+        time_budget_s=0.5 if args.toutes else None,
+        **kwargs_petite,
+    )
     print(f"   optimum exact (force brute) = {f_exact:.6f}")
     for nom, r in res_s.items():
         ecart = r.meilleure_fitness - f_exact
         statut = "OPTIMUM ATTEINT" if abs(ecart) < 1e-9 else f"ecart = {ecart:.4f}"
-        print(f"   - {nom:<15s} fitness = {r.meilleure_fitness:10.6f}   [{statut}]")
+        print(f"   - {nom:<25s} fitness = {r.meilleure_fitness:10.6f}   [{statut}]")
 
     print("5) Generation des plannings alternatifs (Nominal, Robuste bufferise, Date A/B)...")
     alts = al.generer_plannings_alternatifs(

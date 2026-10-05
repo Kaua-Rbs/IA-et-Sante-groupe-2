@@ -22,7 +22,7 @@ si la ressource est absente.
 
 ## Resultat attendu
 
-`Ran 57 tests ... OK` en une dizaine de secondes. Toute regression doit se
+`Ran 140 tests ... OK` en une trentaine de secondes. Toute regression doit se
 traduire par un test en echec, pas par une inspection manuelle.
 
 ## Ce qui est couvert
@@ -77,8 +77,65 @@ traduire par un test en echec, pas par une inspection manuelle.
   - **Rapport** d'arbitrage lisible et chiffre.
 
 ### Graphiques (`test_plotting.py` et `test_aleas.py`)
-- `COULEURS` couvre exactement les 5 methodes ;
-- chaque fonction renvoie une `Figure` et peut etre sauvegardee en PNG (y compris `plot_adaptation_dynamique`, `plot_comparaison_alternatives` et `plot_occupation_lits_aleas`).
+- `COULEURS` couvre exactement les 5 methodes historiques et
+  `COULEURS_ETENDUES` les 10 methodes ;
+- chaque fonction renvoie une `Figure` et peut etre sauvegardee en PNG (y
+  compris `plot_adaptation_dynamique`, `plot_comparaison_alternatives` et
+  `plot_occupation_lits_aleas`) ainsi que les figures multi-graines (boxplot,
+  convergence mediane, taux de succes, qualite/temps).
+
+### Hybrides (`test_hybrides.py`)
+- les 3 hybrides (genetique x tabou, genetique x recuit, fourmis x tabou)
+  atteignent l'optimum exact sur la petite instance, avec historique coherent
+  et determinisme par graine ;
+- hooks de reprise : `solution_initiale` (recuit, tabou, tabou x recuit),
+  `population_initiale` (genetique), `pheromones_initiaux` +
+  `meilleure_solution_initiale` (fourmis), `etat` en sortie (population /
+  pheromones) ;
+- `time_budget_s` respecte sur les hybrides ;
+- selecteur de methodes : defaut = 5 historiques, `"toutes"` = 10, liste
+  explicite, erreur sur nom inconnu ;
+- `PlanningProblem.violations` : depassements vacations/lits et cas faisable.
+
+### Systemes multi-agents (`test_multiagent.py`, sautes si mesa absent)
+- SMA et SMA x metaheuristiques atteignent l'optimum exact sur la petite
+  instance et renvoient un `RunResult` valide (historique, solution) ;
+- determinisme par graine des deux modeles ;
+- tableau noir : publication initiale, conservation du meilleur ;
+- coordinateur : migration des agents sous la moyenne, redemarrages sur
+  stagnation ;
+- budget temps respecte.
+
+### Benchmark (`test_benchmark.py`)
+- campagne petite echelle (2 graines, budget reduit, 2 methodes) : reference
+  exacte, tableau long, colonnes et bornes du resume, taux de reference ;
+- `resumer` avec reference imposee : ecarts moyens, taux, rang moyen ;
+- `kwargs_plafonnes` couvre les 10 methodes.
+
+### Pont de coordination (`test_coordination_bridge.py`)
+- `EtatBlocAdapter` : les 5 types d'evenements (indisponibilite, annulation,
+  urgence, sejour prolonge, depassement) modifient l'etat sans le muter, les
+  payloads invalides et evenements non supportes levent `ValueError` ;
+- conversions `affectation <-> solution` (aller-retour) et exclusion des
+  vacations indisponibles ;
+- `ValidateurBloc` : accepte un plan faisable, rejette version obsolete,
+  patient manquant, vacation inconnue, depassement de capacite ;
+- `PlanificateurOptimiseur.propose` (async) : proposition valide, `None` si
+  deadline depassee, erreur si methode inconnue ;
+- bout en bout avec `hospital_sim.Coordinator` : indisponibilite puis urgence,
+  chaque proposition est validee et explicitement acceptee.
+
+### Grandes instances (`test_grandes_instances.py`)
+- instance synthetique 400 patients / 180 vacations : `fitness`, `violations`
+  et `occupation_lits` comparés a un **oracle naif** (pandas + boucles,
+  independant du code vectorise), validite des solutions aleatoires et de 200
+  voisins, determinisme ;
+- les 10 methodes sur 300 patients / 96 vacations : solutions valides, fitness
+  finies et negatifs, historique coherent, hook `solution_initiale` qui ne
+  degrade jamais le point de depart ;
+- **donnees reelles** (si le Parquet est present) : concordance oracle sur
+  582 patients / 280 vacations, `solution_to_dataframe` coherent, recuit et SMA
+  valides.
 
 ### Integration (`test_integration.py`)
 - `optimiseur.run_demo` en sous-processus : code retour 0, 5 `[OPTIMUM ATTEINT]`,
@@ -103,5 +160,15 @@ traduire par un test en echec, pas par une inspection manuelle.
 1. `.venv/bin/python -m unittest discover -t . -s tests -v` -> OK.
 2. `.venv/bin/python -m optimiseur.run_demo --n-patients 30 --n-days 5 --out resultats`
    -> 5 `[OPTIMUM ATTEINT]`.
-3. Si le schema de donnees change : regenerer le Parquet EDA et relancer la
+3. `.venv/bin/python -m optimiseur.run_demo --toutes --budget 1 --out resultats`
+   -> 10 `[OPTIMUM ATTEINT]`.
+4. `.venv/bin/python -m optimiseur.run_coordination_demo` -> 2 acceptations et
+   `validation_rejections = 0` dans les metriques.
+5. Campagne complete (longue, ~12 min) :
+   `.venv/bin/python -m optimiseur.run_benchmark --graines 20 --out resultats/benchmark --figures rapport/figures`
+   -> CSV + 6 figures et references coherentes.
+6. Campagne donnees reelles (longue, ~14 min, Parquet EDA requis) :
+   `.venv/bin/python -m optimiseur.run_benchmark --sans-petite --donnees-reelles --graines 20 --budget-grande 4 --horizon 40 --capacite-min 600 --out resultats/benchmark_reel --figures rapport/figures`
+   -> CSV, 3 figures `reelle_*` et reference coherente.
+7. Si le schema de donnees change : regenerer le Parquet EDA et relancer la
    suite (les tests reels se declenchent automatiquement).
