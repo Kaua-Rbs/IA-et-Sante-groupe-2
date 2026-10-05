@@ -19,3 +19,17 @@ resultats/
 
 # Generated exports
 /artifacts/
+
+# Artefacts de compilation LaTeX
+*.aux
+*.log
+*.out
+*.nav
+*.snm
+*.toc
+*.synctex.gz
+*.bcf
+*.blg
+*.fls
+*.fdb_latexmk
+*.run.xml
