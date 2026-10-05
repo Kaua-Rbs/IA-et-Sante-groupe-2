@@ -20,6 +20,7 @@ import random
 import time
 from collections import deque
 from dataclasses import dataclass, field
+from typing import Sequence
 
 import numpy as np
 import pandas as pd
@@ -99,7 +100,8 @@ class PlanningProblem:
         self,
         patients_df: pd.DataFrame,
         vacations_df: pd.DataFrame,
-        lits_capacity: int = 42,
+        lits_capacity: int | Sequence[int] | np.ndarray = 42,
+        vacation_delays: Sequence[float] | np.ndarray | None = None,
         w_vacation: float = 5.0,
         w_lits: float = 3.0,
         w_balance: float = 0.05,
@@ -110,7 +112,9 @@ class PlanningProblem:
         self.w_vacation = w_vacation
         self.w_lits = w_lits
         self.w_balance = w_balance
-        self.n_days = int(self.vacations["jour"].max()) + 1
+        self.n_days = (
+            int(self.vacations["jour"].max()) + 1 if len(self.vacations) > 0 else 1
+        )
         self.n_vacations = len(self.vacations)
         self.n_patients = len(self.patients)
 
@@ -119,8 +123,22 @@ class PlanningProblem:
         self._pat_duree = self.patients["duree_operatoire"].to_numpy(dtype=float)
         self._pat_sejour = self.patients["duree_sejour"].to_numpy(dtype=int)
         self._pat_specialite = self.patients["specialite"].to_numpy()
-        self._vac_capacity = self.vacations["capacite_min"].to_numpy(dtype=float)
+
+        # Prise en compte de retards bloc imprevus (reduction de capacite utile)
+        if vacation_delays is not None:
+            self.vacation_delays = np.asarray(vacation_delays, dtype=float)
+        else:
+            self.vacation_delays = np.zeros(self.n_vacations, dtype=float)
+        self._vac_capacity = np.maximum(
+            0.0, self.vacations["capacite_min"].to_numpy(dtype=float) - self.vacation_delays
+        )
         self._vac_day = self.vacations["jour"].to_numpy(dtype=int)
+
+        # Prise en compte de capacite en lits vectorielle (par jour) ou scalaire
+        if isinstance(lits_capacity, (int, float, np.integer, np.floating)):
+            self._lits_capacity_arr = np.full(self.n_days, float(lits_capacity))
+        else:
+            self._lits_capacity_arr = np.asarray(lits_capacity, dtype=float)
 
         self.compatible = {
             spec: self.vacations.index[self.vacations["specialite"] == spec].tolist()
@@ -192,7 +210,7 @@ class PlanningProblem:
         overflow_vac = float(np.maximum(0, charge - self._vac_capacity).sum())
 
         occ = self._occupation(pids, vacs)
-        overflow_lits = float(np.maximum(0, occ - self.lits_capacity).sum())
+        overflow_lits = float(np.maximum(0, occ - self._lits_capacity_arr).sum())
 
         balance = float(charge.std())
 

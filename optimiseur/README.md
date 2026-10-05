@@ -13,9 +13,10 @@ données réelles prétraitées par le notebook EDA.
 | Fichier | Rôle |
 |---|---|
 | `optimiseur/optimizer.py` | Cœur : génération de données de test, modèle du problème (`PlanningProblem`), fonction de qualité, les 5 métaheuristiques, validation par force brute |
-| `optimiseur/plotting.py` | Graphiques matplotlib : convergence, comparaison qualité/temps, planning obtenu, occupation des lits |
+| `optimiseur/aleas.py` | Système d'aléas (urgences, annulations, indisponibilité lits, retard bloc), génération de plannings alternatifs (Date A / Date B, robustesse) et adaptation dynamique |
+| `optimiseur/plotting.py` | Graphiques matplotlib : convergence, comparaison qualité/temps, planning obtenu, occupation des lits, adaptation dynamique et comparaison des alternatives |
 | `optimiseur/run_demo.py` | Démonstration en ligne de commande (sans GUI) : génère les données, lance les méthodes, sauvegarde tous les graphiques en PNG |
-| `optimiseur/app_gui.py` | Interface graphique Tkinter, visuelle et interactive |
+| `optimiseur/app_gui.py` | Interface graphique Tkinter, visuelle et interactive (avec onglets Plannings alternatifs et Aléas & Adaptation) |
 | `optimiseur/data_bridge.py` | Convertit le Parquet prétraité par le notebook EDA au schéma de l'optimiseur |
 | `EDA_donees_bloc.ipynb` | Prétraitement du classeur réel (source de vérité, ne pas modifier) |
 | `notebooks/guide_optimisation.ipynb` | Guide pas à pas : des données EDA aux 5 métaheuristiques |
@@ -24,7 +25,7 @@ données réelles prétraitées par le notebook EDA.
 
 ```text
 optimiseur/               # package : tout le code
-  optimizer.py  plotting.py  data_bridge.py  run_demo.py  app_gui.py
+  optimizer.py  aleas.py  plotting.py  data_bridge.py  run_demo.py  app_gui.py
 notebooks/
   guide_optimisation.ipynb
 EDA_donees_bloc.ipynb     # prétraitement (racine- dépendances)
@@ -158,6 +159,29 @@ Les poids (`w_vacation`, `w_lits`, `w_balance`) sont réglables dans `PlanningPr
 7 patients). C'est la seule taille où un calcul exact reste possible : au-delà,
 le nombre de combinaisons explose, ce qui est précisément la raison d'être des
 métaheuristiques. `run_demo` affiche automatiquement cette vérification.
+
+## Gestion des aléas & Plannings alternatifs (`optimiseur/aleas.py`)
+
+Le bloc opératoire est soumis à une forte variabilité quotidienne. Le module `aleas.py` modélise et prend en charge quatre types d'aléas fondamentaux :
+
+1. **Urgences** (`Urgence`) : nouveaux patients arrivant au fil de l'eau, avec spécialité, durée opératoire, durée de séjour, jour d'apparition et fenêtre temporelle autorisée (`delai_max_jours`).
+2. **Annulations** (`Annulation`) : patients programmés qui annulent (contre-indication médicale, refus), libérant immédiatement du temps opératoire et des lits d'hospitalisation.
+3. **Indisponibilité lits** (`IndisponibiliteLits`) : fermetures inopinées de lits (tensions RH, épidémie, maintenance) sur un intervalle de jours $[j_{\text{début}}, j_{\text{fin}}]$.
+4. **Retard bloc** (`RetardBloc`) : prolongations imprévues ou incidents techniques amputant la capacité utile d'une vacation.
+
+### Deux approches complémentaires :
+
+- **Génération de plannings alternatifs proactive** (`generer_plannings_alternatifs`) :
+  - **Nominal** : optimisation à pleine capacité.
+  - **Robuste Bufferisé** : réserve de capacité bloc (buffer 15%) et lits pour absorber les imprévus sans décalage.
+  - **Sécurité Lits** : forte pénalité et lissage pour prévenir les tensions d'hospitalisation.
+  - **Alternatif Diversifié (Date B)** : fournit pour chaque patient une paire **Date A / Date B** via `extraire_options_date_a_b` pour guider le choix du praticien lors de la consultation préopératoire.
+
+- **Adaptation dynamique réactive** (`adapter_planning`) :
+  - **Gel temporel** : sanctuarisation des interventions passées ($j < j_{\text{courant}}$).
+  - **Insertion prioritaire des urgences** dans leur fenêtre clinique.
+  - **Principe de moindre perturbation** : minimisation du nombre de patients futurs déplacés ($\min \text{perturbation}$ et pénalité accrue pour les changements de jour).
+  - Production d'un rapport décisionnel complet (`rapport`) avec détail des arbitrages.
 
 ## Limites connues / pistes d'amélioration
 
