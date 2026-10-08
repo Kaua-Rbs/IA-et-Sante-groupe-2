@@ -23,7 +23,9 @@ def with_duration_mode(scenario, mode):
     if mode != "oracle":
         raise ValueError("Unknown duration mode")
     return replace(scenario, cases=tuple(
-        replace(case, predicted_minutes=ceil(scenario.realized_minutes[case.case_id]))
+        replace(case, predicted_minutes=ceil(scenario.realized_minutes[case.case_id]),
+                predicted_los_days=(scenario.realized_los_days or {}).get(
+                    case.case_id, case.predicted_los_days))
         for case in scenario.cases
     ), realized_minutes=dict(scenario.realized_minutes))
 
@@ -68,15 +70,25 @@ def sampled_scenario(data, count, seed):
     if pool.empty:
         raise ValueError("No held-out cases for scenario sampling")
     rng = random.Random(seed)
-    cases, realized = [], {}
+    cases, realized, realized_los, source_ids, preop_days = [], {}, {}, {}, {}
+    los_medians = getattr(data, "los_medians", None) or {}
+    los_fallback = getattr(data, "los_fallback", 1)
+    has_source_ids = "source_id" in pool.columns
     # Sample complete rows, retaining procedure-duration associations.
     rows = list(pool.itertuples(index=False))
     for i in range(1, count + 1):
         row = rng.choice(rows)
         identifier = f"case-{i:04d}"
-        cases.append(CaseInput(identifier, row.procedure, ceil(data.medians.get(row.procedure, data.fallback))))
+        cases.append(CaseInput(identifier, row.procedure,
+                               ceil(data.medians.get(row.procedure, data.fallback)),
+                               max(1, round(los_medians.get(row.procedure, los_fallback)))))
         realized[identifier] = ceil(row.duration)
-    return DailyScenario(date(2022, 1, 1), tuple(cases), realized)
+        realized_los[identifier] = int(getattr(row, "los_days", 1))
+        preop_days[identifier] = int(getattr(row, "preop_days", 0))
+        if has_source_ids:
+            source_ids[identifier] = int(row.source_id)
+    return DailyScenario(date(2022, 1, 1), tuple(cases), realized, realized_los,
+                         source_ids if has_source_ids else None, preop_days)
 
 
 def scale_rooms(config, scenario, target_load):

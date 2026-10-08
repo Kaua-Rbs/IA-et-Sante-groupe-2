@@ -3,13 +3,14 @@
 This branch combines the vacation-level optimizer from `meta_heuristics` with
 the historical room simulation. They share the asynchronous coordinator and
 eight search algorithms, but **retain different planning models and scores**.
-This is a code integration and a common room-solver comparison, not yet a
-joint bloc–beds–ambulatory simulation.
+The optional [model-driven Mesa runner](model-driven-mesa.md) adds learned
+room/LOS predictions and a synthetic cross-day bed resource. It does not
+reconstruct all hospital resources or optimize beds and rooms jointly.
 
 | Track | Decision and objective | Data and execution |
 |---|---|---|
 | `optimiseur/` | Assign patients to day-level specialty vacations; penalize excess vacation minutes, bed-days and workload imbalance. | Synthetic data or the EDA Parquet. `aleas.py` generates alternatives and adapts plans after known events. Its Mesa agents collaborate as search methods. |
-| `hospital_sim/` | Assign episodes to synthetic rooms and predicted minute-level starts; prioritize fewest unstarted cases, then predicted overtime, then changed decisions. | Cleaned workbook, with 2019–2021 duration estimates and held-out 2022 outcomes; Mesa patient agents execute the accepted plan minute by minute. |
+| `hospital_sim/` | Assign episodes to synthetic rooms and predicted minute-level starts; prioritize fewest unstarted cases, then predicted overtime, then changed decisions. | Cleaned workbook, historical medians or learned durations, and held-out 2022 outcomes; Mesa executes rooms minute by minute. The optional ward layer tracks beds and observed discharge across days. |
 
 The room scheduler now accepts the five original methods plus **genetic ×
 tabu**, **genetic × annealing** and **ACO × tabu**. All eight use the same
@@ -80,17 +81,16 @@ adapted plan is a proposal, not a guarantee of zero overflow.
   Emergencies, cancellations, bed closures and vacation-capacity losses are
   implemented in the vacation track and its coordination bridge, but are not
   executed as patient events in the room model.
-- The vacation optimizer accounts for beds, but neither Mesa model has
-  ambulatory places or dedicated bloc/bed/ambulatory resource agents.
+- The optional ward Mesa model limits admissions to free synthetic beds,
+  carries waiting cases forward, and releases beds on observed discharge.
+  It does not model ambulatory places, staff or a joint resource objective.
 - Historical workloads are used under explicit synthetic room assumptions;
   the simulation does not reconstruct the hospital's actual assignments.
 
-To make a joint resource simulator, the next step is to define a shared
-episode record with predicted occupancy, length of stay, care type, and
-resource availability. The room simulator could then reserve beds or
-ambulatory places at an accepted start, release them at an observed discharge,
-and trigger replanning when those resources change. This requires validation
-of the underlying data mapping and a common multi-resource feasibility check.
+For a full operational simulator, the next step is to validate care-type and
+resource mapping, reconstruct initial bed occupancy, and add a common
+multi-resource feasibility check. The current cross-day runner uses predicted
+LOS to prioritize offered cases and observed LOS to determine discharge.
 
 ## Verification
 

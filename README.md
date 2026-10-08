@@ -61,8 +61,9 @@ The repository includes exploratory analysis and an initial simulation benchmark
 
 The notebook covers schema inspection, missing values, duplicate rows, derived ages and durations, monthly and weekday activity, common clinical categories, operating-room timing, and duration comparisons by intervention type. Identifier columns are omitted from row-level previews and charts.
 
-[`hospital_sim/`](hospital_sim/) contains the asynchronous coordinator and a
-room-only Mesa simulation. The coordinator versions state and validates each
+[`hospital_sim/`](hospital_sim/) contains the asynchronous coordinator, a
+minute-step Mesa room simulation, and an optional cross-day Mesa bed layer.
+The coordinator versions state and validates each
 proposed schedule before acceptance. The simulation reads the cleaned workbook,
 executes patient episodes minute by minute, and compares static and reactive
 plans under a room closure. See the [coordination-core guide](docs/coordination-core.md)
@@ -71,14 +72,16 @@ for its interfaces and boundaries.
 The [optimizer package](optimiseur/README.md) supplies eight metaheuristics, two Mesa
 systems whose agents search for vacation plans, disruption-handling tools, a benchmark
 CLI, charts, a Tkinter interface, and an [explanatory notebook](notebooks/guide_optimisation.ipynb).
-The separate room simulation uses historical median duration estimates and now accepts
-all eight metaheuristics through one room decoder. Its [oracle duration mode](docs/oracle-simulation.md)
+The room simulation accepts all eight metaheuristics through one decoder and
+can use historical medians, learned preoperative room/LOS durations, or a
+labeled oracle. Its [oracle duration mode](docs/oracle-simulation.md)
 compares scheduling with perfect duration knowledge. The prior [experimental comparison](docs/metaheuristics-mesa-comparison.md)
 ([version française](docs/metaheuristics-mesa-comparison-fr.md)) covers the original five
 metaheuristics and a baseline over 576 runs; those results have not been extended to
 the three new hybrids. The [combined-model guide](docs/combined-optimization-simulation.md)
-explains the distinct objectives and how to run both tracks. Trained ML models and
-joint bloc–beds–ambulatory simulation remain to be integrated.
+explains the distinct objectives. The [model-driven Mesa guide](docs/model-driven-mesa.md)
+describes local model training, the cross-day bed comparison, and its limits.
+Ambulatory resources and a common bloc/bed optimization objective remain future work.
 
 ## Repository structure
 

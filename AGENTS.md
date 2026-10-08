@@ -237,9 +237,16 @@ Schema attendu par `optimiseur/optimizer.py` :
 - Garder Mesa 3.5.1. Resultats sous artifacts/, jamais de donnees privees commitees.
 - Les durees observees restent dans la simulation, hors requetes du solveur.
 - Le modele de vacations et le modele de salles minute par minute ont des
-  objectifs distincts. Le second ignore les lits et utilise le meme decodeur
+  objectifs distincts. Le planificateur quotidien de salles ignore les lits et utilise le meme decodeur
   pour les huit metaheuristiques et la reference gloutonne. Les deux SMA de
   `optimiseur/multiagent.py` restent des chercheurs de plannings de vacations.
+- `hospital_sim/joint_experiment.py` ajoute un modele Mesa persistant de lits
+  autour du simulateur quotidien : admissions limitees aux lits libres,
+  sorties observees apres une duree de sejour cachee, cas non demarres reportes.
+  Il ne constitue pas encore un optimiseur commun bloc/lits.
+- `surgery_duration.py` et `los_model.py` entrainent des artefacts locaux ignores.
+  `hospital_sim/predictions.py` lit uniquement les variables preoperatoires du
+  Parquet EDA ; garder les cibles observees hors des predictions et des requetes.
 - Les urgences, annulations et fermetures de lits de `optimiseur/aleas.py` ne
   sont pas encore des evenements executes par le simulateur de salles.
 - Mesa 3.5 importe `networkx` sans le declarer : si `import mesa` echoue,

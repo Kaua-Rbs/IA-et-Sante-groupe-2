@@ -8,10 +8,11 @@ class CaseInput:
     case_id: str
     procedure: str
     predicted_minutes: int
+    predicted_los_days: int = 1
 
     def __post_init__(self):
-        if not self.case_id or self.predicted_minutes < 1:
-            raise ValueError("Cases require an identifier and a positive duration")
+        if not self.case_id or self.predicted_minutes < 1 or self.predicted_los_days < 1:
+            raise ValueError("Cases require an identifier and positive room/LOS durations")
 
 
 @dataclass(frozen=True)

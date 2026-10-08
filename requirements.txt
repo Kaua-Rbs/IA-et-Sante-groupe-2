@@ -8,6 +8,12 @@ seaborn>=0.13
 mesa[network]==3.5.1
 networkx>=3.2
 
+# Prediction preoperatoire des durees de salle et de sejour
+scikit-learn>=1.7
+xgboost>=3.0
+catboost>=1.2.8
+joblib>=1.4
+
 # Lecture du classeur Excel et export Parquet (EDA)
 openpyxl>=3.1
 pyarrow>=17.0
