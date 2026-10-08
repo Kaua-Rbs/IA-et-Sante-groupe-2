@@ -1,6 +1,7 @@
 % Contribution SMA au plan de soutenance du 9 octobre 2026.
-% Sections 4 a 8, dans l'ordre du plan. Les sections 1 a 3 et les modeles ML
-% sont presentes par les autres membres de l'equipe.
+% Bloc autonome : integration SMA, simulation, puis resultats.
+% Introduction, metaheuristiques, modeles ML et interface sont presentes
+% par les autres membres de l'equipe.
 % Source des chiffres : hospital_sim.joint_experiment, cohorte model_test,
 % artifacts/joint-final-{42beds,10beds}/summary.csv et
 % artifacts/joint-presentation-{outage,no-outage}/summary.csv.
@@ -50,8 +51,8 @@
 
 \begin{document}
 
-% 4. Approche hybride : notre apport est le couplage solveur / simulation.
-\begin{frame}{4. Approche hybride : planifier, simuler, corriger}
+% Integration : notre apport est le couplage solveur / simulation.
+\begin{frame}{Intégration SMA : planifier, simuler, corriger}
   \small
   \centering
   \vspace{0.25cm}
@@ -70,57 +71,19 @@
     \draw[flow] (solver) -- (mesa);
     \draw[flow] (mesa.south) -- ++(0,-0.80) -| (solver.south);
     \node[font=\scriptsize,text=McmMuted,fill=McmWarm,inner sep=2pt]
-      at (6.22,-1.53) {Observations et replanning des cas en attente};
+      at (6.22,-1.53) {Observations et replanification des cas en attente};
   \end{tikzpicture}
   \vspace{0.23cm}
 
   \begin{exampleblock}{Le rôle du SMA ici}
-    \small Mesa rejoue l'exécution et renvoie l'état réel au coordinateur.
-    Les algorithmes de l'équipe se branchent sur une même interface de planning.
+    \small Le solveur utilise des durées estimées. Mesa révèle les résultats
+    réels au coordinateur.
   \end{exampleblock}
   \source{Implémenté : hospital\_sim (Mesa 3.5.1). Les lits sont des ressources ; l'ambulatoire reste à intégrer.}
 \end{frame}
 
-% 4. Deuxième diapositive : frontière d'information et coordination bloc/lits.
-\begin{frame}{4. Couplage bloc--lits : ce que le solveur sait}
-  \small
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.49\textwidth}
-      \begin{block}{Connu au moment de décider}
-        \begin{itemize}\itemsep4pt
-          \item Type d'intervention et cas en attente
-          \item Durée de salle et séjour restant \textbf{estimés}
-          \item Salles libres, lits occupés, fermeture déjà observée
-        \end{itemize}
-      \end{block}
-    \end{column}
-    \begin{column}{0.49\textwidth}
-      \begin{alertblock}{Révélé par la simulation}
-        \begin{itemize}\itemsep4pt
-          \item Durée réellement passée en salle
-          \item Date réelle de sortie et libération du lit
-          \item Retards subis et cas non démarrés
-        \end{itemize}
-      \end{alertblock}
-    \end{column}
-  \end{columns}
-  \vspace{0.24cm}
-  \begin{center}
-    \begin{tikzpicture}[>=Latex,thick]
-      \node[draw=McmSage,fill=McmSage!10!McmWarm,rounded corners,
-            text width=3.0cm,align=center,minimum height=0.85cm] (jour)
-        {Jour J : lit libre ?\\Puis intervention en salle};
-      \node[draw=McmSage,fill=McmSage!10!McmWarm,rounded corners,
-            text width=3.0cm,align=center,minimum height=0.85cm,right=0.90cm of jour] (suite)
-        {Jours suivants : séjour observé\\Lit libéré à la sortie};
-      \draw[->,draw=McmSage] (jour) -- (suite);
-    \end{tikzpicture}
-  \end{center}
-  \source{Le modèle prédit la durée totale de séjour ; on retire les jours déjà passés à l'hôpital pour les lits postopératoires.}
-\end{frame}
-
-% 5. Un seul aléa effectivement simulé : fermeture temporaire de salle.
-\begin{frame}{5. Aléa testé : une salle ferme aux nouveaux départs}
+% Simulation dynamique : un seul alea effectivement execute.
+\begin{frame}{Simulation dynamique : fermeture temporaire d'une salle}
   \small
   \centering
   \begin{tikzpicture}[x=1.0cm,y=1cm,>=Latex]
@@ -154,8 +117,8 @@
   \source{Urgences, annulations et indisponibilités de lits ne sont pas encore des aléas exécutés dans ce simulateur.}
 \end{frame}
 
-% 6. Données et scénarios. Les chiffres ne sont pas des mesures du stock réel de lits.
-\begin{frame}{6. Simulations : charges historiques, ressources supposées}
+% Protocole. Les chiffres ne sont pas des mesures du stock reel de lits.
+\begin{frame}{Simulation : charges historiques et ressources supposées}
   \small
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.32\textwidth}
@@ -195,8 +158,8 @@
   \source{Fenêtres du 3 au 7 et du 3 au 31 janvier 2022 ; charges de travail, pas preuve de passage à l'échelle des solveurs.}
 \end{frame}
 
-% 7. Comparaison appariée plan fige / dynamique, nouvelle simulation bloc+lits.
-\begin{frame}{7. Résultats : plan figé ou replanification ?}
+% Resultat 1 : plan fige ou replanification.
+\begin{frame}{Résultats : plan figé ou replanification ?}
   \small
   \vspace{0.15cm}
   \centering
@@ -220,8 +183,8 @@
   \source{Modèle prédictif, planificateur glouton, 42 lits synthétiques, 2 salles, 3--31 janvier 2022, graine 0. Dépassement = occupation + remise en état après 17h.}
 \end{frame}
 
-% 7. Information parfaite et stress de capacité.
-\begin{frame}{7. Résultats : prédictions, oracle et capacité}
+% Resultat 2 : information disponible et capacite.
+\begin{frame}{Résultats : prédictions, oracle et capacité}
   \small
   \centering
   \renewcommand{\arraystretch}{1.40}
@@ -251,39 +214,6 @@
     \end{column}
   \end{columns}
   \source{Cas terminés sur 279 ; politique réactive, fermeture 10h--12h, 2 salles, graine 0. Oracle = durées futures révélées, pas optimum garanti.}
-\end{frame}
-
-% 8. Conclusion strictement centree sur les contributions SMA.
-\begin{frame}{8. Bilan et prochaines étapes}
-  \small
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.49\textwidth}
-      \begin{exampleblock}{Réalisé}
-        \begin{itemize}\itemsep5pt
-          \item Même interface entre planificateurs et Mesa
-          \item Réaction à une fermeture de salle, planning validé
-          \item Lits suivis sur plusieurs jours
-          \item Comparaisons reproductibles : médianes, ML, oracle
-        \end{itemize}
-      \end{exampleblock}
-    \end{column}
-    \begin{column}{0.49\textwidth}
-      \begin{block}{À compléter}
-        \begin{itemize}\itemsep5pt
-          \item Places ambulatoires et objectif bloc--lits--ambulatoire
-          \item Urgences, annulations, fermetures de lits
-          \item Stock réel de lits et occupation initiale
-          \item Validation clinique des variables disponibles
-        \end{itemize}
-      \end{block}
-    \end{column}
-  \end{columns}
-  \vspace{0.20cm}
-  \begin{alertblock}{Message à retenir}
-    \small Le prototype rend visibles les arbitrages entre
-    interventions terminées, dépassement horaire et lits occupés.
-    La coordination complète avec l'ambulatoire reste l'étape suivante.
-  \end{alertblock}
 \end{frame}
 
 \end{document}
