@@ -16,3 +16,14 @@ resultats/
 
 # Outils OpenCode locaux (config/skills personnels, node_modules volumineux)
 .opencode/
+
+# LaTeX auxiliares
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+
+# Backup de resultados
+results_mc_old.csv

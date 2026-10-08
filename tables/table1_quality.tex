@@ -1,0 +1,18 @@
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Method & Cost (mean $\pm$ sd) & OR overrun (min) & Bed overrun & Gap to bound \\
+\midrule
+SA & 5\,207 $\pm$ 26 & 1\,040 & 0.1 & +0.3\% \\
+Tabu & 5\,198 $\pm$ 0 & 1\,038 & 0.0 & +0.2\% \\
+Tabu$\times$SA & 5\,198 $\pm$ 0 & 1\,038 & 0.0 & +0.2\% \\
+GA (default) & 8\,569 $\pm$ 521 & 1\,696 & 27.1 & +65.1\% \\
+GA ($p_{\mathrm{mut}}=1/n$) & 5\,287 $\pm$ 44 & 1\,047 & 15.0 & +1.9\% \\
+ACO & 5\,783 $\pm$ 170 & 1\,146 & 14.1 & +11.4\% \\
+Random & 16\,848 $\pm$ 2\,454 & 3\,339 & 48.2 & +224.6\% \\
+\bottomrule
+\end{tabular}
+\caption{Large scale (n = 420), schedules planned on point-prediction LOS; 10 seeds. Cost $=-$fitness (lower is better). Lower bound on cost: 5\,190 ($= 5 \times 1038$ min of unavoidable overrun in one specialty).}
+\label{tab:quality}
+\end{table}

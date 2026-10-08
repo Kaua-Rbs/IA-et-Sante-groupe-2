@@ -1,0 +1,19 @@
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrrr}
+\toprule
+ & \multicolumn{2}{c}{Planned on point LOS} & \multicolumn{2}{c}{Planned on upper bound} & Paired $\Delta$ \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5}
+Method & E[cost] & Increase & E[cost] & Increase & (upper $-$ point) \\
+\midrule
+SA & 5\,316 & +109 & 5\,384 & +13 & $+68 \pm 12$ \\
+Tabu & 5\,313 & +115 & 5\,376 & +17 & $+63 \pm 13$ \\
+Tabu$\times$SA & 5\,311 & +112 & 5\,413 & +6 & $+102 \pm 8$ \\
+GA (default) & 8\,673 & +104 & 8\,131 & +112 & $-542 \pm 217$ \\
+GA ($p_{\mathrm{mut}}=1/n$) & 5\,405 & +118 & 5\,393 & +92 & $-12 \pm 20$ \\
+ACO & 5\,896 & +112 & 5\,990 & +104 & $+94 \pm 88$ \\
+\bottomrule
+\end{tabular}
+\caption{Large scale. Frozen schedules re-evaluated on 200 LOS scenarios drawn from the 90\% conformal interval; 10 seeds. E[cost] is the mean cost over scenarios; Increase is E[cost] minus the cost on the point-prediction instance; the last column is the paired difference in E[cost] (mean $\pm$ standard error over seeds).}
+\label{tab:robustness}
+\end{table}
