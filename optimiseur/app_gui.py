@@ -35,8 +35,20 @@ import matplotlib.pyplot as plt
 from . import data_bridge as db
 from . import optimizer as op
 from . import plotting as pl
+from . import aleas as al
 
-METHODES = [op.METHODE_RECUIT, op.METHODE_TABOU, op.METHODE_GENETIQUE, op.METHODE_HYBRIDE, op.METHODE_FOURMIS]
+METHODES = [
+    op.METHODE_RECUIT,
+    op.METHODE_TABOU,
+    op.METHODE_GENETIQUE,
+    op.METHODE_HYBRIDE,
+    op.METHODE_FOURMIS,
+    op.METHODE_GEN_TABOU,
+    op.METHODE_GEN_RECUIT,
+    op.METHODE_FOURMIS_TABOU,
+    op.METHODE_SMA,
+    op.METHODE_SMA_HYBRIDE,
+]
 
 
 class BlocOperatoireApp(tk.Tk):
@@ -49,6 +61,8 @@ class BlocOperatoireApp(tk.Tk):
         self.vacations_df: pd.DataFrame | None = None
         self.problem: op.PlanningProblem | None = None
         self.resultats: dict[str, op.RunResult] | None = None
+        self.plannings_alternatifs: dict[str, al.PlanningAlternatifResult] | None = None
+        self.adaptation_result: al.AdaptationResult | None = None
 
         self._queue: queue.Queue = queue.Queue()
 
@@ -104,6 +118,8 @@ class BlocOperatoireApp(tk.Tk):
         self.tab_planning = ttk.Frame(self.notebook)
         self.tab_lits = ttk.Frame(self.notebook)
         self.tab_table = ttk.Frame(self.notebook)
+        self.tab_alternatifs = ttk.Frame(self.notebook)
+        self.tab_aleas = ttk.Frame(self.notebook)
 
         for tab, titre in [
             (self.tab_donnees, "Donnees"),
@@ -112,6 +128,8 @@ class BlocOperatoireApp(tk.Tk):
             (self.tab_planning, "Planning"),
             (self.tab_lits, "Lits"),
             (self.tab_table, "Tableau du planning"),
+            (self.tab_alternatifs, "Plannings alternatifs"),
+            (self.tab_aleas, "Aleas & Adaptation"),
         ]:
             self.notebook.add(tab, text=titre)
 
@@ -137,6 +155,77 @@ class BlocOperatoireApp(tk.Tk):
         self.combo_methode.pack(side=tk.LEFT, padx=6)
         self.combo_methode.bind("<<ComboboxSelected>>", lambda e: self._rafraichir_table_planning())
         self.tree_planning = self._make_tree(self.tab_table, side=tk.TOP, titre=None, fill_all=True)
+
+        # -- onglet plannings alternatifs (Date A / Date B) --
+        top_alt = ttk.Frame(self.tab_alternatifs)
+        top_alt.pack(fill=tk.X, padx=6, pady=4)
+        ttk.Button(
+            top_alt,
+            text="Generer les plannings alternatifs (Nominal, Robuste bufferise, Date A/B)",
+            command=self._generer_plannings_alternatifs,
+        ).pack(side=tk.LEFT, padx=6)
+
+        split_alt = ttk.PanedWindow(self.tab_alternatifs, orient=tk.VERTICAL)
+        split_alt.pack(fill=tk.BOTH, expand=True, padx=6, pady=4)
+
+        frame_canvas_alt = ttk.Frame(split_alt)
+        split_alt.add(frame_canvas_alt, weight=3)
+        self.canvas_alternatifs = self._make_canvas(frame_canvas_alt)
+
+        frame_tree_alt = ttk.Frame(split_alt)
+        split_alt.add(frame_tree_alt, weight=2)
+        self.tree_date_ab = self._make_tree(
+            frame_tree_alt, side=tk.TOP, titre="Options Date A / Date B par patient", fill_all=True
+        )
+
+        # -- onglet aleas & adaptation dynamique --
+        top_al = ttk.Frame(self.tab_aleas)
+        top_al.pack(fill=tk.X, padx=6, pady=4)
+
+        ttk.Label(top_al, text="Jour courant :").pack(side=tk.LEFT, padx=2)
+        self.var_jour_alea = tk.IntVar(value=1)
+        ttk.Spinbox(top_al, from_=0, to=20, textvariable=self.var_jour_alea, width=3).pack(side=tk.LEFT, padx=4)
+
+        ttk.Label(top_al, text="Urgences :").pack(side=tk.LEFT, padx=2)
+        self.var_urgences = tk.IntVar(value=2)
+        ttk.Spinbox(top_al, from_=0, to=10, textvariable=self.var_urgences, width=3).pack(side=tk.LEFT, padx=4)
+
+        ttk.Label(top_al, text="Annulations :").pack(side=tk.LEFT, padx=2)
+        self.var_annulations = tk.IntVar(value=1)
+        ttk.Spinbox(top_al, from_=0, to=10, textvariable=self.var_annulations, width=3).pack(side=tk.LEFT, padx=4)
+
+        ttk.Label(top_al, text="Lits perdus :").pack(side=tk.LEFT, padx=2)
+        self.var_lits_perdus = tk.IntVar(value=5)
+        ttk.Spinbox(top_al, from_=0, to=50, textvariable=self.var_lits_perdus, width=3).pack(side=tk.LEFT, padx=4)
+
+        ttk.Label(top_al, text="Retard bloc (min) :").pack(side=tk.LEFT, padx=2)
+        self.var_retard_min = tk.IntVar(value=45)
+        ttk.Spinbox(top_al, from_=0, to=240, textvariable=self.var_retard_min, width=4).pack(side=tk.LEFT, padx=4)
+
+        ttk.Button(
+            top_al,
+            text="Simuler aleas & Adapter dynamiquement",
+            command=self._simuler_et_adapter_aleas,
+        ).pack(side=tk.LEFT, padx=10)
+
+        split_al = ttk.PanedWindow(self.tab_aleas, orient=tk.VERTICAL)
+        split_al.pack(fill=tk.BOTH, expand=True, padx=6, pady=4)
+
+        frame_canvas_al = ttk.Frame(split_al)
+        split_al.add(frame_canvas_al, weight=3)
+        self.canvas_aleas = self._make_canvas(frame_canvas_al)
+
+        frame_rapport_al = ttk.Frame(split_al)
+        split_al.add(frame_rapport_al, weight=2)
+        ttk.Label(frame_rapport_al, text="Rapport d'adaptation dynamique (arbitrages)", font=("", 10, "bold")).pack(anchor="w")
+
+        text_scroll = ttk.Scrollbar(frame_rapport_al)
+        text_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.txt_rapport_aleas = tk.Text(
+            frame_rapport_al, wrap="word", yscrollcommand=text_scroll.set, height=8, font=("Consolas", 9)
+        )
+        self.txt_rapport_aleas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        text_scroll.config(command=self.txt_rapport_aleas.yview)
 
     def _build_status_bar(self):
         self.status_var = tk.StringVar(value="Pret.")
@@ -274,7 +363,7 @@ class BlocOperatoireApp(tk.Tk):
 
         self.btn_run.config(state="disabled")
         self.progress.start(12)
-        self.status_var.set("Optimisation en cours (metaheuristiques)...")
+        self.status_var.set("Optimisation en cours (10 methodes)...")
 
         # Les tk.Variable ne doivent etre lues que depuis le thread principal :
         # on capture la valeur ici, avant de la transmettre au thread de calcul.
@@ -289,7 +378,8 @@ class BlocOperatoireApp(tk.Tk):
                 self.patients_df, self.vacations_df, lits_capacity=lits_capacity
             )
             resultats = op.optimize_planning(
-                self.patients_df, self.vacations_df, lits_capacity=lits_capacity
+                self.patients_df, self.vacations_df, lits_capacity=lits_capacity,
+                methodes="toutes",
             )
             self._queue.put(("ok", problem, resultats))
         except Exception as exc:  # remonte l'erreur au thread principal
@@ -366,6 +456,87 @@ class BlocOperatoireApp(tk.Tk):
             return
         df = op.solution_to_dataframe(self.problem, self.resultats[methode].meilleure_solution)
         self._fill_tree(self.tree_planning, df)
+
+    def _generer_plannings_alternatifs(self):
+        if self.problem is None:
+            messagebox.showwarning("Optimisation requise", "Lancez d'abord l'optimisation standard.")
+            return
+
+        self.status_var.set("Generation des plannings alternatifs en cours...")
+        self.update_idletasks()
+
+        nom_meilleure = max(self.resultats, key=lambda n: self.resultats[n].meilleure_fitness) if self.resultats else None
+        sol_nominale = self.resultats[nom_meilleure].meilleure_solution if nom_meilleure else None
+
+        alts = al.generer_plannings_alternatifs(
+            self.problem,
+            solution_nominale=sol_nominale,
+        )
+        self.plannings_alternatifs = alts
+
+        fig = self.canvas_alternatifs.figure
+        fig.clear()
+        axes = fig.subplots(2, 2)
+        pl.plot_comparaison_alternatives(alts, ax=axes)
+        self.canvas_alternatifs.draw()
+
+        df_ab = al.extraire_options_date_a_b(
+            self.problem,
+            alts["Nominal"].solution,
+            alts["Alternatif_Date_B"].solution,
+        )
+        self._fill_tree(self.tree_date_ab, df_ab)
+        self.status_var.set("Plannings alternatifs generes (comparaison et tableau Date A / Date B a jour).")
+
+    def _simuler_et_adapter_aleas(self):
+        if self.problem is None:
+            messagebox.showwarning("Optimisation requise", "Lancez d'abord l'optimisation standard.")
+            return
+
+        nom_meilleure = max(self.resultats, key=lambda n: self.resultats[n].meilleure_fitness) if self.resultats else None
+        if not nom_meilleure:
+            messagebox.showwarning("Optimisation requise", "Aucune solution initiale disponible.")
+            return
+
+        sol_init = self.resultats[nom_meilleure].meilleure_solution
+        jour_courant = min(self.problem.n_days - 1, max(0, self.var_jour_alea.get()))
+
+        self.status_var.set("Adaptation dynamique en cours...")
+        self.update_idletasks()
+
+        scenario = al.generer_scenario_aleas(
+            self.problem,
+            sol_init,
+            jour_courant=jour_courant,
+            n_urgences=self.var_urgences.get(),
+            n_annulations=self.var_annulations.get(),
+            proba_retard_bloc=1.0 if self.var_retard_min.get() > 0 else 0.0,
+            max_retard_min=float(self.var_retard_min.get()),
+            proba_baisse_lits=1.0 if self.var_lits_perdus.get() > 0 else 0.0,
+            lits_perdus=self.var_lits_perdus.get(),
+        )
+
+        adap_res = al.adapter_planning(
+            self.problem,
+            sol_init,
+            scenario,
+            jour_courant=jour_courant,
+        )
+        self.adaptation_result = adap_res
+
+        fig = self.canvas_aleas.figure
+        fig.clear()
+        axes = fig.subplots(2, 1, sharex=True)
+        pl.plot_adaptation_dynamique(adap_res, ax=axes)
+        self.canvas_aleas.draw()
+
+        self.txt_rapport_aleas.delete("1.0", tk.END)
+        self.txt_rapport_aleas.insert(tk.END, adap_res.rapport)
+
+        self.status_var.set(
+            f"Adaptation dynamique terminee : {adap_res.perturbation_count} deplacement(s), "
+            f"{len(adap_res.urgences_affectees)} urgence(s) integree(s)."
+        )
 
 
 if __name__ == "__main__":

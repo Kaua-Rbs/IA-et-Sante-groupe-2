@@ -1,0 +1,141 @@
+% =============================================================================
+% Soutenance intermédiaire — Fil rouge
+% Fusion des trois supports : (1) État de l'art, (2) Modélisation,
+% (3) Métaheuristiques.
+%
+% Thème : Mid-Century Modern (beamerthememidcenturymodern.sty, thème Kraft).
+%
+% Compilation (LuaLaTeX requis par le thème) :
+%   lualatex Soutenance_intermediaire.tex
+%   biber    Soutenance_intermediaire
+%   lualatex Soutenance_intermediaire.tex
+%   lualatex Soutenance_intermediaire.tex
+% =============================================================================
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage{beamerthememidcenturymodern}
+\mcmTheme{Kraft}
+
+\usepackage[french]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{bbm}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+\usepackage[backend=biber,style=authoryear,sorting=nyt]{biblatex}
+\addbibresource{Etatdelart.bib}
+
+
+% --- Pages de section automatiques ---
+% \AtBeginSection[]{%
+%   \begin{frame}[plain]
+%     \sectionpage
+%   \end{frame}
+% }
+
+\AtBeginSection[]{%
+  \begin{frame}{Sommaire}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
+\AtEveryCite{\color{mcmPrimary}}
+
+% --- Métadonnées ---
+\title[Optimisation blocs \& lits]{Optimisation conjointe des blocs opératoires et des lits d'hospitalisation}
+\subtitle{État de l'art, modélisation et métaheuristiques}
+\author{Soutenance intermédiaire -- Fil rouge}
+\date{15 septembre 2026}
+
+\begin{document}
+
+% =====================================================================
+% PAGE DE TITRE
+% =====================================================================
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% =====================================================================
+% SOMMAIRE
+% =====================================================================
+\begin{frame}{Sommaire}
+  \tableofcontents
+\end{frame}
+
+% =====================================================================
+\section{Introduction}
+% =====================================================================
+
+\include{sections/1}
+
+% =====================================================================
+\section{Contexte et enjeux}
+% =====================================================================
+
+\include{sections/2}
+
+% =====================================================================
+\section{Analyse de la BDD}
+% =====================================================================
+
+\include{sections/3}
+
+% =====================================================================
+\section{Modélisation du parcours patient}
+% =====================================================================
+
+\include{sections/workflow}
+
+% =====================================================================
+\section{État de l'art}
+% =====================================================================
+
+\include{sections/4}
+
+% =====================================================================
+\section{Positionnement}
+% =====================================================================
+
+\include{sections/5}
+
+% =====================================================================
+\section{Modélisation}
+% =====================================================================
+
+\include{sections/6}
+
+% =====================================================================
+\section{Métaheuristiques}
+% =====================================================================
+
+\include{sections/7}
+
+% =====================================================================
+\section{Suite du travail}
+% =====================================================================
+
+\include{sections/8}
+
+% =====================================================================
+% BIBLIOGRAPHIE
+% =====================================================================
+\nocite{*}
+\begin{frame}{Références}
+  \footnotesize
+  \printbibliography[heading=none]
+\end{frame}
+
+% =====================================================================
+% SLIDE DE CLÔTURE
+% =====================================================================
+{\setbeamercolor{normal text}{fg=mcmPrimaryFg,bg=mcmPrimary!70}
+\begin{frame}[plain,noframenumbering]
+  \begin{center}
+    \Large
+    Merci de votre attention\\[0.5em]
+    Questions ?
+  \end{center}
+\end{frame}
+}
+
+\end{document}

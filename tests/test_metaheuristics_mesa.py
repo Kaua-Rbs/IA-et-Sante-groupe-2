@@ -153,10 +153,11 @@ class InstanceTests(unittest.TestCase):
 
 
 class ProcessAdapterTests(unittest.IsolatedAsyncioTestCase):
-    async def test_all_five_adapters_budget_feasibility_and_repeatability(self):
+    async def test_all_adapters_budget_feasibility_and_repeatability(self):
         request = opening_request(small_reference(), SimulationConfig(closing=660), time.monotonic() + 20)
         initial = RoomAllocationProblem(request)
         initial_fitness = initial.fitness(initial.initial_allocation())
+        candidates = {}
         for method in METHODS[1:]:
             with self.subTest(method=method):
                 request = replace(request, deadline=time.monotonic() + 15)
@@ -170,10 +171,11 @@ class ProcessAdapterTests(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual(set(candidate.schedule.unassigned) |
                                  {a.case_id for a in candidate.schedule.assignments},
                                  {c.case_id for c in small_reference().cases})
+                candidates[method] = candidate.schedule
         request = replace(request, deadline=time.monotonic() + 15)
         again = MetaheuristicScheduler(SearchSettings("aco", 7, 80))
         repeated = await again.propose(request)
-        self.assertEqual(candidate.schedule, repeated.schedule)
+        self.assertEqual(candidates["aco"], repeated.schedule)
 
     async def test_zero_one_cases_and_no_rooms_for_every_method(self):
         for method in METHODS[1:]:

@@ -4,6 +4,10 @@ pandas>=2.2
 matplotlib>=3.9
 seaborn>=0.13
 
+# Systemes multi-agents et simulation des salles
+mesa[network]==3.5.1
+networkx>=3.2
+
 # Lecture du classeur Excel et export Parquet (EDA)
 openpyxl>=3.1
 pyarrow>=17.0
@@ -16,6 +20,3 @@ streamlit>=1.50
 jupyterlab>=4.3
 nbformat
 ipykernel
-
-# Hospital simulation
-mesa[network]==3.5.1

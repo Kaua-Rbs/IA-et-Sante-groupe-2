@@ -1,0 +1,73 @@
+
+% ---------- Méthodes existantes : RO classique ----------
+\begin{frame}{Méthodes existantes : recherche opérationnelle}
+  \textbf{Trois niveaux de décision, largement étudiés séparément :}
+  \vspace{0.3em}
+  \begin{table}
+    \centering\small
+    \begin{tabular}{lll}
+      \toprule
+      \textbf{Niveau} & \textbf{Horizon} & \textbf{Décisions} \\
+      \midrule
+      Stratégique & 1--5 ans & Dimensionnement des salles \\
+      Tactique & 1--3 mois & Programme maître de chirurgie (MSS) \\
+      Opérationnel & jour -- semaines & Affectation salle / patient / lit \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+  \begin{block}{Formulation dominante}
+    \textbf{Programmation linéaire (mixte)} : variables d'affectation
+    patient~$\rightarrow$~bloc~$\rightarrow$~lit, sous contraintes de capacité
+    et de durées, fonction objectif minimisant retards et dépassements.
+  \end{block}
+\end{frame}
+
+% ---------- Heuristiques vs métaheuristiques ----------
+\begin{frame}{Heuristiques et métaheuristiques}
+  \small
+  Le problème d'ordonnancement bloc/lits est \alert{NP-difficile} : la
+  programmation linéaire exacte devient vite trop coûteuse en calcul. Deux
+  familles de méthodes approchées coexistent.
+  \vspace{0.2em}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Heuristique}
+        \small
+        \begin{itemize}
+          \item Règle empirique conçue pour \textbf{un problème précis}
+          \item Rapide, peu coûteuse en calcul
+          \item Aucune garantie d'optimalité : risque d'optimum local
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Métaheuristique}
+        \small
+        \begin{itemize}
+          \item Cadre \textbf{générique}, applicable à des problèmes
+          NP-difficiles variés
+          \item Explore plus largement l'espace des solutions
+          \item Meilleure qualité de solution, au prix d'un calcul plus long
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ---------- Limites + synthèse ----------
+\begin{frame}{Limites identifiées dans la littérature}
+  \begin{alertblock}{Limite principale}
+    Blocs opératoires et lits d'hospitalisation sont \textbf{le plus souvent
+    optimisés séparément} : le bloc est planifié, puis le lit est recherché
+    a posteriori.
+  \end{alertblock}
+  \begin{itemize}
+    \item Peu de modèles \textbf{conjoints} bloc + lit dans les approches
+    classiques (programmation linéaire).
+    \item Les incertitudes (urgences, variabilité des durées) sont rarement
+    intégrées de façon robuste dans les modèles conjoints.
+  \end{itemize}
+  \begin{center}
+    \large \textcolor{mcmPrimary}{\textbf{$\Rightarrow$ Optimisation conjointe blocs + lits}}
+  \end{center}
+\end{frame}

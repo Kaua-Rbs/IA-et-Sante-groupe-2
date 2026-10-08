@@ -52,17 +52,33 @@ The repository includes exploratory analysis and an initial simulation benchmark
 - [`dashboard.py`](dashboard.py) provides an interactive, aggregate view of the preprocessed data;
 - [`data_dictionary_donees_bloc.md`](data_dictionary_donees_bloc.md) documents and validates the workbook schema;
 - [`docs/patient-workflow.md`](docs/patient-workflow.md) provides a first activity-diagram draft of the planned surgical-patient journey;
-- [`requirements.txt`](requirements.txt) lists the Python dependencies required by the notebooks, dashboard, and Mesa simulation.
+- [`optimiseur/`](optimiseur/README.md) provides ten optimization methods (simulated annealing, tabu search, genetic algorithm, a tabu × annealing hybrid, ant-colony optimization, three genetic/ant hybrids, and two Mesa multi-agent systems), a benchmark harness, an asynchronous re-planning bridge to `hospital_sim/`, a Tkinter GUI, a headless demo CLI, and a bridge from the preprocessed EDA Parquet to the optimizer input schema;
+- [`notebooks/guide_optimisation.ipynb`](notebooks/guide_optimisation.ipynb) walks from the EDA data to the five historical methods;
+- [`hospital_sim/`](hospital_sim/) provides the asynchronous coordination core (adapters, versioned state, explicit acceptance, disruptions);
+- [`rapport/RAPPORT.md`](rapport/RAPPORT.md) and [`rapport/figures/`](rapport/figures) contain the comparative report and its figures;
+- [`tests/`](tests) contains the unittest suite documented in [`TEST_PLAN.md`](TEST_PLAN.md);
+- [`requirements.txt`](requirements.txt) lists the Python dependencies required by the notebooks, dashboard, optimizer, and multi-agent layer.
 
 The notebook covers schema inspection, missing values, duplicate rows, derived ages and durations, monthly and weekday activity, common clinical categories, operating-room timing, and duration comparisons by intervention type. Identifier columns are omitted from row-level previews and charts.
 
-An initial asynchronous coordination skeleton is available in [`hospital_sim/`](hospital_sim/),
-with adapter interfaces, versioned state, explicit proposal validation and acceptance, and a
-synthetic disruption demonstration. See the [coordination-core guide](docs/coordination-core.md)
-for its boundaries and integration points. A room-only Mesa simulation now connects the cleaned
-workbook to this coordinator and compares static and reactive baseline schedules.
+[`hospital_sim/`](hospital_sim/) contains the asynchronous coordinator and a
+room-only Mesa simulation. The coordinator versions state and validates each
+proposed schedule before acceptance. The simulation reads the cleaned workbook,
+executes patient episodes minute by minute, and compares static and reactive
+plans under a room closure. See the [coordination-core guide](docs/coordination-core.md)
+for its interfaces and boundaries.
 
-The [optimizer package](optimiseur/README.md) supplies five metaheuristics, a standalone CLI, charts, a Tkinter interface, and an [explanatory notebook](notebooks/guide_optimisation.ipynb). Trained ML models and an operational decision-support application remain to be integrated. The simulation uses historical median duration estimates and compares the baseline with all five methods through a shared room decoder. See [the assembly guide](docs/metaheuristics-mesa-assembly.md). An explicit [oracle duration mode](docs/oracle-simulation.md) supports comparison with perfect knowledge of room occupancy. The [experimental comparison](docs/metaheuristics-mesa-comparison.md) ([version française](docs/metaheuristics-mesa-comparison-fr.md)) reports 576 runs across small, historical and generated workloads, with [aggregate results](docs/comparison-results/) and [reproduction commands](scripts/run_comparison_campaign.sh).
+The [optimizer package](optimiseur/README.md) supplies eight metaheuristics, two Mesa
+systems whose agents search for vacation plans, disruption-handling tools, a benchmark
+CLI, charts, a Tkinter interface, and an [explanatory notebook](notebooks/guide_optimisation.ipynb).
+The separate room simulation uses historical median duration estimates and now accepts
+all eight metaheuristics through one room decoder. Its [oracle duration mode](docs/oracle-simulation.md)
+compares scheduling with perfect duration knowledge. The prior [experimental comparison](docs/metaheuristics-mesa-comparison.md)
+([version française](docs/metaheuristics-mesa-comparison-fr.md)) covers the original five
+metaheuristics and a baseline over 576 runs; those results have not been extended to
+the three new hybrids. The [combined-model guide](docs/combined-optimization-simulation.md)
+explains the distinct objectives and how to run both tracks. Trained ML models and
+joint bloc–beds–ambulatory simulation remain to be integrated.
 
 ## Repository structure
 
@@ -73,8 +89,15 @@ The [optimizer package](optimiseur/README.md) supplies five metaheuristics, a st
 ├── preprocessing_surgery_duration.ipynb # Surgery-duration model preprocessing
 ├── dashboard.py                    # Interactive aggregate-data dashboard
 ├── data_dictionary_donees_bloc.md # Description of the 30 source columns
+├── optimiseur/                     # Scheduling methods, SMA, benchmark, GUI
+├── hospital_sim/                   # Asynchronous coordination skeleton
+├── rapport/                        # Comparative report and figures
+├── notebooks/
+│   └── guide_optimisation.ipynb   # Step-by-step optimizer guide
+├── tests/                          # Unittest suite (see TEST_PLAN.md)
 ├── docs/
-│   └── patient-workflow.md        # Versioned patient-journey diagram
+│   ├── patient-workflow.md        # Versioned patient-journey diagram
+│   └── coordination-core.md       # Coordination boundaries and integration points
 ├── requirements.txt               # Python analysis dependencies
 ├── resources/                     # Local-only data and project briefs (ignored)
 └── README.md

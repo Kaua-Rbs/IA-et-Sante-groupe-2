@@ -1,4 +1,4 @@
-"""Async scheduler adapters: five searches in killable, isolated processes."""
+"""Async scheduler adapters: eight searches in killable, isolated processes."""
 
 import asyncio
 from dataclasses import asdict, dataclass
@@ -11,11 +11,14 @@ from .contracts import Proposal
 from .room_problem import RoomAllocationProblem
 from .scheduling import BaselineScheduler, RoomValidator
 
-METHODS = ("baseline", "annealing", "tabu", "genetic", "hybrid", "aco")
+METHODS = ("baseline", "annealing", "tabu", "genetic", "hybrid", "aco",
+           "gen_tabu", "gen_annealing", "aco_tabu")
 FUNCTIONS = {
     "annealing": op.simulated_annealing, "tabu": op.tabu_search,
     "genetic": op.genetic_algorithm, "hybrid": op.tabu_simulated_annealing,
     "aco": op.ant_colony_optimization,
+    "gen_tabu": op.genetic_tabu, "gen_annealing": op.genetic_recuit,
+    "aco_tabu": op.fourmis_tabu,
 }
 
 
@@ -45,6 +48,18 @@ class SearchSettings:
                        "neighborhood_size": 15, "n_iter": ceiling},
             "aco": {"n_ants": 15, "n_iter": ceiling, "alpha": 1.0,
                     "beta": 2.0, "rho": 0.3, "Q": 1.0},
+            "gen_tabu": {"pop_size": 30, "n_gen": ceiling, "p_cross": 0.8,
+                         "p_mut": 0.08, "tabu_n_iter": 15,
+                         "tabu_neighborhood_size": 8, "tabu_size": 20,
+                         "elitisme": True},
+            "gen_annealing": {"pop_size": 30, "n_gen": ceiling, "p_cross": 0.8,
+                              "p_mut": 0.08, "sa_n_iter": 20,
+                              "sa_T0": 1.0, "sa_alpha": 0.9,
+                              "elitisme": True},
+            "aco_tabu": {"n_ants": 15, "n_iter": ceiling, "alpha": 1.0,
+                         "beta": 2.0, "rho": 0.3, "Q": 1.0,
+                         "tabu_n_iter": 15, "tabu_neighborhood_size": 8,
+                         "tabu_size": 20},
         }[self.method]
 
 

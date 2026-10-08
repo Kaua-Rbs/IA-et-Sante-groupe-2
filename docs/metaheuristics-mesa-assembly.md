@@ -1,5 +1,12 @@
 # Metaheuristics coupled to Mesa
 
+This guide records the original five-method assembly. The merged branch also
+connects genetic × tabu, genetic × annealing and ACO × tabu to the same room
+decoder. See [the combined-model guide](combined-optimization-simulation.md)
+for current commands and the distinction between room execution and the
+vacation/bed optimizer. The historical comparison results below were not
+rerun for the three additional methods.
+
 The baseline and all five optimizer methods now use the same room-only simulation.
 The coupling reads `donnees_bloc_nettoyees.xlsx`, estimates durations from 2019–2021,
 and executes held-out cases using hidden historical durations. Mesa remains pinned

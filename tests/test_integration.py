@@ -62,6 +62,19 @@ class TestNotebooks(unittest.TestCase):
         ]
         self.assertEqual(erreurs, [], "le notebook guide contient des cellules en erreur")
 
+    def test_rapport_aleas_valide(self):
+        nb = nbformat.read(REPO / "notebooks" / "rapport_aleas_et_adaptation.ipynb", as_version=4)
+        self.assertEqual(nb.nbformat, 4)
+        self.assertTrue(any(c.cell_type == "markdown" for c in nb.cells))
+        self.assertTrue(any(c.cell_type == "code" for c in nb.cells))
+        erreurs = [
+            c
+            for c in nb.cells
+            if c.cell_type == "code"
+            and any(o.get("output_type") == "error" for o in c.get("outputs", []))
+        ]
+        self.assertEqual(erreurs, [], "le notebook rapport d'aleas contient des cellules en erreur")
+
     def test_eda_donees_bloc_non_modifie(self):
         nb = nbformat.read(REPO / "EDA_donees_bloc.ipynb", as_version=4)
         for i, cell in enumerate(nb.cells):

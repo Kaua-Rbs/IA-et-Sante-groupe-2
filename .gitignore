@@ -11,3 +11,17 @@ resultats/
 # Local tools and download metadata
 .opencode/
 *:Zone.Identifier
+
+# Artefacts de compilation LaTeX
+*.aux
+*.log
+*.out
+*.nav
+*.snm
+*.toc
+*.synctex.gz
+*.bcf
+*.blg
+*.fls
+*.fdb_latexmk
+*.run.xml

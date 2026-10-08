@@ -1,4 +1,4 @@
-"""Budget, solution initiale et suivi communs, optionnels pour les cinq recherches."""
+"""Budget, solution initiale et suivi communs pour les recherches compatibles."""
 
 from dataclasses import dataclass, field
 from functools import wraps
