@@ -1,0 +1,17 @@
+{
+  "_comment": "Valeurs de démonstration, ni ajustées ni calibrées. À remplacer par les modèles entraînés.",
+  "model_version": "fixtures-0.1",
+  "default": { "room_minutes": 75, "los_days": 3 },
+  "by_specialty": {
+    "Orthopédie": { "room_minutes": 95, "los_days": 4 },
+    "Digestif": { "room_minutes": 110, "los_days": 5 },
+    "Urologie": { "room_minutes": 70, "los_days": 2 },
+    "ORL": { "room_minutes": 55, "los_days": 1 }
+  },
+  "by_intervention_type": {
+    "Varices": { "room_minutes": 45, "los_days": 1 }
+  },
+  "elderly_age": 75,
+  "elderly_room_factor": 1.1,
+  "elderly_extra_days": 1
+}

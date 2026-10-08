@@ -1,0 +1,81 @@
+/* Pages d'authentification (connexion / inscription) sur fond vert */
+
+.auth {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 3rem 1.25rem;
+    background: var(--green);
+}
+
+.auth .form {
+    margin: 0;
+    animation: auth-in var(--dur-slow) var(--ease-out) both;
+}
+
+@keyframes auth-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+.login-title {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+
+.login-title img {
+    width: 56px;
+    height: 56px;
+}
+
+.login-title h1 {
+    font-size: 1.6rem;
+    color: var(--ink);
+}
+
+.auth-switch {
+    margin: 1.1rem 0 0;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.auth-switch a {
+    color: var(--primary);
+    font-weight: 500;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+.login-title {
+    text-decoration: none;
+}
+
+.login-tagline {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+}
+
+.notice {
+    margin: 0 0 1rem;
+    padding: 0.7rem 0.9rem;
+    border-radius: var(--radius);
+    background: var(--primary-soft);
+    color: var(--green-deep);
+    font-size: 0.9rem;
+}

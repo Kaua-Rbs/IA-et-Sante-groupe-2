@@ -1,0 +1,86 @@
+:root {
+    /* ── Palette « vert santé » (langage Hermes) ─────────────────────────── */
+    --green: #0f8a4d;
+    --green-hover: #0b7340;
+    --green-deep: #075132;
+    --ink: #06331f;
+    --paper: #f3f4ef;
+    --accent: #c6f24e;
+    --fg-on-green: #f3f8f4;
+    --muted-on-green: #a9d0b8;
+    --muted-ink: #4a5a50;
+    --line: rgba(243, 248, 244, 0.24);
+    --line-ink: rgba(6, 51, 31, 0.16);
+
+    /* ── Surfaces (pages outil) ─────────────────────────────────────────── */
+    --bg: #f4f6f1;
+    --bg-subtle: #eaeee4;
+    --surface: #ffffff;
+    --surface-muted: #eef1ea;
+    --bg-dark: var(--ink);
+
+    /* ── Bordures ───────────────────────────────────────────────────────── */
+    --border: #dce3d3;
+    --border-strong: #c6d0ba;
+    --border-dashed: rgba(6, 51, 31, 0.18);
+
+    /* ── Texte ──────────────────────────────────────────────────────────── */
+    --text: var(--ink);
+    --text-secondary: #44584c;
+    --text-muted: #7a8a7e;
+    --on-primary: #ffffff;
+
+    /* ── Accent / primaire ──────────────────────────────────────────────── */
+    --primary: var(--green);
+    --primary-hover: var(--green-hover);
+    --primary-soft: #e2f1e7;
+
+    /* ── Sémantique ─────────────────────────────────────────────────────── */
+    --danger: #b3261e;
+    --danger-hover: #8f1e17;
+    --danger-soft: #fbe9e7;
+    --success: #0f8a4d;
+    --success-soft: #e2f1e7;
+    --warning: #8a6a1f;
+    --warning-soft: #fbf3e2;
+
+    /* ── Données (jaune-lime, distinct du vert de marque) ───────────────── */
+    --chart-bar: #c6f24e;
+    --chart-area: rgba(198, 242, 78, 0.25);
+
+    /* ── Typographie ────────────────────────────────────────────────────── */
+    --font-display: "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+    /* ── Espacement (échelle de 8px) ────────────────────────────────────── */
+    --s1: 8px;
+    --s2: 16px;
+    --s3: 24px;
+    --s4: 32px;
+    --s5: 48px;
+    --s6: 64px;
+    --s7: 80px;
+    --s8: 96px;
+
+    /* ── Rayons ─────────────────────────────────────────────────────────── */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
+    --radius-pill: 999px;
+    --radius: var(--radius-md);
+
+    /* ── Ombres (rares : bordures hairline d'abord) ─────────────────────── */
+    --shadow-sm: 0 1px 0 rgba(6, 51, 31, 0.04);
+    --shadow-md: 0 6px 24px rgba(6, 51, 31, 0.08);
+
+    /* ── Grille ─────────────────────────────────────────────────────────── */
+    --max-w: 1200px;
+
+    /* ── Mouvement (discret, sans déplacer la page) ─────────────────────── */
+    --dur: 160ms;
+    --dur-slow: 420ms;
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-out: cubic-bezier(0, 0, 0.2, 1);
+}

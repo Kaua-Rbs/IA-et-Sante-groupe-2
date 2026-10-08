@@ -1,0 +1,128 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html {
+    font-family: var(--font-body);
+    line-height: 1.6;
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--bg);
+    color: var(--text);
+    display: grid;
+    grid-template-rows: auto 1fr;
+}
+
+/* Titres : Archivo (display, compressé, majuscules). Le reste en Inter. */
+h1,
+h2,
+h3 {
+    font-family: var(--font-display);
+    font-stretch: 80%;
+    font-weight: 600;
+    text-transform: uppercase;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    margin: 0 0 0.4em;
+}
+
+h1 {
+    font-size: clamp(1.9rem, 3.6vw, 2.7rem);
+}
+
+h2 {
+    font-size: clamp(1.3rem, 2.2vw, 1.7rem);
+}
+
+h3 {
+    font-size: 1.05rem;
+    letter-spacing: 0;
+}
+
+header {
+    grid-area: 1 / 1 / 2 / 2;
+}
+
+main {
+    grid-area: 2 / 1 / 3 / 2;
+    width: 100%;
+    max-width: var(--max-w);
+    margin: 0 auto;
+    padding: var(--s4) 5% var(--s6);
+    min-width: 0;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+    color: inherit;
+}
+
+a {
+    color: var(--primary);
+}
+
+img {
+    max-width: 100%;
+}
+
+.hidden {
+    display: none;
+}
+
+.column_centered {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.half {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.left {
+    grid-column: 1;
+}
+
+.right {
+    grid-column: 2;
+}
+
+/* Révélation au scroll (utilisée via use:reveal) */
+.reveal {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity var(--dur-slow) var(--ease-out),
+        transform var(--dur-slow) var(--ease-out);
+}
+
+.reveal.is-visible {
+    opacity: 1;
+    transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reveal {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+    }
+}

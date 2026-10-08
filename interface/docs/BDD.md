@@ -1,114 +1,90 @@
-# Documentation de la Base de Données (Schémas)
+# KYST — Modèle de données
 
-Ce document décrit l'architecture des données et les modèles utilisés par l'API de planification (IA & Santé). L'architecture est divisée en quatre grands domaines : **Comptes Utilisateurs**, **Configuration & Ressources**, **Personnes**, et **Événements Médicaux**.
+Ce document décrit les tables de l'API KYST (*Keep Your Surgeries Timelies*), définies avec SQLModel dans `interface/api/*/models.py`. Les tables sont regroupées par domaine.
 
-## Diagramme des Relations
+## Diagramme
 
 ```mermaid
 erDiagram
-    Structure ||--o{ OperatingRoom : "possède"
-    Structure ||--o{ Surgeon : "emploie"
-    UserBase ||--o| Surgeon : "est lié à (via user_id)"
-    
-    Patient ||--o{ HospitalStay : "effectue"
-    HospitalStay ||--o{ Intervention : "inclut"
-    
-    Surgeon ||--o{ Event : "gère le planning"
-    Surgeon ||--o{ Intervention : "réalise"
-    
-    Intervention }o--|| OperatingRoom : "a lieu dans"
-    Intervention ||--o| MLPrediction : "possède une prédiction"
+    User }o--o{ Group : "rôles"
+    User ||--o{ RefreshToken : ""
+    User |o--o| Surgeon : "compte de"
+
+    Specialty ||--o{ Surgeon : ""
+    Specialty ||--o{ Vacation : ""
+    OperatingRoom ||--o{ Vacation : ""
+    Surgeon |o--o{ Vacation : "réservée à"
+
+    Patient ||--o{ SurgicalRequest : ""
+    Surgeon ||--o{ SurgicalRequest : ""
+    SurgicalRequest ||--o{ Prediction : ""
+    SurgicalRequest ||--o{ Proposal : ""
+    Prediction ||--o{ Proposal : "fondée sur"
+    Proposal }o--|| Vacation : ""
+    Proposal }o--|| BedUnit : ""
+    Proposal ||--o| PlannedCase : "acceptée en"
+    PlannedCase }o--|| Vacation : ""
+    PlannedCase }o--|| BedUnit : ""
 ```
 
----
+## Cycle de vie d'une demande
 
-## 1. Comptes Utilisateurs (`account/schemas.py`)
+```mermaid
+stateDiagram-v2
+    [*] --> pending : demande créée
+    pending --> pending : propositions générées (prédiction + ordonnanceur)
+    pending --> scheduled : proposition acceptée (PlannedCase créé)
+    scheduled --> pending : intervention annulée (capacité libérée)
+    scheduled --> done : résultat observé enregistré
+    pending --> cancelled
+```
 
-Gère l'authentification et les accès à l'API.
+## Comptes (`accounts`)
 
-### `UserBase`
-Représente un utilisateur enregistré dans le système.
-* **id** (`UUID`) : Identifiant unique de l'utilisateur.
-* **name** (`str`) : Prénom.
-* **surname** (`str`) : Nom de famille.
-* **email** (`EmailStr`) : Adresse email de connexion.
-* **role** (`Roles`) : Rôle de l'utilisateur (`user`, `doctor`, `admin`).
-* **validated** (`bool`) : Indique si le compte a été validé par un administrateur.
+| Table | Rôle | Champs principaux |
+|---|---|---|
+| `User` | Utilisateur | `username` (l'email côté front), `email`, `full_name`, `disabled`, `validated` |
+| `Group` | Rôle fixe | `user` (0, lecture), `doctor` (1), `admin` (2), `secretary` (3), `planner` (4, cadre de bloc / gestion des lits) |
+| `RefreshToken` | Jeton de renouvellement | Seul le haché est stocké, avec rotation à chaque usage |
 
----
+Les identifiants des rôles sont fixes, car le front s'appuie sur `admin = 2`.
 
-## 2. Configuration & Ressources (`configuration/schemas.py`)
+## Ressources (`resources`)
 
-Modélise l'établissement médical et ses infrastructures.
+| Table | Rôle | Champs principaux |
+|---|---|---|
+| `Specialty` | Spécialité chirurgicale | `name` |
+| `OperatingRoom` | Salle d'opération | `name`, `default_specialty_id`, `active` |
+| `Vacation` | Créneau d'une salle attribué à une spécialité | `room_id`, `specialty_id`, `surgeon_id` (optionnel), `date`, `start_time`, `duration_min` (240 par défaut) |
+| `BedUnit` | Unité d'hébergement | `care_type` (`ambulatory` / `conventional`), `capacity` |
+| `Surgeon` | Chirurgien | `name` (nom affiché ou code), `specialty_id`, `user_id` (optionnel) |
 
-### `Structure`
-Représente un hôpital ou une clinique.
-* **nom** (`str`) : Nom de l'établissement.
-* **bed** (`int`) : Capacité en lits d'hospitalisation classique.
-* **ambulatory** (`int`) : Capacité en places d'ambulatoire.
-* **staff** (`List[Surgeon]`) : Liste des chirurgiens rattachés.
-* **operating_rooms** (`List[OperatingRoom]`) : Liste des salles d'opération de la structure.
+Deux vacations d'une même salle ne peuvent pas se chevaucher. Une vacation commence et finit le même jour.
 
-### `OperatingRoom`
-Représente une salle d'opération (bloc).
-* **id** (`UUID`) : Identifiant de la salle.
-* **name** (`str`) : Nom ou numéro (ex: "Salle 1").
-* **equipment_type** (`str`) : Type d'équipement spécifique disponible.
-* **is_active** (`bool`) : Statut d'activation de la salle.
+## Clinique (`clinical`)
 
----
+| Table | Rôle | Champs principaux |
+|---|---|---|
+| `Patient` | Patient pseudonymisé | `external_ref` (identifiant pseudonyme), `birth_year`, `sex` (1 = H, 2 = F) |
+| `SurgicalRequest` | Intervention à programmer, telle que décrite en consultation | `patient_id`, `surgeon_id`, `specialty_id` (copiée du chirurgien), `principal_diagnosis` (CIM-10), `ccam_codes`, `intervention_type`, `earliest_date`, `latest_date`, `status` |
+| `Prediction` | Sortie des modèles pour une demande | `room_minutes` (+ intervalle), `los_days` (jours calendaires inclusifs, + intervalle), `care_type`, `model_version`, `source` |
 
-## 3. Personnes (`people/schemas.py`)
+Minimisation des données : on ne stocke ni nom ni date de naissance, seulement l'année, qui suffit à calculer l'âge pour les prédictions.
 
-Modélise les acteurs médicaux et les patients.
+## Planification (`planning`)
 
-### `Patient`
-Représente un patient anonymisé.
-* **id** (`UUID`) : Identifiant unique et anonyme du patient.
-* **date_naissance** (`date`) : Date de naissance.
-* **sexe** (`int`) : Sexe du patient (`1` = Homme, `2` = Femme).
-* **hospital_stays** (`List[HospitalStay]`) : Historique des séjours hospitaliers du patient.
+| Table | Rôle | Champs principaux |
+|---|---|---|
+| `Proposal` | Date proposée par l'ordonnanceur | `rank` (1 = date A), `vacation_id`, `bed_unit_id`, `admission_date`, `discharge_date`, `planned_minutes`, `score`, `reasons` (explications lisibles), `scheduler`, `status`, `decided_by`, `decided_at` |
+| `PlannedCase` | Intervention programmée après acceptation humaine | `vacation_id`, `bed_unit_id`, `admission_date`, `discharge_date`, `planned_minutes`, `status`, `actual_room_minutes`, `actual_los_days` |
 
-### `Surgeon`
-Représente un praticien / chirurgien.
-* **id** (`UUID`) : Identifiant unique du chirurgien.
-* **user_id** (`UUID`, optionnel) : ID du compte utilisateur lié (pour la connexion).
-* **timetable** (`List[Event]`) : Calendrier des événements et disponibilités du chirurgien.
-* **interventions** (`List[Intervention]`) : Liste des interventions chirurgicales assignées au chirurgien.
+La capacité engagée se calcule à partir des `PlannedCase` au statut `planned` ou `done` :
+- **minutes utilisées par vacation** : somme des `planned_minutes` ;
+- **lits occupés par jour** : nombre de séjours entre `admission_date` et `discharge_date` inclus.
 
----
+Le même calcul (`interface/api/planning/capacity.py`) sert à l'ordonnanceur, à la nouvelle vérification au moment de l'acceptation et aux indicateurs.
 
-## 4. Événements & Séjours (`event/schemas.py`)
+## Conventions
 
-Cœur du système de planification incluant les prédictions IA.
-
-### `HospitalStay` (Séjour Hospitalier)
-Représente la période pendant laquelle le patient est admis à l'hôpital.
-* **uuid** (`UUID`) : Identifiant du séjour.
-* **patient_id** (`UUID`) : ID du patient admis.
-* **entry_date** (`date`) : Date d'entrée dans l'établissement.
-* **exit_date** (`date`, optionnel) : Date de sortie (si déjà sortie).
-* **is_ambulatory** (`bool`) : Indique s'il s'agit d'un séjour ambulatoire.
-* **interventions** (`List[Intervention]`) : Liste des opérations prévues ou réalisées pendant ce séjour.
-
-### `Event` (Événement générique)
-Représente un bloc de temps dans l'agenda d'un chirurgien.
-* **uuid** (`UUID`) : Identifiant de l'événement.
-* **owner** (`UUID`) : ID du chirurgien propriétaire de l'événement.
-* **start_date** (`date`) : Date de début.
-* **end_date** (`date`) : Date de fin.
-* **duration** (`int`) : Durée en jours.
-
-### `Intervention` (Hérite de `Event`)
-Spécialise un événement pour représenter une chirurgie précise.
-* **diagnostic_principal** (`str`) : Code ou description du diagnostic.
-* **emergency** (`bool`) : Caractère d'urgence de l'opération.
-* **patient_id** (`UUID`) : Patient opéré.
-* **operating_room_id** (`UUID`, optionnel) : Salle d'opération réservée.
-* **ai_prediction** (`MLPrediction`, optionnel) : Prédictions fournies par le modèle de Machine Learning.
-
-### `MLPrediction`
-Modélise la sortie du modèle d'Intelligence Artificielle de planification.
-* **predicted_duration** (`int`) : Durée prédite de l'intervention (en minutes).
-* **confidence_score** (`float`) : Indice de confiance de la prédiction (de 0.0 à 1.0).
-* **model_version** (`str`) : Version du modèle IA utilisée.
+- Unités : `room_minutes` est le temps entre l'entrée et la sortie de salle, sans le temps de remise en état. `los_days` compte des jours calendaires inclusifs (ambulatoire = 1). Ce sont les mêmes conventions que `hospital_sim/contracts.py`.
+- Les dates et heures sont stockées en UTC naïf. Le schéma est créé par `create_all` ; les migrations Alembic restent à faire (voir `docs/todo.md`).

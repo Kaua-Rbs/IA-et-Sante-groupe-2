@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: postgres:latest # To download a specific version, here the version 17.4 of Postgresql
+    image: postgres:latest
     container_name: postgres
     volumes:
       - ./postgresql_data:/var/lib/postgresql/data

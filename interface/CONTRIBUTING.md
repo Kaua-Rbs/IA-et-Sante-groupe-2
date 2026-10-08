@@ -14,24 +14,29 @@ Le projet s'appuie sur une suite d'outils modernes pour garantir des environneme
 
 1. [Architecture du projet](#architecture-du-projet)
 2. [Installation de la boîte à outils](#installation-de-la-boîte-à-outils-toolchain)
-3. [Backend FastAPI (`api/`)](#backend-fastapi-api)
-4. [Frontend Svelte (`app/`)](#frontend-svelte-app)
-5. [Infrastructure & Déploiement (`ansible/`)](#infrastructure--déploiement-ansible)
-6. [Extensions et IDE recommandés](#extensions-et-ide-recommandés)
-7. [Workflow Git & Bonnes pratiques](#workflow-git--bonnes-pratiques)
+3. [Variables d'environnement (`kyst.env`)](#variables-denvironnement-kystenv)
+4. [Backend FastAPI (`api/`)](#backend-fastapi-api)
+5. [Frontend Svelte (`app/`)](#frontend-svelte-app)
+6. [Mise en production (`just prod`)](#mise-en-production-just-prod)
+7. [Infrastructure & Déploiement (`ansible/`)](#infrastructure--déploiement-ansible)
+8. [Extensions et IDE recommandés](#extensions-et-ide-recommandés)
+9. [Workflow Git & Bonnes pratiques](#workflow-git--bonnes-pratiques)
 
 ---
 
 ## Architecture du projet
 
-La partie est structuré de la manière suivante :
+L'interface KYST (*Keep Your Surgeries Timelies*) est structurée de la manière suivante :
 
 ```text
-.
-├── api/              # Backend FastAPI (gestion des dépendances via uv)
-├── app/              # Frontend Svelte (version Node via mise, dépendances via pnpm)
+interface/
+├── kyst.env          # Référence de toutes les variables d'environnement (versionnée, sans secret)
+├── kyst.local.env    # Vos valeurs locales et secrets (non versionné, facultatif)
+├── justfile          # Mise en production (API + front) et outils communs
+├── api/              # Backend FastAPI : package Python `api` (dépendances via uv, recettes just)
+├── app/              # Frontend SvelteKit (version Node via mise, dépendances via pnpm)
 ├── ansible/          # Recettes d'automatisation et playbooks (gérés avec just et uv)
-└── docs/             # Documentation détaillée (déploiement, architecture...)
+└── docs/             # Modèle de données, routes, front, fonctionnalités
 ```
 
 ---
@@ -99,24 +104,42 @@ pnpm --version
 
 ---
 
+## Variables d'environnement (`kyst.env`)
+
+Toutes les variables (API, front, déploiement) sont décrites dans **`interface/kyst.env`**, avec leur rôle et une valeur de développement. C'est la seule référence : une nouvelle variable s'ajoute d'abord à ce fichier.
+
+L'API (`api/config.py`) et le front (`app/vite.config.ts`, `pnpm start`) lisent, du plus prioritaire au moins prioritaire :
+
+1. les variables d'environnement du processus ;
+2. `interface/kyst.local.env`, non versionné, pour vos secrets et réglages personnels ;
+3. `interface/kyst.env`, versionné.
+
+`kyst.env` étant versionné, il ne contient **aucun secret réel**. Les valeurs `change-me` suffisent en local, mais l'API signale au démarrage une `SECRET_KEY` laissée à sa valeur par défaut. Pour vos propres valeurs, créez `kyst.local.env` avec uniquement les clés à remplacer :
+
+```bash
+# interface/kyst.local.env
+SECRET_KEY=<sortie de : openssl rand -hex 32>
+FIRST_ADMIN_PASSWORD=<votre mot de passe>
+```
+
+---
+
 ## Backend FastAPI (`api/`)
 
-Le backend repose sur [FastAPI](https://fastapi.tiangolo.com/) et est géré avec **`uv`**.
+Le backend repose sur [FastAPI](https://fastapi.tiangolo.com/) et est géré avec **`uv`**. Le dossier `api/` est lui-même le package Python `api` : ses modules s'importent en `api.<module>` depuis `interface/`. Les recettes `just` du dossier encapsulent les commandes.
 
 ### 1. Initialiser l'environnement
 
-Placez-vous dans le dossier `api/` et synchronisez les dépendances :
 ```bash
 cd api
-uv sync
+just install        # ou : uv sync
 ```
-`uv` créera automatiquement l'environnement virtuel `.venv` et installera les dépendances définies dans `pyproject.toml` et verrouillées dans `uv.lock`.
+`uv` crée l'environnement virtuel `.venv` et installe les dépendances définies dans `pyproject.toml` et verrouillées dans `uv.lock`.
 
 ### 2. Lancer le serveur de développement
 
-Pour lancer l'API avec rechargement automatique en cas de modification du code (*hot-reload*) :
 ```bash
-uv run fastapi dev
+just dev            # ou : uv run fastapi dev main.py
 ```
 
 L'API est alors accessible sur :
@@ -124,7 +147,37 @@ L'API est alors accessible sur :
 - **Documentation interactive Swagger UI :** `http://127.0.0.1:8000/docs`
 - **Documentation alternative ReDoc :** `http://127.0.0.1:8000/redoc`
 
-### 3. Gérer les dépendances Python
+Au démarrage, l'API crée les tables, les rôles et le premier administrateur (`FIRST_ADMIN_EMAIL` / `FIRST_ADMIN_PASSWORD` de `kyst.env`). Pour obtenir des ressources de démonstration synthétiques (spécialités, salles, lits, vacations sur 4 semaines) :
+```bash
+just seed           # ou : PYTHONPATH=.. uv run python -m api.seed
+```
+
+Lancer les tests :
+```bash
+just test           # ou : uv run pytest
+```
+
+### 3. Organisation du code
+
+```text
+api/
+├── main.py           # Application FastAPI, routeurs, /health
+├── config.py         # Lecture de kyst.env / kyst.local.env
+├── db.py, crud.py    # Session SQLModel et aides CRUD
+├── bootstrap.py      # Tables, rôles, premier administrateur
+├── seed.py           # Données de démonstration
+├── accounts/         # Comptes, rôles, jetons JWT
+├── resources/        # Spécialités, salles, vacations, unités de lits, chirurgiens
+├── clinical/         # Patients pseudonymisés, demandes d'intervention, prédictions
+├── planning/         # Propositions de dates, interventions programmées, capacité
+├── analytics/        # Indicateurs agrégés
+├── ai/               # Protocoles des modèles et du solveur ; fixtures en attendant
+└── tests/
+```
+
+Les prédictions et l'ordonnancement passent par les protocoles de `ai/contracts.py`, implémentés pour l'instant par des fixtures (`AI_BACKEND=fixtures`). Le modèle de données est décrit dans [docs/BDD.md](docs/BDD.md), les routes dans [docs/Routes.md](docs/Routes.md), et le travail restant dans [docs/todo.md](../docs/todo.md).
+
+### 4. Gérer les dépendances Python
 
 Avec `uv`, l'ajout et la mise à jour de dépendances sont immédiats :
 ```bash
@@ -167,7 +220,7 @@ pnpm install
   ```bash
   pnpm dev
   ```
-  L'application s'exécute avec Vite et est accessible sur `http://localhost:5173`.
+  L'application s'exécute avec Vite et est accessible sur `http://localhost:5173`. Elle lit `kyst.env` / `kyst.local.env` et appelle l'API à l'adresse `KYST_API_URL` (`http://127.0.0.1:8000` par défaut).
 
 - **Vérifier les types et composants Svelte :**
   ```bash
@@ -179,15 +232,12 @@ pnpm install
   pnpm build
   ```
 
-- **Prévisualiser le build de production localement :**
+- **Lancer le build de production avec le serveur Node** (variables lues dans `kyst.env` et `kyst.local.env`) :
   ```bash
-  pnpm preview
+  pnpm start
   ```
 
-- **Exécuter les tests :**
-  ```bash
-  pnpm test
-  ```
+L'organisation du code, les pages et la gestion de session sont décrites dans [docs/Frontend.md](docs/Frontend.md).
 
 ### 3. Gérer les dépendances JavaScript
 
@@ -198,6 +248,43 @@ pnpm add <nom-du-paquet>
 # Ajouter une dépendance de développement
 pnpm add -D <nom-du-paquet>
 ```
+
+---
+
+## Mise en production (`just prod`)
+
+Le `justfile` de `interface/` lance KYST en production sur une machine : l'API (`fastapi run`, un seul worker, sans rechargement) et le front (serveur Node d'adapter-node). Les deux lisent `kyst.env`, `kyst.local.env` et l'environnement.
+
+1. Sur le serveur, créez `interface/kyst.local.env` avec les vraies valeurs, au minimum :
+   ```bash
+   SECRET_KEY=<sortie de : openssl rand -hex 32>
+   FIRST_ADMIN_PASSWORD=<mot de passe du premier administrateur>
+   POSTGRES_PASSWORD=<...>
+   PGADMIN_DEFAULT_PASSWORD=<...>
+   DATABASE_URL=postgresql+psycopg://kyst:<POSTGRES_PASSWORD>@localhost:5432/kyst
+   ORIGIN=https://kyst.exemple.fr
+   ```
+2. Depuis `interface/` :
+   ```bash
+   just prod
+   ```
+   La recette enchaîne `preflight` (refuse de démarrer si un secret vaut encore `change-me` ou si `SECRET_KEY` fait moins de 32 caractères, et signale SQLite ou une `ORIGIN` en localhost), `install`, `build` puis `serve`. Ctrl+C arrête l'API et le front ; si l'un des deux s'arrête, l'autre aussi.
+
+Recettes utiles :
+
+| Recette | Rôle |
+| :--- | :--- |
+| `just prod` | Vérifie, installe, construit et lance tout |
+| `just serve` | Relance l'API et le front déjà construits (après un redémarrage, sans rebuild) |
+| `just preflight` | Vérifie seulement la configuration |
+| `just build` | Reconstruit le front, à refaire après tout changement de code ou d'`ORIGIN` |
+| `just check` | Tests de l'API et vérification du front |
+
+Points d'attention :
+- **HTTPS** : en production, les cookies de session sont `Secure`. Servez le site en HTTPS derrière un proxy (Caddy, nginx...) qui redirige vers `PORT`. Seul `localhost` fonctionne en HTTP.
+- **`ORIGIN`** est figée au build, car elle sert à la protection CSRF des formulaires. Changer `ORIGIN` impose donc `just build`.
+- **L'API écoute sur `API_HOST`** (`127.0.0.1` par défaut) : seul le front, sur la même machine, l'appelle. N'ouvrez que le port du front.
+- **Un seul worker** pour l'API : l'état de coordination du planning vivra dans ce processus (voir [docs/todo.md](../docs/todo.md)).
 
 ---
 
@@ -261,7 +348,7 @@ Pour une expérience de développement optimale avec Visual Studio Code ou Curso
    ```
 
 2. **Vérifier le code localement :**
-   - Assurez-vous que l'API fonctionne (`uv run fastapi dev`).
+   - Assurez-vous que l'API démarre et que ses tests passent (`just dev`, `just test` dans `api/`).
    - Assurez-vous que le frontend compile et passe les vérifications sans erreur (`pnpm check` et `pnpm build`).
    - Si vous touchez à Ansible, vérifiez avec `just lint`.
 

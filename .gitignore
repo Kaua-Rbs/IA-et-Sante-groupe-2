@@ -43,6 +43,8 @@ pgdata/
 .env
 .env.*
 !.env.example
+# KYST : kyst.env est la référence versionnée, kyst.local.env contient les vrais secrets
+kyst.local.env
 
 # -------------------------------------------------------------
 # Logs & Débogage

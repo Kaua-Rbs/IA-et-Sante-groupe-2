@@ -1,0 +1,95 @@
+/* Échelle de police (576px: 14px, 768px: 16px, 992px: 18px) */
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 576px) {
+    html {
+        font-size: calc(14px + 2 * (100vw - 576px) / 192);
+    }
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: calc(16px + 2 * (100vw - 768px) / 224);
+    }
+}
+
+@media (min-width: 992px) {
+    html {
+        font-size: 18px;
+    }
+}
+
+/* En-tête compact sous 930px */
+@media (max-width: 930px) {
+    header {
+        padding: 0.5rem 4%;
+    }
+
+    #hamburger {
+        display: flex;
+    }
+
+    header nav {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: var(--green);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+        box-shadow: var(--shadow-md);
+        z-index: 100;
+        overflow: hidden;
+        max-height: 0;
+        transition: max-height 0.2s ease;
+    }
+
+    header nav:has(#tabs.open) {
+        max-height: 260px;
+    }
+
+    #tabs {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem 1rem;
+    }
+
+    #hamburger.active span:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+    }
+    #hamburger.active span:nth-child(2) {
+        opacity: 0;
+        transform: scaleX(0);
+    }
+    #hamburger.active span:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+    }
+
+    .brand {
+        font-size: 0.95rem;
+    }
+
+    main {
+        padding: 1rem 4% 2rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .form {
+        padding: 1.25rem;
+    }
+}
+
+/* Mise en page à deux colonnes (pages formulaires) */
+@media (max-width: 930px) {
+    .half {
+        grid-template-columns: 1fr;
+    }
+
+    .left,
+    .right {
+        grid-column: 1;
+    }
+}

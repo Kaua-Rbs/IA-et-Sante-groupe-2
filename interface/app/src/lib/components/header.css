@@ -1,0 +1,277 @@
+header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+
+    min-height: 52px;
+    padding: 0.55rem 5%;
+    background-color: var(--green);
+    color: var(--fg-on-green);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.brand {
+    font-family: var(--font-display);
+    font-stretch: 82%;
+    font-weight: 600;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--fg-on-green);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+/* Le logo a un fond blanc : on l'affiche dans une pastille claire */
+.brand img {
+    width: 28px;
+    height: 28px;
+    padding: 2px;
+    border-radius: var(--radius);
+    background: #ffffff;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1.35rem;
+    min-width: 0;
+}
+
+#tabs {
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+#tabs a {
+    font-family: var(--font-body);
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(243, 248, 244, 0.8);
+    text-decoration: none;
+    transition: color 0.15s ease;
+}
+
+#tabs a:hover,
+#tabs a.active {
+    color: #ffffff;
+}
+
+/* Bouton de connexion / nom d'utilisateur : contour clair sur le vert */
+#btn-login {
+    padding: 0.42rem 0.9rem;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: var(--radius);
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+#btn-login:hover {
+    background-color: rgba(255, 255, 255, 0.12);
+}
+
+/* Menu déroulant profil */
+.button_with_icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+}
+
+.button_with_icon > svg {
+    width: 0.7rem;
+    height: 0.7rem;
+    fill: rgba(243, 248, 244, 0.85);
+    transition: transform 0.15s ease;
+}
+
+.button_with_icon.open > svg {
+    transform: rotate(180deg);
+}
+
+.button_with_icon ul {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin: 0.4rem 0 0;
+    padding: 0.25rem 0;
+    min-width: 200px;
+    list-style: none;
+    background-color: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-md);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-6px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    z-index: 1000;
+}
+
+.button_with_icon.open ul {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.button_with_icon li {
+    display: grid;
+    grid-template-columns: 1.1rem 1fr;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 1rem;
+}
+
+.button_with_icon li:hover {
+    background-color: var(--surface-muted);
+}
+
+.button_with_icon li svg {
+    width: 1rem;
+    height: 1rem;
+    fill: var(--text-muted);
+}
+
+.button_with_icon li a,
+.button_with_icon li form button {
+    margin: 0;
+    padding: 0;
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 0.875rem;
+    text-decoration: none;
+    text-align: start;
+    cursor: pointer;
+}
+
+.button_with_icon li form button {
+    width: 100%;
+}
+
+/* Hamburger — masqué au-delà de 930px (voir responsive.css) */
+#hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 1.4rem;
+    height: 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+#hamburger span {
+    display: block;
+    height: 2px;
+    background-color: #ffffff;
+    transform-origin: center;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+/* Barre de progression du défilement */
+.progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 2px;
+    background: var(--accent);
+    transform-origin: left center;
+    transform: scaleX(0);
+    transition: transform 90ms linear;
+}
+
+/* Souligné animé sur le lien actif / survolé */
+#tabs a {
+    position: relative;
+}
+
+#tabs a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -6px;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform var(--dur) var(--ease);
+}
+
+#tabs a:hover::after,
+#tabs a.active::after {
+    transform: scaleX(1);
+}
+
+/* Bordure rotative sur le bouton de connexion */
+#btn-login {
+    position: relative;
+}
+
+#btn-login::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(from 0deg, transparent 0 70%, var(--accent) 88%, transparent 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--dur) var(--ease);
+}
+
+#btn-login:hover::before {
+    opacity: 1;
+    animation: btn-spin 2.23s linear infinite;
+}
+
+@keyframes btn-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .progress,
+    #tabs a::after {
+        transition: none;
+    }
+
+    #btn-login:hover::before {
+        animation: none;
+    }
+}
