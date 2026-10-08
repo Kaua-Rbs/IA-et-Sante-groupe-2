@@ -1,0 +1,289 @@
+% Contribution SMA au plan de soutenance du 9 octobre 2026.
+% Sections 4 a 8, dans l'ordre du plan. Les sections 1 a 3 et les modeles ML
+% sont presentes par les autres membres de l'equipe.
+% Source des chiffres : hospital_sim.joint_experiment, cohorte model_test,
+% artifacts/joint-final-{42beds,10beds}/summary.csv et
+% artifacts/joint-presentation-{outage,no-outage}/summary.csv.
+% Fichier autonome, palette Kraft du support soutenance/slide_avancement.tex.
+\documentclass[aspectratio=169,10pt]{beamer}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[french]{babel}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,babel}
+\usepackage{amsmath}
+
+\definecolor{McmTerracotta}{HTML}{9C4732}
+\definecolor{McmSage}{HTML}{6B7F3A}
+\definecolor{McmAmber}{HTML}{DB6720}
+\definecolor{McmWarm}{HTML}{F8F6F2}
+\definecolor{McmSand}{HTML}{E8D5B5}
+\definecolor{McmInk}{HTML}{1A1A1A}
+\definecolor{McmMuted}{HTML}{5A534E}
+
+\usetheme{default}
+\setbeamertemplate{navigation symbols}{}
+\setbeamercolor{normal text}{fg=McmInk,bg=McmWarm}
+\setbeamercolor{frametitle}{fg=white,bg=McmTerracotta}
+\setbeamercolor{block title}{fg=McmTerracotta,bg=McmSand!60!McmWarm}
+\setbeamercolor{block body}{fg=McmInk,bg=white}
+\setbeamercolor{block title alerted}{fg=white,bg=McmAmber}
+\setbeamercolor{block body alerted}{fg=McmInk,bg=McmAmber!12!McmWarm}
+\setbeamercolor{block title example}{fg=white,bg=McmSage}
+\setbeamercolor{block body example}{fg=McmInk,bg=McmSage!10!McmWarm}
+\setbeamercolor{footline}{fg=McmMuted,bg=McmWarm}
+\setbeamerfont{frametitle}{size=\large,series=\bfseries}
+\setbeamertemplate{frametitle}{%
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=0.78cm,dp=0.24cm,leftskip=0.40cm]{frametitle}
+    \usebeamerfont{frametitle}\insertframetitle
+  \end{beamercolorbox}}
+\setbeamertemplate{footline}{%
+  \begin{beamercolorbox}[wd=\paperwidth,ht=0.26cm,dp=0.13cm,leftskip=0.40cm,rightskip=0.40cm]{footline}
+    \tiny IA et Sante -- Groupe 2 \hfill Contribution SMA -- 9 octobre 2026 \hfill \insertframenumber
+  \end{beamercolorbox}}
+\setbeamertemplate{itemize item}{\color{McmTerracotta}\raisebox{0.15ex}{\scriptsize$\blacktriangleright$}}
+\setbeamertemplate{itemize subitem}{\color{McmSage}\scriptsize$\bullet$}
+\newcommand{\source}[1]{\par\vfill{\color{McmMuted}\tiny #1}}
+\newcommand{\accent}[1]{{\color{McmTerracotta}\bfseries #1}}
+
+\begin{document}
+
+% 4. Approche hybride : notre apport est le couplage solveur / simulation.
+\begin{frame}{4. Approche hybride : planifier, simuler, corriger}
+  \small
+  \centering
+  \vspace{0.25cm}
+  \begin{tikzpicture}[
+      card/.style={draw=McmTerracotta,rounded corners=2pt,fill=white,
+                   minimum height=2.05cm,text width=3.10cm,align=center,
+                   inner sep=5pt,font=\small},
+      flow/.style={-{Latex[length=2.5mm]},thick,draw=McmTerracotta}]
+    \node[card] (input) at (0,0) {\textbf{Entrées disponibles}\\[3pt]
+      Interventions à programmer\\Durées prévues : salle et séjour restant};
+    \node[card] (solver) at (4.15,0) {\textbf{Planificateur}\\[3pt]
+      Glouton ou métaheuristique\\Planning proposé puis validé};
+    \node[card] (mesa) at (8.30,0) {\textbf{Exécution Mesa}\\[3pt]
+      Agents-épisodes\\Salles à la minute, lits sur plusieurs jours};
+    \draw[flow] (input) -- (solver);
+    \draw[flow] (solver) -- (mesa);
+    \draw[flow] (mesa.south) -- ++(0,-0.80) -| (solver.south);
+    \node[font=\scriptsize,text=McmMuted,fill=McmWarm,inner sep=2pt]
+      at (6.22,-1.53) {Observations et replanning des cas en attente};
+  \end{tikzpicture}
+  \vspace{0.23cm}
+
+  \begin{exampleblock}{Le rôle du SMA ici}
+    \small Mesa rejoue l'exécution et renvoie l'état réel au coordinateur.
+    Les algorithmes de l'équipe se branchent sur une même interface de planning.
+  \end{exampleblock}
+  \source{Implémenté : hospital\_sim (Mesa 3.5.1). Les lits sont des ressources ; l'ambulatoire reste à intégrer.}
+\end{frame}
+
+% 4. Deuxième diapositive : frontière d'information et coordination bloc/lits.
+\begin{frame}{4. Couplage bloc--lits : ce que le solveur sait}
+  \small
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \begin{block}{Connu au moment de décider}
+        \begin{itemize}\itemsep4pt
+          \item Type d'intervention et cas en attente
+          \item Durée de salle et séjour restant \textbf{estimés}
+          \item Salles libres, lits occupés, fermeture déjà observée
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \begin{alertblock}{Révélé par la simulation}
+        \begin{itemize}\itemsep4pt
+          \item Durée réellement passée en salle
+          \item Date réelle de sortie et libération du lit
+          \item Retards subis et cas non démarrés
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+  \vspace{0.24cm}
+  \begin{center}
+    \begin{tikzpicture}[>=Latex,thick]
+      \node[draw=McmSage,fill=McmSage!10!McmWarm,rounded corners,
+            text width=3.0cm,align=center,minimum height=0.85cm] (jour)
+        {Jour J : lit libre ?\\Puis intervention en salle};
+      \node[draw=McmSage,fill=McmSage!10!McmWarm,rounded corners,
+            text width=3.0cm,align=center,minimum height=0.85cm,right=0.90cm of jour] (suite)
+        {Jours suivants : séjour observé\\Lit libéré à la sortie};
+      \draw[->,draw=McmSage] (jour) -- (suite);
+    \end{tikzpicture}
+  \end{center}
+  \source{Le modèle prédit la durée totale de séjour ; on retire les jours déjà passés à l'hôpital pour les lits postopératoires.}
+\end{frame}
+
+% 5. Un seul aléa effectivement simulé : fermeture temporaire de salle.
+\begin{frame}{5. Aléa testé : une salle ferme aux nouveaux départs}
+  \small
+  \centering
+  \begin{tikzpicture}[x=1.0cm,y=1cm,>=Latex]
+    \draw[very thick,draw=McmInk] (0,0) -- (10.3,0);
+    \draw[line width=4pt,draw=McmAmber] (2.3,0) -- (5.5,0);
+    \foreach \x/\lab in {0/08h,2.3/10h,5.5/12h,10.3/17h} {
+      \draw[draw=McmInk] (\x,-0.12) -- (\x,0.12);
+      \node[below=5pt,font=\scriptsize] at (\x,0) {\lab};
+    }
+    \node[above=8pt,text=McmAmber,font=\small\bfseries] at (3.9,0)
+      {Salle 1 : aucune nouvelle entrée};
+  \end{tikzpicture}
+  \vspace{0.45cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \begin{block}{Plan figé}
+        \small Affectations et ordre initiaux conservés.
+        Les cas suivants attendent que la salle soit disponible.
+      \end{block}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \begin{exampleblock}{Plan réactif}
+        \small Aux changements 10h/12h, le coordinateur soumet un
+        nouveau planning pour les \textbf{cas en attente}.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+  \vspace{0.10cm}
+  \centering\small Intervention déjà commencée : elle se termine normalement.
+  Proposition invalide : ancien plan conservé, garde d'exécution active.
+  \source{Urgences, annulations et indisponibilités de lits ne sont pas encore des aléas exécutés dans ce simulateur.}
+\end{frame}
+
+% 6. Données et scénarios. Les chiffres ne sont pas des mesures du stock réel de lits.
+\begin{frame}{6. Simulations : charges historiques, ressources supposées}
+  \small
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.32\textwidth}
+      \begin{block}{Données}
+        \centering
+        {\Large\bfseries 14\,434}\\
+        cas exploitables\\[5pt]
+        73 exclusions\\[5pt]
+        2019--2021 : estimation\\
+        2022 : exécution cachée
+      \end{block}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{block}{Deux charges}
+        \centering
+        {\Large\bfseries 58} cas / 5 jours\\[5pt]
+        {\Large\bfseries 279} cas / 22 jours\\[5pt]
+        Cohorte test 2022\\
+        Patients hors entraînement
+      \end{block}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{block}{Scénarios}
+        \centering
+        2 salles, 08h--17h\\
+        15 min de remise en état\\[5pt]
+        42 ou 10 lits \textbf{synthétiques}\\
+        Salle 1 fermée de 10h à 12h
+      \end{block}
+    \end{column}
+  \end{columns}
+  \vspace{0.23cm}
+  \begin{exampleblock}{Comparaison appariée}
+    \small Mêmes arrivées, mêmes durées réellement observées, mêmes
+    ressources. Trois informations : médianes, prédictions ML, oracle.
+  \end{exampleblock}
+  \source{Fenêtres du 3 au 7 et du 3 au 31 janvier 2022 ; charges de travail, pas preuve de passage à l'échelle des solveurs.}
+\end{frame}
+
+% 7. Comparaison appariée plan fige / dynamique, nouvelle simulation bloc+lits.
+\begin{frame}{7. Résultats : plan figé ou replanification ?}
+  \small
+  \vspace{0.15cm}
+  \centering
+  \renewcommand{\arraystretch}{1.32}
+  \setlength{\tabcolsep}{8pt}
+  \begin{tabular}{llrr}
+    \toprule
+    Situation & Politique & Terminées / 279 & Dépassement (min) \\
+    \midrule
+    Sans fermeture & Figée ou réactive & 262 & 2\,954 \\
+    \midrule
+    Avec fermeture & Figée & \textbf{255} & 2\,911 \\
+    Avec fermeture & Réactive & 251 & \textbf{2\,716} \\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.35cm}
+  \begin{alertblock}{Compromis observé, pas un gain systématique}
+    \small La replanification réduit le dépassement de \textbf{195 min}
+    mais termine \textbf{4 interventions de moins} sur cette fenêtre.
+  \end{alertblock}
+  \source{Modèle prédictif, planificateur glouton, 42 lits synthétiques, 2 salles, 3--31 janvier 2022, graine 0. Dépassement = occupation + remise en état après 17h.}
+\end{frame}
+
+% 7. Information parfaite et stress de capacité.
+\begin{frame}{7. Résultats : prédictions, oracle et capacité}
+  \small
+  \centering
+  \renewcommand{\arraystretch}{1.40}
+  \setlength{\tabcolsep}{11pt}
+  \begin{tabular}{lrrr}
+    \toprule
+    Capacité & Médianes & Modèle & Oracle \\
+    \midrule
+    42 lits & 246 & \textbf{251} & 260 \\
+    10 lits & \textbf{111} & 108 & 115 \\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.38cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \begin{block}{42 lits : non saturés}
+        \small Au plus 30 lits occupés en fin de journée.
+        Le modèle gagne 5 cas sur les médianes, mais reste
+        9 cas derrière l'oracle.
+      \end{block}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \begin{alertblock}{10 lits : saturation}
+        \small Les 10 lits sont occupés en fin de journée
+        sur \textbf{21 des 22 jours} opératoires.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+  \source{Cas terminés sur 279 ; politique réactive, fermeture 10h--12h, 2 salles, graine 0. Oracle = durées futures révélées, pas optimum garanti.}
+\end{frame}
+
+% 8. Conclusion strictement centree sur les contributions SMA.
+\begin{frame}{8. Bilan et prochaines étapes}
+  \small
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \begin{exampleblock}{Réalisé}
+        \begin{itemize}\itemsep5pt
+          \item Même interface entre planificateurs et Mesa
+          \item Réaction à une fermeture de salle, planning validé
+          \item Lits suivis sur plusieurs jours
+          \item Comparaisons reproductibles : médianes, ML, oracle
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \begin{block}{À compléter}
+        \begin{itemize}\itemsep5pt
+          \item Places ambulatoires et objectif bloc--lits--ambulatoire
+          \item Urgences, annulations, fermetures de lits
+          \item Stock réel de lits et occupation initiale
+          \item Validation clinique des variables disponibles
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+  \vspace{0.20cm}
+  \begin{alertblock}{Message à retenir}
+    \small Le prototype rend visibles les arbitrages entre
+    interventions terminées, dépassement horaire et lits occupés.
+    La coordination complète avec l'ambulatoire reste l'étape suivante.
+  \end{alertblock}
+\end{frame}
+
+\end{document}
