@@ -81,3 +81,9 @@ Thumbs.db
 *.nav
 *.snm
 *.synctex.gz
+
+# Local reference material and source documents
+/resources/
+
+# Generated exports
+/artifacts/

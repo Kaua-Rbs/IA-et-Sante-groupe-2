@@ -46,20 +46,32 @@ Although the patient identifier is anonymized or pseudonymized, the workbook sti
 
 The repository is currently at the exploratory-analysis stage:
 
-- [`EDA_donees_bloc.ipynb`](EDA_donees_bloc.ipynb) provides an initial, unexecuted data-analysis workflow;
+- [`EDA_donees_bloc.ipynb`](EDA_donees_bloc.ipynb) provides an executable data-analysis and initial cleaning workflow;
+- [`preprocessing_los.ipynb`](preprocessing_los.ipynb) creates a leakage-conscious length-of-stay modeling table;
+- [`preprocessing_surgery_duration.ipynb`](preprocessing_surgery_duration.ipynb) creates a leakage-conscious operating-room-duration modeling table;
+- [`dashboard.py`](dashboard.py) provides an interactive, aggregate view of the preprocessed data;
 - [`data_dictionary_donees_bloc.md`](data_dictionary_donees_bloc.md) documents and validates the workbook schema;
 - [`docs/patient-workflow.md`](docs/patient-workflow.md) provides a first activity-diagram draft of the planned surgical-patient journey;
-- [`requirements.txt`](requirements.txt) lists the Python dependencies required by the notebook.
+- [`requirements.txt`](requirements.txt) lists the Python dependencies required by the notebook and dashboard.
 
 The notebook covers schema inspection, missing values, duplicate rows, derived ages and durations, monthly and weekday activity, common clinical categories, operating-room timing, and duration comparisons by intervention type. Identifier columns are omitted from row-level previews and charts.
 
-Predictive models, scheduling algorithms, comparative experiments, and an end-user application have not yet been implemented.
+An initial asynchronous coordination skeleton is available in [`hospital_sim/`](hospital_sim/),
+with adapter interfaces, versioned state, explicit proposal validation and acceptance, and a
+synthetic disruption demonstration. See the [coordination-core guide](docs/coordination-core.md)
+for its boundaries and integration points. It is infrastructure for future simulation and agents,
+not a clinical scheduler or a complete multi-agent system.
+
+Predictive models, real scheduling algorithms, comparative experiments, and an operational decision-support application have not yet been implemented.
 
 ## Repository structure
 
 ```text
 .
 ├── EDA_donees_bloc.ipynb          # Initial exploratory data analysis
+├── preprocessing_los.ipynb        # Length-of-stay model preprocessing
+├── preprocessing_surgery_duration.ipynb # Surgery-duration model preprocessing
+├── dashboard.py                    # Interactive aggregate-data dashboard
 ├── data_dictionary_donees_bloc.md # Description of the 30 source columns
 ├── docs/
 │   └── patient-workflow.md        # Versioned patient-journey diagram
@@ -95,11 +107,15 @@ Obtain the workbook through the team's authorized sharing channel and keep it in
 resources/donees bloc anonyme pour centrale 2026.xlsx
 ```
 
-The notebook currently looks for the workbook in its working directory. Before running it, update its `DATA_FILE` configuration cell to:
+The notebook expects the workbook at this location through its `DATA_FILE` configuration:
 
 ```python
 DATA_FILE = Path("resources/donees bloc anonyme pour centrale 2026.xlsx")
 ```
+
+When executed, the notebook writes the fully preprocessed table to the ignored Parquet file
+`resources/donnees_bloc_pretraitees.parquet`. The export runs after all exclusions and derived
+measures, preserves numeric and datetime types, and does not overwrite the source workbook.
 
 ### 3. Start JupyterLab
 
@@ -110,6 +126,31 @@ jupyter lab
 ```
 
 Open `EDA_donees_bloc.ipynb`, select the virtual-environment kernel, and run the cells in order.
+
+### 4. Prepare model datasets
+
+After running the EDA notebook, run the two model-specific preprocessing notebooks:
+
+- `preprocessing_los.ipynb` writes `resources/model_los_dataset.parquet`;
+- `preprocessing_surgery_duration.ipynb` writes `resources/model_surgery_duration_dataset.parquet`.
+
+Both outputs contain patient-disjoint temporal train, validation, and test splits. Columns beginning
+with `split_` are audit metadata and must not be passed to a model. The notebooks retain categorical
+features as strings so their encoding can be fitted inside each model pipeline without leakage.
+
+### 5. Start the dashboard
+
+After the notebook has created the preprocessed Parquet file, run:
+
+```bash
+streamlit run dashboard.py
+```
+
+Use the sidebar to select a variable and one or more values—for example,
+`interv_type = Varices`. The dashboard compares the selection with the complete dataset, shows
+room-time and corrected-stay distributions, provides other numeric measures, breaks the selection
+down by a second category, and plots activity over time. It intentionally presents aggregate
+results only and does not expose patient or staff-level rows.
 
 ## Planned methodology
 
