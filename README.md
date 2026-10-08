@@ -44,7 +44,7 @@ Although the patient identifier is anonymized or pseudonymized, the workbook sti
 
 ## Current state
 
-The repository is currently at the exploratory-analysis stage:
+The repository contains exploratory analysis, coordination infrastructure, and an operating-room occupation prediction workflow:
 
 - [`EDA_donees_bloc.ipynb`](EDA_donees_bloc.ipynb) provides an executable data-analysis and initial cleaning workflow;
 - [`preprocessing_los.ipynb`](preprocessing_los.ipynb) creates a leakage-conscious length-of-stay modeling table;
@@ -52,7 +52,11 @@ The repository is currently at the exploratory-analysis stage:
 - [`dashboard.py`](dashboard.py) provides an interactive, aggregate view of the preprocessed data;
 - [`data_dictionary_donees_bloc.md`](data_dictionary_donees_bloc.md) documents and validates the workbook schema;
 - [`docs/patient-workflow.md`](docs/patient-workflow.md) provides a first activity-diagram draft of the planned surgical-patient journey;
-- [`requirements.txt`](requirements.txt) lists the Python dependencies required by the notebook and dashboard.
+- [`surgery_duration.py`](surgery_duration.py) compares occupation-duration models and saves point/P80/P95 predictors;
+- [`duration_features.py`](duration_features.py) provides reusable feature preparation for inference;
+- [`ORduration_model_FINAL.ipynb`](ORduration_model_FINAL.ipynb) reports the saved modeling results;
+- [`docs/surgery_duration_review.md`](docs/surgery_duration_review.md) describes evaluation and integration boundaries;
+- [`requirements.txt`](requirements.txt) lists dependencies for analysis, the dashboard, and OR modeling.
 
 The notebook covers schema inspection, missing values, duplicate rows, derived ages and durations, monthly and weekday activity, common clinical categories, operating-room timing, and duration comparisons by intervention type. Identifier columns are omitted from row-level previews and charts.
 
@@ -62,7 +66,7 @@ synthetic disruption demonstration. See the [coordination-core guide](docs/coord
 for its boundaries and integration points. It is infrastructure for future simulation and agents,
 not a clinical scheduler or a complete multi-agent system.
 
-Predictive models, real scheduling algorithms, comparative experiments, and an operational decision-support application have not yet been implemented.
+Operating-room occupation prediction and model comparisons are implemented on this branch. LOS prediction and metaheuristic scheduling are developed on separate branches for later integration. A complete operational decision-support application remains future work.
 
 ## Repository structure
 
@@ -249,3 +253,22 @@ At least one teammate should approve a pull request before it is merged. Reviewe
 Several business rules must be confirmed before modeling results can be used operationally, particularly the meaning of zero-valued timestamps, whether interventions can cross midnight, the precise role represented by `Praticien`, and whether `Date Inter` is always the principal intervention date.
 
 All current analyses are exploratory. Any future recommendation system must be validated on real hospital workflows and should support—not replace—clinical and operational judgment.
+
+## Operating-room occupation prediction
+
+The target is room entry-to-exit occupation in minutes, rather than incision-to-closure time. Install dependencies with `pip install -r requirements.txt`, then execute `EDA_donees_bloc.ipynb` and `preprocessing_surgery_duration.ipynb` from the repository root using authorized local data.
+
+From the root on Windows:
+
+```powershell
+.venv/Scripts/python.exe surgery_duration.py --train-bounds
+.venv/Scripts/python.exe -m unittest tests.test_surgery_duration -v
+```
+
+On Linux use `.venv/bin/python`. Omit `--train-bounds` for point-only training. `--baselines-only` evaluates median references; `--ccam-ablation` compares predictions with and without the principal CCAM code and family. `--calendar` enables a date-dependent experiment; the default model excludes calendar features so fixed durations can support later scheduling integration.
+
+The report notebook reads local results by default. Set `TRAIN_MODELS=True` explicitly to train from the notebook, and `TRAIN_BOUNDS=True` to include quantile bounds. Data and generated artifacts remain in ignored `resources/` and `results/` directories. A new checkout does not include those artifacts.
+
+`predict_schedule` returns point and available P80/P95 durations. `apply_predicted_durations` produces a patient DataFrame suitable for a future optimizer adapter without importing the optimizer. The optimizer and LOS bridge are intentionally not included in this branch.
+
+The preprocessing notebook uses shared feature engineering and exports a training-only category mapping alongside the dataset. The benchmark includes that mapping in the saved model, enabling `raw=True` inference from EDA-schema preoperative rows. Existing datasets must be regenerated to create the mapping; prepared-feature inference remains available for older artifacts. See the review for evaluation limitations.

@@ -10,3 +10,10 @@ __pycache__/
 
 # Generated exports
 /artifacts/
+
+# Environnement et notebooks locaux
+/.venv/
+.ipynb_checkpoints/
+
+# Artefacts locaux du modele OR (donnees hospitalieres)
+/results/
