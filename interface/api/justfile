@@ -1,0 +1,21 @@
+# Recettes de l'API KYST. `just` liste les recettes.
+# Les variables viennent de ../kyst.env (référence) et ../kyst.local.env (secrets locaux).
+
+default:
+    @just --list
+
+# Installe les dépendances (crée .venv)
+install:
+    uv sync
+
+# Serveur de développement avec rechargement : http://127.0.0.1:8000/docs
+dev *args:
+    uv run fastapi dev main.py {{args}}
+
+# Lance les tests (arguments transmis à pytest)
+test *args:
+    uv run pytest {{args}}
+
+# Crée des ressources de démonstration synthétiques (spécialités, salles, lits, vacations)
+seed:
+    PYTHONPATH=.. uv run python -m api.seed

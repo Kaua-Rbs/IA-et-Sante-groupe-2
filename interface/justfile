@@ -1,0 +1,89 @@
+# Recettes de KYST (API + front). `just` liste les recettes.
+# Configuration : kyst.env (référence), surchargé par kyst.local.env puis par l'environnement.
+# Les recettes de chaque partie restent dans api/justfile et ansible/justfile.
+
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+[private]
+default:
+    @just --list --justfile {{justfile()}}
+
+# Valeur d'une variable : environnement > kyst.local.env > kyst.env > défaut
+[private]
+env key default="":
+    #!/usr/bin/env bash
+    set -euo pipefail
+    name='{{key}}'
+    if [[ -n "${!name:-}" ]]; then echo "${!name}"; exit; fi
+    value=$(grep -h "^$name=" kyst.local.env kyst.env 2>/dev/null | head -n 1 | cut -d= -f2- || true)
+    echo "${value:-{{default}}}"
+
+# Installe les dépendances de l'API et du front
+[group('production')]
+install:
+    cd api && uv sync --no-dev --frozen
+    cd app && pnpm install --frozen-lockfile
+
+# Vérifie que la configuration est utilisable en production (secrets remplacés)
+[group('production')]
+preflight:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    errors=0
+    for key in SECRET_KEY FIRST_ADMIN_PASSWORD POSTGRES_PASSWORD PGADMIN_DEFAULT_PASSWORD; do
+        value=$(just env "$key")
+        if [[ "$value" == change-me* ]]; then
+            echo "✗ $key a encore sa valeur par défaut : définissez-la dans kyst.local.env ou l'environnement" >&2
+            errors=1
+        fi
+    done
+    secret=$(just env SECRET_KEY)
+    if [[ ${#secret} -lt 32 ]]; then
+        echo "✗ SECRET_KEY est trop courte (32 caractères minimum, ex. openssl rand -hex 32)" >&2
+        errors=1
+    fi
+    if [[ $(just env DATABASE_URL) == sqlite* ]]; then
+        echo "! DATABASE_URL pointe vers SQLite : prévoyez PostgreSQL pour un serveur partagé" >&2
+    fi
+    if [[ $(just env ORIGIN) == *localhost* ]]; then
+        echo "! ORIGIN vaut $(just env ORIGIN) : mettez l'URL publique du site derrière un proxy" >&2
+    fi
+    exit $errors
+
+# Construit le front pour la production (app/build)
+[group('production')]
+build:
+    cd app && pnpm build
+
+# Lance la production : API (1 worker) et front Node ; Ctrl+C arrête les deux
+[group('production')]
+prod: preflight install build serve
+
+# Lance l'API et le front déjà construits, sans réinstaller ni reconstruire
+[group('production')]
+serve:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    api_host=$(just env API_HOST 127.0.0.1)
+    api_port=$(just env API_PORT 8000)
+    echo "API   : http://$api_host:$api_port   (docs : /docs)"
+    echo "Front : http://$(just env HOST 0.0.0.0):$(just env PORT 3000)   (public : $(just env ORIGIN))"
+    # Un seul worker : l'état de coordination du planning vivra dans ce processus
+    (cd api && exec uv run --no-dev fastapi run main.py --host "$api_host" --port "$api_port" --workers 1) &
+    api_pid=$!
+    (cd app && exec pnpm start) &
+    app_pid=$!
+    trap 'kill $api_pid $app_pid 2>/dev/null || true' EXIT INT TERM
+    # S'arrête dès que l'un des deux s'arrête
+    wait -n $api_pid $app_pid
+
+# Crée des ressources de démonstration (à ne pas lancer sur une base réelle)
+[group('outils')]
+seed:
+    cd api && just seed
+
+# Tests de l'API et vérification du front
+[group('outils')]
+check:
+    cd api && uv run pytest -q
+    cd app && pnpm check

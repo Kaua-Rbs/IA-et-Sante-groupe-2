@@ -1,12 +1,91 @@
-# Local reference material and source documents
-/resources/
-
-# Python virtual environment
-/venv/
-
-# Python runtime caches
+# -------------------------------------------------------------
+# Python (FastAPI, Ansible, Vectorisation)
+# -------------------------------------------------------------
 __pycache__/
 *.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+parts/
+var/
+sdist/
+*.manifest
+*.spec
+
+# -------------------------------------------------------------
+# Node / SvelteKit / Vite (Frontend app/)
+# -------------------------------------------------------------
+node_modules/
+.svelte-kit/
+dist/
+dist-ssr/
+*.tsbuildinfo
+
+# -------------------------------------------------------------
+# Base de données & Données locales
+# -------------------------------------------------------------
+pgdata/
+*.db
+*.sqlite
+*.sqlite3
+
+# -------------------------------------------------------------
+# Variables d'environnement & Secrets
+# -------------------------------------------------------------
+.env
+.env.*
+!.env.example
+# KYST : kyst.env est la référence versionnée, kyst.local.env contient les vrais secrets
+kyst.local.env
+
+# -------------------------------------------------------------
+# Logs & Débogage
+# -------------------------------------------------------------
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# -------------------------------------------------------------
+# Éditeurs & IDE
+# -------------------------------------------------------------
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*~
+
+# -------------------------------------------------------------
+# Système d'exploitation
+# -------------------------------------------------------------
+.DS_Store
+Thumbs.db
+
+# -------------------------------------------------------------
+# Latex
+# -------------------------------------------------------------
+*.aux
+*.bbl
+*.nav
+*.snm
+*.synctex.gz
+
+# Local reference material and source documents
+/resources/
 
 # Generated exports
 /artifacts/

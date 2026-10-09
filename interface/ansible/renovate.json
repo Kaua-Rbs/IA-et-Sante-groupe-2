@@ -1,0 +1,31 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices"
+  ],
+  "dependencyDashboard": true,
+  "prHourlyLimit": 3,
+  "timezone": "Europe/Paris",
+  "osvVulnerabilityAlerts": true,
+  "labels": ["dependencies", "{{updateType}}"],
+  "packageRules": [
+    {
+      "matchPackageNames": ["ansible-lint", "ansible-cmdb"],
+      "addLabels": ["development"]
+    },
+    {
+      "matchPackageNames": ["python"],
+      "allowedVersions": "3.13" // Match debian 13 supported version
+    },
+    {
+      "matchPackageNames": ["pysnmp"],
+      // Match requirements for snmp_facts module (cf.
+      // docs.ansible.com/projects/ansible/latest/collections/community/general/snmp_facts_module.html)
+      "allowedVersions": "<6.2.4"
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "labels": ["security", "{{vulnerabilitySeverity}}"],
+    "enabled": true
+  }
+}

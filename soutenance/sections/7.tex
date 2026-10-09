@@ -1,0 +1,174 @@
+
+% ---------- Rappel du problème ----------
+\begin{frame}{Rappel : un problème d'affectation combinatoire}
+  \begin{block}{Ce qu'il faut décider chaque jour}
+    Affecter des \textbf{patients} à des \textbf{vacations de bloc} (créneaux
+    de 4h) et des \textbf{lits}, sous contraintes :
+  \end{block}
+  \begin{columns}
+    \begin{column}{0.55\textwidth}
+      \begin{itemize}
+        \item Durée opératoire prédite par patient
+        \item Capacité de chaque vacation / spécialité
+        \item Compatibilité chirurgien -- créneau
+        \item Disponibilité des lits en aval
+        \item Marge à garder pour les urgences
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \centering
+      \begin{tikzpicture}[scale=0.9]
+        \draw[thick, mcmPrimary] (0,0) rectangle (2.2,1.6);
+        \node at (1.1,0.8) {\footnotesize Vacation};
+        \foreach \x/\y in {0.3/1.9, 1.0/2.1, 1.7/1.9} {
+          \draw[fill=mcmPrimaryMuted] (\x,\y) circle (0.28);
+        }
+        \node[align=center, font=\scriptsize] at (1.1,2.7) {Patients à\\placer};
+        \draw[-{Latex}, mcmPrimary] (1.1,1.75) -- (1.1,1.65);
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+  \begin{alertblock}{Le point clé}
+    Chaque combinaison possible est une solution candidate -- et leur nombre
+    explose avec le nombre de patients et de créneaux.
+  \end{alertblock}
+\end{frame}
+
+% ---------- Pourquoi pas une méthode exacte ----------
+\begin{frame}{Pourquoi une méthode exacte ne suffit pas}
+  \begin{block}{Un problème NP-difficile}
+    Ce type d'affectation sous contraintes multiples appartient à la famille
+    des problèmes de \textbf{scheduling combinatoire} : le nombre de
+    combinaisons croît de façon exponentielle avec le nombre de patients et de
+    ressources.
+  \end{block}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Approche exacte}
+        \begin{itemize}
+          \item Garantit l'optimum
+          \item Temps de calcul explose vite
+          \item Inutilisable à l'échelle d'un hôpital, en temps utile
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Métaheuristique}
+        \begin{itemize}
+          \item Pas de garantie d'optimum absolu
+          \item Très bonne solution en temps raisonnable
+          \item S'adapte à des contraintes complexes et changeantes
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+  \centering
+  \textit{$\Rightarrow$ on échange une garantie théorique contre une décision
+  exploitable chaque jour.}
+\end{frame}
+
+% ---------- Recuit simulé ----------
+\begin{frame}{Recuit simulé : explorer avant de se figer}
+  \begin{columns}
+    \begin{column}{0.55\textwidth}
+      \textbf{Principe}
+      \begin{itemize}
+        \item Part d'une solution (un planning) et la modifie légèrement
+        \item Accepte parfois une solution \textit{moins bonne}, avec une
+        probabilité qui diminue au fil du temps (température)
+        \item Évite de rester bloqué sur une première solution correcte mais
+        médiocre
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \centering
+      \begin{tikzpicture}[scale=0.85]
+        \draw[-{Latex}] (0,0) -- (4.2,0) node[right, font=\scriptsize] {itérations};
+        \draw[-{Latex}] (0,0) -- (0,2.6) node[above, font=\scriptsize] {qualité};
+        \draw[thick, mcmPrimary] plot[smooth] coordinates {(0,0.6) (0.6,1.4) (1.1,0.9) (1.7,1.8) (2.3,1.3) (3.0,2.1) (3.6,2.3) (4.0,2.3)};
+        \node[font=\scriptsize, align=center] at (2.0,-0.5) {accepte parfois\\de redescendre};
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+  \begin{block}{Pourquoi ce choix ici}
+    Utile en phase de \textbf{construction initiale} d'un planning de
+    vacations : il balaie largement l'espace des combinaisons possibles sans
+    s'enfermer trop vite dans une solution locale.
+  \end{block}
+\end{frame}
+
+% ---------- Recherche Tabou ----------
+\begin{frame}{Recherche Tabou : ne pas refaire les mêmes erreurs}
+  \begin{columns}
+    \begin{column}{0.55\textwidth}
+      \textbf{Principe}
+      \begin{itemize}
+        \item Explore les plannings voisins du planning courant
+        \item Choisit le meilleur voisin, même s'il n'améliore pas tout de suite
+        \item Mémorise une \textbf{liste taboue} des derniers mouvements pour
+        interdire d'y revenir
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \centering
+      \begin{tikzpicture}[scale=0.8]
+        \node[draw, circle, fill=mcmExample!25] (a) at (0,0) {A};
+        \node[draw, circle] (b) at (1.6,0.8) {B};
+        \node[draw, circle, fill=mcmAlert!25] (c) at (1.6,-0.8) {C};
+        \node[draw, circle] (d) at (3.2,0) {D};
+        \draw[-{Latex}] (a) -- (b);
+        \draw[-{Latex}, dashed, mcmAlert] (b) -- (a) node[midway, above, font=\tiny] {tabou};
+        \draw[-{Latex}] (b) -- (d);
+        \draw[-{Latex}, dashed] (a) -- (c);
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+  \begin{block}{Pourquoi ce choix ici}
+    Utile pour \textbf{raffiner} un planning déjà construit : ajuster finement
+    l'affectation patient/créneau sans reboucler sur les échanges déjà testés.
+  \end{block}
+\end{frame}
+
+% ---------- Algorithme génétique + synthèse ----------
+\begin{frame}{Algorithme génétique et synthèse}
+  \begin{columns}[T]
+    \begin{column}{0.6\textwidth}
+      \small\textbf{Principe}
+      \begin{itemize}\itemsep2pt
+        \item Une \textbf{population} de plannings évolue en parallèle
+        \item Croisement : combine deux bons plannings
+        \item Mutation : introduit de petites variations
+        \item Sélection : garde les plus performants
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.4\textwidth}
+      \centering
+      \begin{tikzpicture}[scale=0.6]
+        \foreach \y in {0,0.55,1.1} {\draw[fill=mcmPrimaryMuted] (0,\y) rectangle (1.0,\y+0.4);}
+        \node[font=\tiny] at (0.5,1.9) {Génér. $n$};
+        \draw[-{Latex}] (1.2,0.85) -- (1.9,0.85);
+        \foreach \y in {0,0.55,1.1} {\draw[fill=mcmExample!25] (2.1,\y) rectangle (3.1,\y+0.4);}
+        \node[font=\tiny] at (2.6,1.9) {Génér. $n{+}1$};
+      \end{tikzpicture}
+    \end{column}
+  \end{columns}
+  \vspace{2pt}
+  \renewcommand{\arraystretch}{0.9}
+  \begin{table}
+    \centering\scriptsize
+    \setlength{\tabcolsep}{4pt}
+    \begin{tabular}{lll}
+      \toprule
+      \textbf{Méthode} & \textbf{Rôle dans le projet} & \textbf{Force} \\
+      \midrule
+      Recuit simulé & Construction initiale & Large exploration \\
+      Tabou & Raffinement local & Évite les boucles \\
+      Génétique & Recherche de compromis global & Diversité de solutions \\
+      \bottomrule
+    \end{tabular}
+  \end{table}
+  \begin{alertblock}{\footnotesize À retenir}
+    \footnotesize Trois logiques complémentaires -- pas rivales -- pour
+    transformer un problème NP-difficile en un planning exploitable chaque jour.
+  \end{alertblock}
+\end{frame}
