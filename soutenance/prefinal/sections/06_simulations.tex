@@ -2,7 +2,6 @@
 \section{Simulations et scénarios réalistes}
 % =============================================================================
 
-% Protocole (repris de Kaua_SMA_9_octobre.tex).
 \begin{frame}{Simulation : charges historiques et ressources supposées}
   \small
   \begin{columns}[T,onlytextwidth]
@@ -43,7 +42,6 @@
   \source{Fenêtres du 3 au 7 et du 3 au 31 janvier 2022 ; charges de travail, pas preuve de passage à l'échelle des solveurs.}
 \end{frame}
 
-% Integration : notre apport est le couplage solveur / simulation (Kaua_SMA_9_octobre.tex).
 \begin{frame}{Intégration SMA : planifier, simuler, corriger}
   \small
   \centering
@@ -74,7 +72,6 @@
   \source{Implémenté : hospital\_sim (Mesa 3.5.1). Les lits sont des ressources ; l'ambulatoire reste à intégrer.}
 \end{frame}
 
-% Simulation dynamique : un seul alea effectivement execute (Kaua_SMA_9_octobre.tex).
 \begin{frame}{Simulation dynamique : fermeture temporaire d'une salle}
   \small
   \centering
@@ -109,3 +106,63 @@
   \source{Urgences, annulations et indisponibilités de lits ne sont pas encore des aléas exécutés dans ce simulateur.}
 \end{frame}
 
+\begin{frame}{Simulations : du planning à l'exécution}
+  \footnotesize
+\textbf{Une question commune : utiliser le bloc sans saturer les lits.}
+\par\vspace{1.5mm}
+\centering
+\renewcommand{\arraystretch}{1.18}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}lp{3.15cm}p{6.25cm}@{}}
+\toprule
+\textbf{Évaluation} & \textbf{Population} & \textbf{Protocole}\\\midrule
+Recherche statique & 300 patients / 80 vacations & 20 graines ; même budget de 3 s par méthode\\
+Échelle historique & 582 patients / 280 vacations & 40 jours ; 4 s par méthode\\
+Exécution simulée & 279 interventions / 22 jours & 2 salles, 08h--17h ; 42 ou 10 lits synthétiques\\
+Incertitude LOS & 420 patients / 30 jours & 42 lits ; 10 graines ; 200 scénarios par planning\\\bottomrule
+\end{tabular}
+\vspace{0.05cm}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{.49\textwidth}
+\begin{block}{Évaluation statique}
+Comparer la qualité des plannings à ressources et budget identiques.
+\end{block}
+\end{column}
+\begin{column}{.49\textwidth}
+\begin{exampleblock}{Exécution simulée}
+Observer les interventions terminées, les dépassements et l'occupation des lits.
+\end{exampleblock}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{Scénarios : prévoir, puis confronter au réel}
+  \footnotesize
+\begin{block}{Du scénario à l'évaluation}
+\centering
+\textbf{Durées disponibles} (salle et séjour estimés)
+$\longrightarrow$
+\textbf{Planning} (bloc et lits)
+$\longrightarrow$
+\textbf{Évaluation} (exécution ou scénarios LOS)
+\end{block}
+\vspace{0.08cm}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{.48\textwidth}
+\begin{block}{Exécution historique : simulation SMA}
+\textbf{Mêmes arrivées et durées observées.}\\
+Médianes, prédictions ML ou oracle.\\
+Salle 1 fermée de \textbf{10h à 12h} ; plan figé ou replanification des cas en attente.\\
+Les actes commencés se terminent normalement.
+\end{block}
+\end{column}
+\begin{column}{.48\textwidth}
+\begin{block}{Séjours incertains : Monte Carlo LOS}
+Planifier avec la prédiction ponctuelle ou la \textbf{borne haute conformelle}.\\
+Planning figé ; \textbf{200 scénarios}, tirages communs.\\
+Perturbation uniforme $\pm1{,}02$ jour, arrondie ; plancher d'un jour.\\
+Un séjour prolongé mobilise davantage de lits.
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
