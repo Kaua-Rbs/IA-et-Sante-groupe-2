@@ -4,6 +4,7 @@
 	// 1000 unités de haut, et la caméra (viewBox) descend d'une pièce à l'autre au scroll.
 	import { onMount } from 'svelte';
 	import { count, reveal } from '#lib/actions.ts';
+	import logo from '#lib/assets/favicon.svg';
 
 	type Pose = 'stand' | 'sit' | 'lie';
 
@@ -208,7 +209,7 @@
 			</div>
 
 			<a class="lnav__brand" href="/" title="Keep Your Surgeries Timelies">
-				<span class="lnav__mark">KYST</span>
+				<span class="lnav__mark"><img src={logo} alt="" width="26" height="26" />KYST</span>
 				<span class="lnav__meta">// keep your surgeries timelies</span>
 			</a>
 
@@ -779,11 +780,19 @@
 	}
 
 	.lnav__mark {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
 		font-family: var(--font-display);
 		font-stretch: 72%;
 		font-weight: 700;
 		font-size: 1.5rem;
 		color: var(--fg);
+	}
+
+	.lnav__mark img {
+		border-radius: 6px;
+		box-shadow: 0 0 0 1px var(--line-strong);
 	}
 
 	.lnav__meta {

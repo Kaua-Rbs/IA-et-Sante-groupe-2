@@ -36,6 +36,7 @@
 .login-title img {
     width: 56px;
     height: 56px;
+    border-radius: 13px;
 }
 
 .login-title h1 {

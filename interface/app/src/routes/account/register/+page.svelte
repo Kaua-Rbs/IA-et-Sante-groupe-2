@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import logo from '#lib/assets/favicon.svg';
 	import type { PageProps } from './$types';
 
 	let { form }: PageProps = $props();
@@ -13,7 +14,7 @@
 <div class="auth">
 	<div class="form">
 		<a class="login-title" href="/">
-			<img src="/img/logo-clair.png" alt="" width="56" height="56" />
+			<img src={logo} alt="" width="56" height="56" />
 			<h1>KYST</h1>
 			<span class="login-tagline">Demande d'accès</span>
 		</a>

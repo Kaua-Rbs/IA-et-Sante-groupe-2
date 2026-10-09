@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import Header from '#lib/components/header.svelte';
+	import logo from '#lib/assets/favicon.svg';
 	import '#lib/style/variables.css';
 	import '#lib/style/main.css';
 	import '#lib/style/forms.css';
@@ -19,7 +20,7 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href="/img/logo-clair.png" />
+	<link rel="icon" href={logo} type="image/svg+xml" />
 </svelte:head>
 
 {#if !hideHeader}

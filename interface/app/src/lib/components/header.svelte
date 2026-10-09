@@ -2,6 +2,7 @@
     import { page } from '$app/state';
     import { goto } from '$app/navigation';
     import './header.css';
+    import logo from '#lib/assets/favicon.svg';
 
     import type { SessionUser } from '#lib/types.ts';
 
@@ -59,7 +60,7 @@
 <header>
     <div class="title">
         <a class="brand" href="/" title="Keep Your Surgeries Timelies">
-            <img src="/img/logo-clair.png" alt="" width="28" height="28" />
+            <img src={logo} alt="" width="28" height="28" />
             KYST
         </a>
     </div>

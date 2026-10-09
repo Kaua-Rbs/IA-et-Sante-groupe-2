@@ -35,13 +35,12 @@ header {
     gap: 0.55rem;
 }
 
-/* Le logo a un fond blanc : on l'affiche dans une pastille claire */
+/* Le logo est une tuile verte : un liseré clair la détache de la barre, du même vert */
 .brand img {
-    width: 28px;
-    height: 28px;
-    padding: 2px;
-    border-radius: var(--radius);
-    background: #ffffff;
+    width: 30px;
+    height: 30px;
+    border-radius: 7px;
+    box-shadow: 0 0 0 1px rgba(243, 248, 244, 0.35);
 }
 
 .header-right {
