@@ -4,7 +4,7 @@
 
 On the computer running the playbooks:
   - A Python virtualenv with the [requirements](./requirements.txt) installed
-  - `figlet` and `lolcat-c` installed, to generate the ASCII art used in the MOTD banner
+  - `lolcat` installed (Ruby or C version), to color the MOTD banner (the ASCII art comes from `pyfiglet`, installed in the virtualenv)
 
 On the managed servers:
   - An `ansible` user account with passwordless sudo (run the

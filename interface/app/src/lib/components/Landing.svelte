@@ -115,7 +115,7 @@
 		switchTimer = setTimeout(() => {
 			shown = i;
 			switching = false;
-		}, 140);
+		}, 260);
 	}
 
 	function resize() {
@@ -882,7 +882,7 @@
 	}
 
 	.scrolly.is-enhanced {
-		height: 720vh;
+		height: 1080vh;
 	}
 
 	.stage {
@@ -985,7 +985,7 @@
 	}
 
 	.cast {
-		animation: idle 3.2s var(--ease) infinite;
+		animation: idle 4.8s var(--ease) infinite;
 	}
 
 	@keyframes idle {
@@ -1007,7 +1007,7 @@
 		left: var(--lgutter);
 		max-width: min(520px, 40vw);
 		pointer-events: auto;
-		transition: opacity 0.16s var(--ease), transform 0.16s var(--ease);
+		transition: opacity 0.28s var(--ease), transform 0.28s var(--ease);
 	}
 
 	.overlay__panel.is-switching {
@@ -1309,8 +1309,7 @@
 		color: var(--fg);
 	}
 
-	.footer__cols a,
-	.footer__cols span {
+	.footer__cols a {
 		display: block;
 		padding: 0.3rem 0;
 		font-size: 0.88rem;

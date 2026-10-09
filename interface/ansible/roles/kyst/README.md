@@ -15,26 +15,24 @@ Le fichier [`files/compose.yml`](files/compose.yml) est copié dans `kyst_projec
 
 ## Images
 
-L'API et le front ne sont pas construits sur le serveur. Le workflow [`images.yml`](../../../../.github/workflows/images.yml) lance les tests de l'API, puis publie `ghcr.io/<propriétaire>/kyst-api` et `kyst-app` :
+L'API et le front sont construits sur le serveur. Le rôle clone le dépôt public (`kyst_repo_url`) à la version `kyst_repo_version` (branche, tag ou commit) dans `kyst_src_dir`, puis construit `localhost/kyst-api` et `localhost/kyst-app` avec les Dockerfiles de `interface/api` et `interface/app`. Seul le code **poussé** sur GitHub est déployé.
 
-- à chaque push sur `main` qui touche `interface/api` ou `interface/app` (tags `main`, `latest`, `sha-<commit>`) ;
-- à la demande, sur n'importe quelle branche (onglet *Actions* > *Images* > *Run workflow*), avec le nom de la branche comme tag (ex. `feat-fastapi`).
+Chaque image porte le commit et l'URL publique dont elle est issue (labels `kyst.commit` et `kyst.origin`) : une image n'est reconstruite que si elle manque, ou si le commit cloné ou `kyst_origin` a changé. Les conteneurs ne sont recréés que si une image, `compose.yml` ou `.env` a changé, ou si un service est arrêté. Les anciennes images sont supprimées par le timer `podman-image-prune` du rôle `podman`.
 
-Le rôle télécharge l'image du tag `kyst_image_tag` et ne recrée les conteneurs que si une image, `compose.yml` ou `.env` a changé, ou si un service est arrêté.
-
-L'URL publique du front est **figée dans l'image** (protection CSRF des formulaires) ; elle n'est pas lue au démarrage. Sans valeur, le front suppose `https://` et l'en-tête `Host` transmis par le proxy, ce qui convient derrière un proxy TLS. Pour la fixer, définir la variable de dépôt GitHub `KYST_ORIGIN` (ex. `https://kyst.example.org`) puis relancer le workflow.
+L'URL publique du front est **figée dans l'image** (protection CSRF des formulaires) ; elle n'est pas lue au démarrage. Avec `kyst_origin` vide (défaut), le front suppose `https://` et l'en-tête `Host` transmis par le proxy, ce qui convient derrière un proxy TLS. Sinon, définir `kyst_origin` (ex. `https://kyst.example.org`) : les images sont reconstruites au déploiement suivant.
 
 ## Déployer
 
-1. Publier les images (push sur `main`, ou lancement manuel du workflow).
-2. Si les paquets GHCR sont privés (cas par défaut à leur création) : soit les rendre publics dans les réglages du paquet sur GitHub, soit renseigner `kyst_registry_user` et `kyst_registry_token` (jeton avec `read:packages`, chiffré avec `ansible-vault`).
-3. Choisir le tag si besoin, puis lancer le playbook :
+1. Pousser le code à déployer sur GitHub.
+2. Lancer le playbook, en précisant la version si ce n'est pas `feat/fastapi` :
 
    ```bash
-   just playbook-deploy-infra -e kyst_image_tag=feat-fastapi
+   just playbook-deploy-infra -e kyst_repo_version=main
    ```
 
-4. Se connecter avec `kyst_first_admin_email` (`admin@kyst.fr`) et le mot de passe généré dans `credentials/<hôte>/kyst/first_admin_password`.
+   Le premier déploiement prend plusieurs minutes (téléchargement des images de base, `pnpm install`, build du front).
+
+3. Se connecter avec `kyst_first_admin_email` (`admin@kyst.fr`) et le mot de passe généré dans `credentials/<hôte>/kyst/first_admin_password`.
 
 Avec `kyst_seed_demo: true` (défaut), le rôle crée les ressources de démonstration (4 spécialités, 4 salles, 45 lits conventionnels, 21 places ambulatoires, 4 semaines de vacations) si la base n'en a aucune. À désactiver avant d'y mettre de vraies données.
 

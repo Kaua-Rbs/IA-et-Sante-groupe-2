@@ -34,7 +34,7 @@ export function count(node: HTMLElement) {
         for (const el of values) {
             const target = Number(el.dataset.count ?? '0');
             const start = performance.now();
-            const dur = 900;
+            const dur = 1400;
             const tick = (now: number) => {
                 const t = Math.min(1, (now - start) / dur);
                 const eased = 1 - Math.pow(1 - t, 3);

@@ -29,40 +29,59 @@
   no_log: true
   become: true
 
-##### Images de l'API et du front #####
-- name: Log in to the container registry
-  ansible.builtin.command:
-    cmd: podman login {{ kyst_registry }} --username {{ kyst_registry_user }} --password-stdin
-    stdin: "{{ kyst_registry_token }}"
-  when: kyst_registry_token | length > 0
-  changed_when: false
-  no_log: true
+##### Sources et images de l'API et du front #####
+- name: Install git
+  ansible.builtin.apt:
+    name: git
+    state: present
+  become: true
+
+# force : le clone ne sert qu'au déploiement, toute modification locale y est écrasée
+- name: Clone KYST sources
+  ansible.builtin.git:
+    repo: "{{ kyst_repo_url }}"
+    dest: "{{ kyst_src_dir }}"
+    version: "{{ kyst_repo_version }}"
+    depth: 1
+    force: true
+  register: kyst_repo
   become: true
   become_user: podman
 
-- name: Read current KYST image IDs
+# Chaque image porte ce dont elle est construite : commit et URL publique (labels kyst.*)
+- name: Read the commit of the current KYST images
   ansible.builtin.command:
-    cmd: podman image inspect {{ item }}
+    cmd: podman image inspect {{ item.image }}
   loop:
-    - "{{ kyst_api_image }}"
-    - "{{ kyst_app_image }}"
-  register: kyst_images_before
+    - { component: api, image: "{{ kyst_api_image }}" }
+    - { component: app, image: "{{ kyst_app_image }}" }
+  loop_control:
+    label: "{{ item.image }}"
+  register: kyst_images_current
   failed_when: false
   changed_when: false
   become: true
   become_user: podman
 
-# « Changé » si l'image était absente ou si le registre en a une plus récente pour ce tag
-- name: Pull KYST images
+# Construit seulement les images absentes, issues d'un autre commit ou d'une autre URL
+- name: Build KYST images
   ansible.builtin.command:
-    cmd: podman pull --quiet {{ item.item }}
-  loop: "{{ kyst_images_before.results }}"
+    cmd: >-
+      podman build
+      --tag {{ item.item.image }}
+      --label kyst.commit={{ kyst_repo.after }}
+      --label kyst.origin={{ kyst_origin | quote }}
+      --build-arg ORIGIN={{ kyst_origin | quote }}
+      {{ kyst_src_dir }}/interface/{{ item.item.component }}
+  loop: "{{ kyst_images_current.results }}"
   loop_control:
-    label: "{{ item.item }}"
-  register: kyst_images_pulled
-  changed_when: >-
+    label: "{{ item.item.image }}"
+  when: >-
     item.rc != 0
-    or (item.stdout | from_json)[0].Id != kyst_images_pulled.stdout_lines[-1]
+    or ((item.stdout | from_json)[0].Labels | default({}, true)).get('kyst.commit') != kyst_repo.after
+    or ((item.stdout | from_json)[0].Labels | default({}, true)).get('kyst.origin', '') != kyst_origin
+  register: kyst_images_built
+  changed_when: true
   become: true
   become_user: podman
 
@@ -83,7 +102,7 @@
   when: >-
     kyst_compose_file is changed
     or kyst_env_file is changed
-    or kyst_images_pulled is changed
+    or kyst_images_built is changed
     or not (['postgres', 'pgadmin', 'kyst-api', 'kyst-app']
             is subset(kyst_running.stdout | from_json | map(attribute='Names') | flatten))
   changed_when: true

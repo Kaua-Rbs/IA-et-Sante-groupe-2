@@ -5,17 +5,16 @@ kyst_project_dir: /home/podman/ias
 # Seule machine autorisée à joindre les services exposés (reverse proxy)
 kyst_allowed_source: 10.12.2.2/32
 
-# Images publiées par la CI (.github/workflows/images.yml). Le tag est le nom de la branche
-# (main, feat-fastapi...), latest (dernier main) ou sha-<commit> pour une version figée.
-kyst_registry: ghcr.io
-kyst_image_owner: kaua-rbs
-kyst_image_tag: latest
-kyst_api_image: "{{ kyst_registry }}/{{ kyst_image_owner }}/kyst-api:{{ kyst_image_tag }}"
-kyst_app_image: "{{ kyst_registry }}/{{ kyst_image_owner }}/kyst-app:{{ kyst_image_tag }}"
-# Connexion au registre, seulement si les paquets GHCR sont privés : compte GitHub et jeton
-# avec le droit read:packages (à chiffrer avec ansible-vault)
-kyst_registry_user: ""
-kyst_registry_token: ""
+# Sources clonées et images construites sur le serveur. La version est une branche, un tag
+# ou un commit ; le dépôt est public, aucun identifiant n'est nécessaire.
+kyst_repo_url: https://github.com/Kaua-Rbs/IA-et-Sante-groupe-2.git
+kyst_repo_version: feat/fastapi
+kyst_src_dir: /home/podman/kyst-src
+kyst_api_image: localhost/kyst-api:latest
+kyst_app_image: localhost/kyst-app:latest
+# URL publique du front, figée dans l'image au build (protection CSRF des formulaires).
+# Vide : le front suppose https et l'en-tête Host transmis par le proxy.
+kyst_origin: ""
 
 kyst_postgres_db: kyst
 kyst_postgres_user: kyst
