@@ -35,7 +35,6 @@
     (582) instances.}
 \end{frame}
 
-% Resultat 2 : information disponible et capacite (Kaua_SMA_9_octobre.tex).
 \begin{frame}{Résultats : prédictions, oracle et capacité}
   \small
   \centering
@@ -68,3 +67,100 @@
   \source{Cas terminés sur 279 ; politique réactive, fermeture 10h--12h, 2 salles, graine 0. Oracle = durées futures révélées, pas optimum garanti.}
 \end{frame}
 
+\begin{frame}{Résultats : mieux chercher, mieux informer}
+  \footnotesize
+\begin{columns}[T,onlytextwidth]
+\begin{column}{.48\textwidth}
+\textbf{Choix de la méthode : budget identique}\par
+300 patients / 80 vacations ; 3 s ; 20 graines.
+\par\vspace{0.8mm}
+\centering
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}lr@{}}
+\toprule
+Méthode & Écart moyen\\\midrule
+\textbf{Recuit simulé} & \textbf{0,015}\\
+\textbf{Tabou $\times$ Recuit} & \textbf{0,018}\\
+Tabou & 0,240\\
+Génétique $\times$ Tabou & 0,261\\\bottomrule
+\end{tabular}
+\par\vspace{0.5mm}
+\raggedright
+Écart à la meilleure solution observée,\newline pas à un optimum prouvé.
+\par\vspace{0.5mm}
+\textbf{582 / 280 :} même groupe de tête ; meilleure solution faisable, lits à 42/42.
+\end{column}
+\begin{column}{.48\textwidth}
+\textbf{Qualité de l'information : mêmes ressources}\par
+279 interventions ; 42 lits ; fermeture ; réactif.
+\par\vspace{0.8mm}
+\centering
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}lr@{}}
+\toprule
+Information & Terminées / 279\\\midrule
+Médianes & 246\\
+\textbf{Prédictions ML} & \textbf{251}\\
+Oracle & 260\\\bottomrule
+\end{tabular}
+\par\vspace{0.5mm}
+\raggedright
+\textbf{ML : +5 interventions} par rapport aux médianes ; 9 de moins que l'oracle.
+\par\vspace{0.5mm}
+À \textbf{10 lits}, médianes 111 / ML 108 : le gain dépend des ressources.
+\end{column}
+\end{columns}
+\vspace{0.5mm}
+\centering
+{\color{McmTerracotta}\bfseries Recuit et Tabou $\times$ Recuit en tête ;
+la prédiction aide, sans gain systématique.}
+\end{frame}
+
+\begin{frame}{Aléas : deux compromis opérationnels}
+  \footnotesize
+\begin{columns}[T,onlytextwidth]
+\begin{column}{.45\textwidth}
+\textbf{Fermeture du bloc : adapter l'exécution}\par
+279 interventions ; ML ; 42 lits ; salle fermée 10h--12h.
+\par\vspace{0.8mm}
+\centering
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Plan & Terminées & Dépass. (min)\\\midrule
+Figé & 255 & 2\,911\\
+Réactif & 251 & 2\,716\\\bottomrule
+\end{tabular}
+\par\vspace{0.8mm}
+\raggedright
+{\color{McmTerracotta}\bfseries $-195$ min de dépassement,\\mais 4 interventions de moins.}
+\par\vspace{0.5mm}
+Dépassement : occupation et remise en état après 17h.
+\end{column}
+\begin{column}{.52\textwidth}
+\textbf{LOS : anticiper les séjours longs}\par
+420 patients / 30 jours ; 42 lits ; Monte Carlo.
+\par\vspace{0.8mm}
+\centering
+\renewcommand{\arraystretch}{1.1}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+ & Dégradation & Coût moyen\\
+ & \multicolumn{2}{c}{Ponctuel $\rightarrow$ borne haute}\\\midrule
+Recuit & $109\rightarrow13$ & $5\,316\rightarrow5\,384$\\
+Tabou & $115\rightarrow17$ & $5\,313\rightarrow5\,376$\\
+Tabou $\times$ Recuit & $112\rightarrow6$ & $5\,311\rightarrow5\,413$\\\bottomrule
+\end{tabular}
+\par\vspace{0.8mm}
+\raggedright
+{\color{McmTerracotta}\bfseries Moins de dégradation,\\mais un coût moyen plus élevé.}
+\par\vspace{0.5mm}
+Dégradation : $\mathbb E[C]-C_{\mathrm{ponctuel}}$\newline pour le \textbf{même} planning.
+\end{column}
+\end{columns}
+\vspace{0.5mm}
+\centering
+{\color{McmTerracotta}\bfseries La robustesse a un prix :
+choisir le compromis, sans gain universel.}
+\end{frame}
