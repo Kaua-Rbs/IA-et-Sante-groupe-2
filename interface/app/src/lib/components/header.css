@@ -8,8 +8,8 @@ header {
     gap: 1rem;
 
     min-height: 52px;
-    /* Même colonne que le contenu : --header-max vaut la largeur de la page affichée */
-    padding: 0.55rem max(var(--gutter), calc((100% - var(--header-max, var(--max-w-app))) / 2 + var(--gutter)));
+    /* Même colonne que le contenu des pages outil */
+    padding: 0.55rem max(var(--gutter), calc((100% - var(--max-w-app)) / 2 + var(--gutter)));
     background-color: var(--green);
     color: var(--fg-on-green);
     border-bottom: 1px solid rgba(255, 255, 255, 0.16);
@@ -275,9 +275,4 @@ header {
     #btn-login:hover::before {
         animation: none;
     }
-}
-
-/* Landing : colonne plus étroite que les pages outil */
-header.header--narrow {
-    --header-max: var(--max-w);
 }

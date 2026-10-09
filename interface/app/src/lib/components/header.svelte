@@ -7,11 +7,9 @@
 
     interface Props {
         user?: SessionUser | null;
-        /** Aligner sur la colonne de la landing (--max-w) plutôt que sur celle des pages outil */
-        narrow?: boolean;
     }
 
-    let { user = null, narrow = false }: Props = $props();
+    let { user = null }: Props = $props();
 
     // Fonction pour déterminer la page active (ajoute la classe "active")
     const actif = (path: string) =>
@@ -58,7 +56,7 @@
     });
 </script>
 
-<header class:header--narrow={narrow}>
+<header>
     <div class="title">
         <a class="brand" href="/" title="Keep Your Surgeries Timelies">
             <img src="/img/logo-clair.png" alt="" width="28" height="28" />

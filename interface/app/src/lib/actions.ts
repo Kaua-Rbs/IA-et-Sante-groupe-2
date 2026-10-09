@@ -25,6 +25,8 @@ export function reveal(node: HTMLElement) {
     return { destroy: () => io.disconnect() };
 }
 
+const formatCount = new Intl.NumberFormat('fr-FR');
+
 export function count(node: HTMLElement) {
     if (prefersReduced()) return;
     const values = Array.from(node.querySelectorAll<HTMLElement>('[data-count]'));
@@ -36,9 +38,9 @@ export function count(node: HTMLElement) {
             const tick = (now: number) => {
                 const t = Math.min(1, (now - start) / dur);
                 const eased = 1 - Math.pow(1 - t, 3);
-                el.textContent = String(Math.round(target * eased));
+                el.textContent = formatCount.format(Math.round(target * eased));
                 if (t < 1) requestAnimationFrame(tick);
-                else el.textContent = String(target);
+                else el.textContent = formatCount.format(target);
             };
             requestAnimationFrame(tick);
         }

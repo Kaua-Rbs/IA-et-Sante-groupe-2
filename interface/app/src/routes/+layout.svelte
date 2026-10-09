@@ -11,9 +11,11 @@
 
 	let { data, children }: LayoutProps = $props();
 
-	let hideHeader = $derived(['/account/login', '/account/register'].includes(page.route.id || ''));
-	// La page d'accueil publique gère elle-même sa largeur (hero pleine largeur)
+	// La page d'accueil publique a sa propre navigation et gère elle-même sa largeur
 	let isLanding = $derived(page.route.id === '/' && !data.user);
+	let hideHeader = $derived(
+		isLanding || ['/account/login', '/account/register'].includes(page.route.id || '')
+	);
 </script>
 
 <svelte:head>
@@ -21,10 +23,10 @@
 </svelte:head>
 
 {#if !hideHeader}
-	<Header user={data.user} narrow={isLanding} />
+	<Header user={data.user} />
 {/if}
 
-<main class:no-header={hideHeader} class:bare={isLanding || hideHeader}>
+<main class:no-header={hideHeader} class:bare={hideHeader}>
 	{@render children()}
 </main>
 

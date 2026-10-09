@@ -72,7 +72,7 @@ La largeur est réglée par trois jetons de `src/lib/style/variables.css` :
 - `--max-w` (1200px) : largeur de la landing, qui est surtout du texte ;
 - `--gutter` (16 à 64px) : marge latérale à toutes les tailles d'écran, pour l'en-tête comme pour le contenu.
 
-L'en-tête suit la colonne de la page affichée : celle des pages outil, ou celle de la landing (prop `narrow` du composant `header.svelte`). Le logo et le menu restent ainsi alignés sur le contenu.
+L'en-tête (`header.svelte`) suit la colonne des pages outil, pour que le logo et le menu restent alignés sur le contenu. La landing publique ne l'affiche pas : elle a sa propre barre de navigation, centrée sur `--max-w`.
 
 Les grilles s'adaptent à la largeur disponible : `.grid-2` (cartes, graphiques) passe à deux colonnes dès que la place le permet. Le formulaire de demande empile ses trois blocs, puis les place côte à côte au-delà de 1400px. Les paragraphes et listes du contenu sont limités à 70 caractères par ligne (règle globale dans `app.css`), sauf les bandeaux d'alerte et les cartes.
 
