@@ -1,0 +1,70 @@
+% =============================================================================
+\section{Résultats et comparaisons}
+% =============================================================================
+
+\begin{frame}{Statique vs hybride : la hiérarchie confirmée}
+  \footnotesize
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{À budget temps égal}
+        \begin{itemize}
+          \item Recuit simulé $\approx$ Tabou $\times$ Recuit (tête) ;
+          \item puis Tabou $\approx$ Génétique $\times$ Tabou ;
+          \item SMA au milieu, freinés par le coût de coordination ;
+          \item ACO et génétique distancés, surtout à l'échelle réelle.
+        \end{itemize}
+      \end{block}
+      \begin{exampleblock}{Le message}
+        \footnotesize Les \textbf{hybrides} apportent un gain net
+        (Génétique $\times$ Tabou, Fourmis $\times$ Tabou) ; les méthodes
+        \textbf{locales} restent les plus fiables sur un paysage rugueux.
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \centering
+      \includegraphics[width=\linewidth,height=0.28\textheight,keepaspectratio]{grande_boxplot.png}\\[2pt]
+      {\tiny\color{mcmPrimary}\textbf{Dispersion} de la fitness finale
+        (grande échelle).}\\[4pt]
+      \begin{alertblock}{Fiabilité}
+        \footnotesize 10/10 méthodes atteignent l'optimum exact en petite
+        instance ; aucune ne viole les contraintes dures.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+  \source{Synthèse des campagnes 20 graines : petite (7), grande (300) et réelle
+    (582) instances.}
+\end{frame}
+
+% Resultat 2 : information disponible et capacite (Kaua_SMA_9_octobre.tex).
+\begin{frame}{Résultats : prédictions, oracle et capacité}
+  \small
+  \centering
+  \renewcommand{\arraystretch}{1.40}
+  \setlength{\tabcolsep}{11pt}
+  \begin{tabular}{lrrr}
+    \toprule
+    Capacité & Médianes & Modèle & Oracle \\
+    \midrule
+    42 lits & 246 & \textbf{251} & 260 \\
+    10 lits & \textbf{111} & 108 & 115 \\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.38cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \begin{block}{42 lits : non saturés}
+        \small Au plus 30 lits occupés en fin de journée.
+        Le modèle gagne 5 cas sur les médianes, mais reste
+        9 cas derrière l'oracle.
+      \end{block}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \begin{alertblock}{10 lits : saturation}
+        \small Les 10 lits sont occupés en fin de journée
+        sur \textbf{21 des 22 jours} opératoires.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+  \source{Cas terminés sur 279 ; politique réactive, fermeture 10h--12h, 2 salles, graine 0. Oracle = durées futures révélées, pas optimum garanti.}
+\end{frame}
+

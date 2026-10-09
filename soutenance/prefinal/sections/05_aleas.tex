@@ -1,0 +1,134 @@
+% =============================================================================
+\section{Prise en compte des aléas}
+% =============================================================================
+
+% Les quatre aléas.
+\begin{frame}{Quatre types d'aléas à absorber}
+  \small
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabular}{p{3.0cm}p{5.3cm}p{4.5cm}}
+    \toprule
+    \textbf{Aléa} & \textbf{Description} & \textbf{Impact opérationnel} \\
+    \midrule
+    Urgence & Patient imprévu, fenêtre temporelle imposée
+      & À insérer dans une vacation compatible du jour \\
+    Annulation & Patient programmé qui annule
+      & Libère un créneau \textbf{et} des lits \\
+    Indisponibilité lits & Réduction de capacité sur
+      $[j_{\text{début}}, j_{\text{fin}}]$
+      & Force la réaffectation des séjours chevauchants \\
+    Retard bloc & Prolongation ou incident sur une vacation
+      & Ampute la capacité utile disponible \\
+    \bottomrule
+  \end{tabular}
+
+  \vspace{0.3cm}
+  \begin{alertblock}{Deux réponses complémentaires}
+    \small \textbf{Proactive} : générer des plannings alternatifs robustes.
+    \textbf{Réactive} : adapter dynamiquement sous contrainte de stabilité.
+  \end{alertblock}
+  \source{Chaque aléa est modélisé par une classe dédiée et un simulateur
+    reproductible (\texttt{generer\_scenario\_aleas}).}
+\end{frame}
+
+% Proactif : plannings alternatifs.
+\begin{frame}{Proactif : plannings alternatifs et double proposition}
+  \small
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.5\textwidth}
+      \begin{block}{Quatre profils de planning}
+        \begin{itemize}
+          \item \textbf{Nominal} : optimal à 100\,\% de la capacité.
+          \item \textbf{Robuste bufferisé} : réserve de capacité bloc
+            ($\sim$15\,\%) et lits pour absorber les imprévus.
+          \item \textbf{Sécurité lits} : lissage strict, sous-saturation pour
+            parer aux fermetures.
+          \item \textbf{Alternatif Date B} : haute qualité, diversifié par
+            rapport au nominal.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{exampleblock}{Double proposition chirurgicale}
+        \footnotesize Pour chaque patient, la table
+        \texttt{extraire\_options\_date\_a\_b} produit :
+        \begin{center}
+          \textbf{Date A} (optimale) \quad / \quad \textbf{Date B}
+          (alternative)
+        \end{center}
+        Le praticien choisit en connaissance des tensions sur les lits et le
+        bloc.
+      \end{exampleblock}
+      \begin{alertblock}{Objectif}
+        \footnotesize Passer d'un planning \textbf{optimal} à un planning
+        \textbf{robuste} : ne pas casser tout le programme parce qu'un imprévu
+        survient.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+  \source{Aperçu : un buffer de capacité réduit la qualité nominale mais
+    absorbe les aléas sans décaler les patients.}
+\end{frame}
+
+% Réactif : adaptation dynamique.
+\begin{frame}{Réactif : adaptation sous contrainte de stabilité}
+  \small
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Trois garde-fous}
+        \begin{itemize}
+          \item \textbf{Gel du passé} : tout acte antérieur au jour courant est
+            sanctuarisé.
+          \item \textbf{Insertion prioritaire des urgences} dans leur fenêtre
+            clinique.
+          \item \textbf{Moindre perturbation} : on minimise les déplacements de
+            patients futurs.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{alertblock}{Score d'adaptation}
+        \footnotesize
+        \[
+          \begin{aligned}
+            \text{Score} = \text{Fitness} &- w_p \cdot \text{Déplacements} \\
+                                          &- w_j \cdot \text{Changements de jour}
+          \end{aligned}
+        \]
+        Le planning reste proche de celui annoncé aux patients.
+      \end{alertblock}
+      \begin{exampleblock}{Rapport d'arbitrage}
+        \footnotesize Synthèse chiffrée des motifs de chaque déplacement et des
+        urgences accueillies.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+  \source{Rapport produit automatiquement par \texttt{adapter\_planning} pour
+    garder la décision explicable.}
+\end{frame}
+
+% Resultat 1 : plan fige ou replanification (repris de Kaua_SMA_9_octobre.tex).
+\begin{frame}{Résultats : plan figé ou replanification ?}
+  \small
+  \vspace{0.15cm}
+  \centering
+  \renewcommand{\arraystretch}{1.32}
+  \setlength{\tabcolsep}{8pt}
+  \begin{tabular}{llrr}
+    \toprule
+    Situation & Politique & Terminées / 279 & Dépassement (min) \\
+    \midrule
+    Sans fermeture & Figée ou réactive & 262 & 2\,954 \\
+    \midrule
+    Avec fermeture & Figée & \textbf{255} & 2\,911 \\
+    Avec fermeture & Réactive & 251 & \textbf{2\,716} \\
+    \bottomrule
+  \end{tabular}
+  \vspace{0.35cm}
+  \begin{alertblock}{Compromis observé, pas un gain systématique}
+    \small La replanification réduit le dépassement de \textbf{195 min}
+    mais termine \textbf{4 interventions de moins} sur cette fenêtre.
+  \end{alertblock}
+  \source{Modèle prédictif, planificateur glouton, 42 lits synthétiques, 2 salles, 3--31 janvier 2022, graine 0. Dépassement = occupation + remise en état après 17h.}
+\end{frame}
+

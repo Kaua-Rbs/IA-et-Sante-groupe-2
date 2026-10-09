@@ -1,0 +1,45 @@
+% =============================================================================
+\section{Problématique}
+% =============================================================================
+
+\begin{frame}{Problématique : objectifs, contraintes et difficultés}
+  \footnotesize
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Objectif}
+        Affecter chaque patient à une \textbf{vacation} compatible avec sa
+        spécialité et à un \textbf{lit}, pour :
+        \begin{itemize}
+          \item occuper le bloc sans dépasser les vacations ;
+          \item lisser les lits et les places ambulatoires ;
+          \item réserver une marge pour les urgences.
+        \end{itemize}
+      \end{block}
+      \begin{block}{Contraintes}
+        \begin{itemize}
+          \item \textbf{Médicales} : spécialité, urgence ;
+          \item \textbf{Organisationnelles} : chirurgien, équipes ;
+          \item \textbf{Temporelles} : jour, horaires, séjour.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{Difficultés}
+        \begin{itemize}
+          \item \textbf{Combinatoire élevée} : le produit des affectations
+            explose.
+          \item \textbf{Multi-critères} : bloc, lits et ambulatoire
+            s'opposent.
+          \item \textbf{Dépendances fortes} : le bloc retentit sur les lits
+            plusieurs jours après.
+        \end{itemize}
+      \end{alertblock}
+      \begin{center}
+        Problème d'affectation sous contraintes : \textbf{NP-difficile}.
+      \end{center}
+    \end{column}
+  \end{columns}
+  \source{Formulation : affectation patient $\rightarrow$ salle $\rightarrow$
+    jour (variables $x_{i,s,t}$).}
+\end{frame}
+

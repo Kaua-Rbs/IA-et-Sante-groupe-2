@@ -1,0 +1,144 @@
+% =============================================================================
+\section{Modélisation et approche statique}
+% =============================================================================
+
+% Ensembles, paramètres et variables.
+\begin{frame}{Ce qu'il faut décider : variables et paramètres}
+  \small
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Ensembles et décision}
+        \begin{tabular}{@{}ll@{}}
+          $P = \{1,\dots,n\}$ & patients à planifier \\
+          $S = \{1,\dots,m\}$ & salles opératoires \\
+          $T = \{1,\dots,H\}$ & jours de l'horizon \\
+          $x_{i,s,t} \in \{0,1\}$ & patient $i$ en salle $s$ le jour $t$ \\
+        \end{tabular}
+        \vspace{4pt}
+        \[
+          \sum_{s \in S}\sum_{t \in T} x_{i,s,t} = 1
+          \quad \forall i \in P
+        \]
+      \end{block}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{block}{Paramètres issus des données}
+        \begin{tabular}{@{}ll@{}}
+          $d_i$ & durée opératoire du patient $i$ \\
+          $S_i$ & durée de séjour (jours) \\
+          $a_i$ & ambulatoire ($1$) ou non ($0$) \\
+          $C_{\text{vac}}$ & capacité d'une vacation \\
+          $L_{\max}$ & capacité en lits \\
+          $A_{\max}$ & capacité en places ambu. \\
+          $\tau_{\text{Urg}}(t)$ & marge urgences du jour $t$ \\
+        \end{tabular}
+      \end{block}
+    \end{column}
+  \end{columns}
+  \source{Durées $d_i$ et $S_i$ estimées à partir de l'historique ; capacité de
+    vacation typique : 4\,h (240 min).}
+\end{frame}
+
+% Fonction objectif : trois tensions.
+\begin{frame}{Fonction objectif : trois tensions à équilibrer}
+  \footnotesize
+  \[
+    \begin{aligned}
+      \min\; & \alpha \sum_{J \in T}\bigl(L(J)-L_{\text{cible}}(J)\bigr)^2
+             + \beta \sum_{J \in T}\bigl(A(J)-A_{\text{cible}}(J)\bigr)^2 \\
+             & + \gamma \sum_{J \in T}\Delta_{\text{bloc}}(J)^2
+    \end{aligned}
+  \]
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Lecture}
+        \begin{itemize}
+          \item terme 1 : pénalise les \textbf{pics et creux} de lits ;
+          \item terme 2 : lisse la charge des \textbf{places ambulatoires} ;
+          \item terme 3 : pénalise l'écart à la capacité du bloc, urgences
+            comprises ;
+          \item $\alpha,\beta,\gamma>0$ : poids à régler.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{alertblock}{Coût réellement implémenté}
+        \footnotesize
+        \[
+          \begin{aligned}
+            \text{coût} &= 5 \cdot \text{dépassement}_{\text{vac}}
+                          + 3 \cdot \text{dépassement}_{\text{lits}} \\
+                         &\quad + 0{,}05 \cdot \text{écart-type}_{\text{vac}}
+          \end{aligned}
+        \]
+        La \textbf{fitness} vaut $-\text{coût}$ : on maximise, $0$ = planning
+        parfaitement faisable et équilibré.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+  \source{Le terme bloc et le terme lits sont des contraintes dures relâchées ;
+    l'ambulatoire intervient dans la formulation cible et via le type de prise
+    en charge prédit.}
+\end{frame}
+
+% Les trois métaheuristiques d'origine et leur rôle.
+\begin{frame}{Trois métaheuristiques complémentaires}
+  \footnotesize
+  Le problème étant NP-difficile, l'optimum exact n'est pas atteignable à
+  l'échelle d'un hôpital : on cherche une bonne solution en un temps borné.
+
+  \vspace{0.15cm}
+  \renewcommand{\arraystretch}{1.12}
+  \begin{tabular}{p{3.2cm}p{4.3cm}p{4.6cm}}
+    \toprule
+    \textbf{Méthode} & \textbf{Rôle dans le projet} & \textbf{Force} \\
+    \midrule
+    Recuit simulé & Construction initiale : accepte parfois de « redescendre »
+      & Large exploration, évite les optima locaux \\
+    Recherche Tabou & Raffinement local : meilleur voisin non tabou
+      & Mémorise les mouvements, évite le cyclage \\
+    Algorithme génétique & Recherche de compromis global : population
+      & Diversité, combine de bonnes briques \\
+    \bottomrule
+  \end{tabular}
+
+  \vspace{0.2cm}
+  \begin{alertblock}{À retenir}
+    Trois logiques \textbf{complémentaires --- pas rivales} : explorer,
+    intensifier, diversifier.
+  \end{alertblock}
+  \source{Chaque méthode partage la même interface
+    \texttt{solve(instance) -> planning} pour une comparaison à conditions
+    égales.}
+\end{frame}
+
+% Validation exacte puis limite du statique.
+\begin{frame}{Validation par force brute et limite du statique}
+  \small
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.5\textwidth}
+      \begin{exampleblock}{Preuve de correction}
+        \footnotesize Sur l'instance jouet (7 patients, 4 vacations,
+        $4^7 = 16\,384$ combinaisons), l'optimum est calculé par énumération
+        complète : \textbf{les 10 méthodes l'atteignent sur les 20 graines}.
+      \end{exampleblock}
+      \centering
+      \includegraphics[width=0.92\linewidth,height=0.26\textheight,keepaspectratio]{petite_taux_optimum.png}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{alertblock}{La limite}
+        \footnotesize Le planning obtenu est optimal \textbf{pour les durées
+        prévues}. Dès qu'une urgence arrive, qu'un patient annule, qu'un lit
+        ferme ou qu'un bloc prend du retard, l'optimum statique n'est plus le
+        bon planning.
+      \end{alertblock}
+      \begin{block}{Conséquence}
+        \footnotesize Il faut passer d'un planning \textbf{optimal} à un
+        planning \textbf{robuste}, capable d'absorber les aléas.
+      \end{block}
+    \end{column}
+  \end{columns}
+  \source{Instance de validation à 7 patients ; l'optimum exact sert de test de
+    correction, pas de départage entre méthodes.}
+\end{frame}
+

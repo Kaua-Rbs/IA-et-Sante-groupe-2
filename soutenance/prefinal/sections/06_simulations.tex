@@ -1,0 +1,111 @@
+% =============================================================================
+\section{Simulations et scénarios réalistes}
+% =============================================================================
+
+% Protocole (repris de Kaua_SMA_9_octobre.tex).
+\begin{frame}{Simulation : charges historiques et ressources supposées}
+  \small
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.32\textwidth}
+      \begin{block}{Données}
+        \centering
+        {\Large\bfseries 14\,434}\\
+        cas exploitables\\[5pt]
+        73 exclusions\\[5pt]
+        2019--2021 : estimation\\
+        2022 : exécution cachée
+      \end{block}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{block}{Deux charges}
+        \centering
+        {\Large\bfseries 58} cas / 5 jours\\[5pt]
+        {\Large\bfseries 279} cas / 22 jours\\[5pt]
+        Cohorte test 2022\\
+        Patients hors entraînement
+      \end{block}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{block}{Scénarios}
+        \centering
+        2 salles, 08h--17h\\
+        15 min de remise en état\\[5pt]
+        42 ou 10 lits \textbf{synthétiques}\\
+        Salle 1 fermée de 10h à 12h
+      \end{block}
+    \end{column}
+  \end{columns}
+  \vspace{0.23cm}
+  \begin{exampleblock}{Comparaison appariée}
+    \small Mêmes arrivées, mêmes durées réellement observées, mêmes
+    ressources. Trois informations : médianes, prédictions ML, oracle.
+  \end{exampleblock}
+  \source{Fenêtres du 3 au 7 et du 3 au 31 janvier 2022 ; charges de travail, pas preuve de passage à l'échelle des solveurs.}
+\end{frame}
+
+% Integration : notre apport est le couplage solveur / simulation (Kaua_SMA_9_octobre.tex).
+\begin{frame}{Intégration SMA : planifier, simuler, corriger}
+  \small
+  \centering
+  \vspace{0.25cm}
+  \begin{tikzpicture}[
+      card/.style={draw=McmTerracotta,rounded corners=2pt,fill=white,
+                   minimum height=2.05cm,text width=3.10cm,align=center,
+                   inner sep=5pt,font=\small},
+      flow/.style={-{Latex[length=2.5mm]},thick,draw=McmTerracotta}]
+    \node[card] (input) at (0,0) {\textbf{Entrées disponibles}\\[3pt]
+      Interventions à programmer\\Durées prévues : salle et séjour restant};
+    \node[card] (solver) at (4.15,0) {\textbf{Planificateur}\\[3pt]
+      Glouton ou métaheuristique\\Planning proposé puis validé};
+    \node[card] (mesa) at (8.30,0) {\textbf{Exécution Mesa}\\[3pt]
+      Agents-épisodes\\Salles à la minute, lits sur plusieurs jours};
+    \draw[flow] (input) -- (solver);
+    \draw[flow] (solver) -- (mesa);
+    \draw[flow] (mesa.south) -- ++(0,-0.80) -| (solver.south);
+    \node[font=\scriptsize,text=McmMuted,fill=McmWarm,inner sep=2pt]
+      at (6.22,-1.53) {Observations et replanification des cas en attente};
+  \end{tikzpicture}
+  \vspace{0.23cm}
+
+  \begin{exampleblock}{Le rôle du SMA ici}
+    \small Le solveur utilise des durées estimées. Mesa révèle les résultats
+    réels au coordinateur.
+  \end{exampleblock}
+  \source{Implémenté : hospital\_sim (Mesa 3.5.1). Les lits sont des ressources ; l'ambulatoire reste à intégrer.}
+\end{frame}
+
+% Simulation dynamique : un seul alea effectivement execute (Kaua_SMA_9_octobre.tex).
+\begin{frame}{Simulation dynamique : fermeture temporaire d'une salle}
+  \small
+  \centering
+  \begin{tikzpicture}[x=1.0cm,y=1cm,>=Latex]
+    \draw[very thick,draw=McmInk] (0,0) -- (10.3,0);
+    \draw[line width=4pt,draw=McmAmber] (2.3,0) -- (5.5,0);
+    \foreach \x/\lab in {0/08h,2.3/10h,5.5/12h,10.3/17h} {
+      \draw[draw=McmInk] (\x,-0.12) -- (\x,0.12);
+      \node[below=5pt,font=\scriptsize] at (\x,0) {\lab};
+    }
+    \node[above=8pt,text=McmAmber,font=\small\bfseries] at (3.9,0)
+      {Salle 1 : aucune nouvelle entrée};
+  \end{tikzpicture}
+  \vspace{0.45cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \begin{block}{Plan figé}
+        \small Affectations et ordre initiaux conservés.
+        Les cas suivants attendent que la salle soit disponible.
+      \end{block}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \begin{exampleblock}{Plan réactif}
+        \small Aux changements 10h/12h, le coordinateur soumet un
+        nouveau planning pour les \textbf{cas en attente}.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+  \vspace{0.10cm}
+  \centering\small Intervention déjà commencée : elle se termine normalement.
+  Proposition invalide : ancien plan conservé, garde d'exécution active.
+  \source{Urgences, annulations et indisponibilités de lits ne sont pas encore des aléas exécutés dans ce simulateur.}
+\end{frame}
+

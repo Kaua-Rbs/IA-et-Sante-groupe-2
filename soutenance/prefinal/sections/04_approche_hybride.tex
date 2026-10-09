@@ -1,0 +1,168 @@
+% =============================================================================
+\section{Approche hybride}
+% =============================================================================
+
+% Hybridation : exploration + intensification.
+\begin{frame}{Hybridation : combiner exploration et intensification}
+  \footnotesize
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Hybrides de métaheuristiques}
+        \begin{itemize}
+          \item \textbf{Tabou $\times$ Recuit} : voisinage tabou + acceptation
+            de Metropolis.
+          \item \textbf{Génétique $\times$ Tabou} : recherche tabou courte sur
+            le meilleur individu (stratégie lamarckienne).
+          \item \textbf{Génétique $\times$ Recuit} : recuit court sur le
+            meilleur individu.
+          \item \textbf{Fourmis $\times$ Tabou} : intensification de la
+            meilleure fourmi.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{exampleblock}{Principe}
+        \footnotesize
+        \begin{itemize}
+          \item une méthode \textbf{globale} explore largement (AG, ACO) ;
+          \item une méthode \textbf{locale} intensifie les bonnes zones
+            (Tabou, Recuit) ;
+          \item l'intensification corrige la faible pression de sélection du
+            génétique.
+        \end{itemize}
+      \end{exampleblock}
+      \begin{alertblock}{Apport mesuré}
+        \footnotesize Génétique $\times$ Tabou : écart du génétique divisé par
+        $\sim$$10^4$ ; Fourmis $\times$ Tabou : écart ACO divisé par
+        $\sim$1,7.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+  \source{Distinct de l'hybride d'origine Tabou $\times$ Recuit ; les trois
+    autres hybrides ont été construits pour ce projet.}
+\end{frame}
+
+% SMA Mesa : architecture de coopération.
+\begin{frame}{Système multi-agents : tableau noir et coordination}
+  \footnotesize
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.52\textwidth}
+      \centering
+      \begin{tikzpicture}[
+        ag/.style={draw=mcmExample,rounded corners=2pt,fill=mcmExample!12,
+                   minimum height=0.68cm,minimum width=2.35cm,align=center,font=\scriptsize},
+        bb/.style={draw=mcmPrimary,rounded corners=2pt,fill=mcmPrimaryMuted,
+                   minimum height=1.45cm,minimum width=2.7cm,align=center,font=\scriptsize,thick},
+        co/.style={draw=mcmAlert,rounded corners=2pt,fill=mcmAlert!12,
+                   minimum height=0.75cm,minimum width=2.7cm,align=center,font=\scriptsize,thick},
+        flow/.style={-{Latex},thick,draw=mcmPrimary}]
+        \node[ag] (a1) {Agent recuit};
+        \node[ag,below=0.28cm of a1] (a2) {Agent tabou};
+        \node[ag,below=0.28cm of a2] (a3) {Agent génétique};
+        \node[bb,right=1.0cm of a2] (bb) {\textbf{Tableau noir}\\[2pt]meilleure\\solution versionnée};
+        \node[co,above=0.35cm of bb] (co) {\textbf{Coordinateur}};
+        \draw[flow] (a1.east) -- (bb.west|-a1);
+        \draw[flow] (a2) -- (bb);
+        \draw[flow] (a3.east) -- (bb.west|-a3);
+        \draw[flow,draw=mcmAlert] (co) -- (bb);
+      \end{tikzpicture}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{block}{Les briques}
+        \footnotesize
+        \begin{itemize}
+          \item \textbf{Tableau noir} : meilleure solution partagée,
+            versionnée.
+          \item \textbf{Agents} : une stratégie chacun, travaillant par
+            \textbf{quanta}.
+          \item \textbf{Coordinateur} : migration du meilleur ; redémarrage
+            si la version stagne.
+        \end{itemize}
+      \end{block}
+      \begin{exampleblock}{Déterminisme}
+        \footnotesize Générateur aléatoire propre à chaque agent : résultats
+        reproductibles par graine.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+  \source{Implémentation Mesa 3.5 : deux SMA (agents simples et agents
+    métaheuristiques) coopérant par tableau noir.}
+\end{frame}
+
+% Benchmark grande échelle.
+\begin{frame}{Benchmark à budget égal : 300 patients, 80 vacations}
+  \small
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.54\textwidth}
+      \centering
+      \renewcommand{\arraystretch}{1.12}
+      \footnotesize
+      \begin{tabular}{lrrr}
+        \toprule
+        Méthode & Écart moyen & Rang & IQR \\
+        \midrule
+        Recuit simulé      & \textbf{0,015} & \textbf{1,25} & 0,008 \\
+        Tabou $\times$ Recuit & \textbf{0,018} & 1,75 & 0,013 \\
+        Tabou              & 0,240 & 3,55 & 0,070 \\
+        Génétique $\times$ Tabou & 0,261 & 3,75 & 0,106 \\
+        SMA                & 1,078 & 5,05 & 0,194 \\
+        SMA $\times$ Méta  & 1,196 & 6,15 & 0,154 \\
+        Génétique $\times$ Recuit & 2,031 & 6,50 & 0,323 \\
+        Fourmis $\times$ Tabou & 1\,006,0 & 8,00 & 180,9 \\
+        Fourmis (ACO)      & 2\,031,2 & 9,00 & 256,1 \\
+        Génétique          & 2\,836,2 & 10,00 & 380,1 \\
+        \bottomrule
+      \end{tabular}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \centering
+      \includegraphics[width=\linewidth,height=0.30\textheight,keepaspectratio]{grande_convergence.png}\\[2pt]
+      {\tiny\color{mcmPrimary}\textbf{Convergence médiane} (20 graines, 3 s).}\\[4pt]
+      \begin{alertblock}{Lecture}
+        \footnotesize Le recuit et Tabou $\times$ Recuit dominent : écarts
+        $<0{,}02$ sur une référence de $\sim$38\,800. ACO et génétique
+        décrochent (forte variabilité).
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+  \source{20 graines, budget 3 s, référence $-38\,847{,}195$ ; écart à la
+    meilleure solution observée.}
+\end{frame}
+
+% Benchmark échelle réelle.
+\begin{frame}{Échelle réelle : 582 patients, 280 vacations}
+  \small
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.5\textwidth}
+      \renewcommand{\arraystretch}{1.2}
+      \footnotesize
+      \begin{tabular}{lrr}
+        \toprule
+        Méthode & Médiane & Rang moyen \\
+        \midrule
+        Recuit simulé      & $-16{,}3$ & 1,85 \\
+        Tabou $\times$ Recuit & $-14{,}9$ & 2,05 \\
+        Tabou              & $-16{,}4$ & 2,65 \\
+        Génétique $\times$ Tabou & $-23{,}9$ & 3,50 \\
+        SMA                & $-91{,}8$ & 5,85 \\
+        Fourmis (ACO)      & $-3\,438{,}8$ & 9,70 \\
+        \bottomrule
+      \end{tabular}
+      \\[4pt]
+      {\tiny 20 graines ; référence $-8{,}783$.}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \centering
+      \includegraphics[width=\linewidth,height=0.27\textheight,keepaspectratio]{reelle_convergence.png}\\[2pt]
+      \begin{alertblock}{Un couloir faisable étroit}
+        \footnotesize La meilleure solution est faisable
+        ($\text{violations} = (0,0)$, lits à 42/42). Les méthodes qui
+        \textbf{acceptent des dégradations} longent cette frontière ; les
+        constructions gloutonnes échouent.
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+  \source{Parquet EDA prétraité (40 jours, capacité 600 min/vacation), 4 s par
+    méthode et par graine.}
+\end{frame}
+

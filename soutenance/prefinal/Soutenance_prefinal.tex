@@ -1,0 +1,110 @@
+% =============================================================================
+% Soutenance préfinale — Fil rouge
+% Gestion conjointe et coordonnée : bloc opératoire / lits / ambulatoire.
+%
+% Fusionne les supports :
+%   - soutenance/Kaua_SMA_9_octobre.tex          (SMA, simulation, résultats)
+%   - rapport_jupyter_notebook_LIRE_ALEA/slide_avancement_v2.tex
+%   - soutenance/Soutenance_intermediaire.tex     (sections 1-8, workflow)
+%   - rapport_jupyter_notebook_LIRE_ALEA/RAPPORT.md (benchmark 10 méthodes)
+%
+% Thème Mid-Century Modern, palette Kraft (comme Soutenance_intermediaire.tex).
+%
+% Organisation : ce master n'assemble que les inputs ; le contenu de chaque
+% partie vit dans sections/ (01_introduction ... 08_conclusion). La section
+% KYST est importee depuis ../thomas.tex, juste avant la conclusion.
+%
+% Compilation (LuaLaTeX requis par le thème), depuis soutenance/prefinal/ :
+%   lualatex Soutenance_prefinal.tex
+%   biber    Soutenance_prefinal
+%   lualatex Soutenance_prefinal.tex
+%   lualatex Soutenance_prefinal.tex
+% =============================================================================
+\documentclass[aspectratio=169,11pt]{beamer}
+\usepackage{../beamerthememidcenturymodern}
+\mcmTheme{Kraft}
+
+% Palette Kraft reprise de Kaua_SMA_9_octobre.tex (frames importées telles quelles).
+\definecolor{McmTerracotta}{HTML}{9C4732}
+\definecolor{McmSage}{HTML}{6B7F3A}
+\definecolor{McmAmber}{HTML}{DB6720}
+\definecolor{McmWarm}{HTML}{F8F6F2}
+\definecolor{McmSand}{HTML}{E8D5B5}
+\definecolor{McmInk}{HTML}{1A1A1A}
+\definecolor{McmMuted}{HTML}{5A534E}
+
+\usepackage[french]{babel}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,babel,backgrounds,fit}
+\usepackage{graphicx}
+\usepackage{qrcode}
+\graphicspath{{../figures/}{../../rapport_jupyter_notebook_LIRE_ALEA/figures/}}
+\usepackage[backend=biber,style=authoryear,sorting=nyt]{biblatex}
+\addbibresource{../Etatdelart.bib}
+
+\AtEveryCite{\color{mcmPrimary}}
+
+% Note de source sous les frames.
+\newcommand{\source}[1]{\par\vspace{4pt}{\color{mcmBlack!60}\tiny #1}}
+
+% Transition de section : sommaire courant.
+\AtBeginSection[]{%
+  \begin{frame}{Sommaire}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
+% ----------------------------------------------------------------------------
+% Métadonnées
+% ----------------------------------------------------------------------------
+\title[Bloc, lits \& ambulatoire]{Optimisation conjointe du bloc opératoire,
+  des lits d'hospitalisation et de l'ambulatoire}
+\subtitle{Soutenance préfinale --- du planning statique au planning robuste}
+\author[IA \& Santé --- Groupe 2]{IA et Santé --- Groupe 2}
+\date{Soutenance préfinale --- 2026}
+
+\begin{document}
+
+% =============================================================================
+% PAGE DE TITRE ET SOMMAIRE
+% =============================================================================
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Sommaire}
+  \tableofcontents
+\end{frame}
+
+\input{sections/01_introduction}
+\input{sections/02_problematique}
+\input{sections/03_modelisation_statique}
+\input{sections/04_approche_hybride}
+\input{sections/05_aleas}
+\input{sections/06_simulations}
+\input{sections/07_resultats}
+\input{../thomas}
+\input{sections/08_conclusion}
+
+\nocite{*}
+\begin{frame}{Références}
+  \footnotesize
+  \printbibliography[heading=none]
+\end{frame}
+
+% =============================================================================
+% CLÔTURE
+% =============================================================================
+{\setbeamercolor{normal text}{fg=mcmPrimaryFg,bg=mcmPrimary!70}
+\begin{frame}[plain,noframenumbering]
+  \begin{center}
+    \Large
+    Merci de votre attention\\[0.5em]
+    Questions ?
+  \end{center}
+\end{frame}
+}
+
+\end{document}
