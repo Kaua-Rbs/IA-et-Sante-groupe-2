@@ -76,7 +76,13 @@
     --shadow-md: 0 6px 24px rgba(6, 51, 31, 0.08);
 
     /* ── Grille ─────────────────────────────────────────────────────────── */
+    /* Pages de lecture (landing) */
     --max-w: 1200px;
+    /* Pages outil : utilisent la largeur des grands écrans, plafonnées pour les ultra-larges */
+    --max-w-app: 3000px;
+    /* Marge latérale, identique pour l'en-tête et le contenu : fixe, pour ne pas gaspiller
+       la largeur des grands écrans */
+    --gutter: clamp(16px, 3vw, 64px);
 
     /* ── Mouvement (discret, sans déplacer la page) ─────────────────────── */
     --dur: 160ms;

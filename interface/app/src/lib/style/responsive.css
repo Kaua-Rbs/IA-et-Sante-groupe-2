@@ -24,7 +24,8 @@ html {
 /* En-tête compact sous 930px */
 @media (max-width: 930px) {
     header {
-        padding: 0.5rem 4%;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
     }
 
     #hamburger {
@@ -72,7 +73,7 @@ html {
     }
 
     main {
-        padding: 1rem 4% 2rem;
+        padding: 1rem var(--gutter) 2rem;
     }
 }
 

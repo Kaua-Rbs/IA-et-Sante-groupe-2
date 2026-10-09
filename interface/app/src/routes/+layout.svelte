@@ -21,7 +21,7 @@
 </svelte:head>
 
 {#if !hideHeader}
-	<Header user={data.user} />
+	<Header user={data.user} narrow={isLanding} />
 {/if}
 
 <main class:no-header={hideHeader} class:bare={isLanding || hideHeader}>

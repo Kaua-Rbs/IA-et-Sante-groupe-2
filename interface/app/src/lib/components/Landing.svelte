@@ -147,7 +147,7 @@
 		width: 100%;
 		max-width: var(--max-w);
 		margin: 0 auto;
-		padding: 0 5%;
+		padding: 0 var(--gutter);
 	}
 
 	/* ── Hero ─────────────────────────────────────────────────────────── */

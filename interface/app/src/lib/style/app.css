@@ -435,3 +435,9 @@ details.table-view summary {
     clip: rect(0 0 0 0);
     white-space: nowrap;
 }
+
+/* Longueur de ligne lisible sur les grands écrans. Les bandeaux et les cartes gardent toute
+   leur largeur ; un composant peut redéfinir max-width (spécificité volontairement faible). */
+main :where(p, li):not(.alert, .card) {
+    max-width: 70ch;
+}

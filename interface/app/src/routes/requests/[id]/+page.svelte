@@ -273,7 +273,7 @@
 <style>
 	.layout {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+		grid-template-columns: minmax(0, 1fr) clamp(260px, 24%, 460px);
 		gap: var(--s3);
 		align-items: start;
 	}
@@ -353,6 +353,7 @@
 	}
 
 	.reasons ul {
+		max-width: 70ch;
 		margin: 0;
 		padding-left: 1.1rem;
 		color: var(--text-secondary);
