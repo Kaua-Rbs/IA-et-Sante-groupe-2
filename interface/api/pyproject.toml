@@ -1,7 +1,7 @@
 [project]
 name = "kyst-api"
 version = "0.1.0"
-description = "KYST (Keep Your Surgeries Timelies) — API d'orchestration du bloc opératoire et des lits"
+description = "KYST (Keep Your Surgeries Timely) — API d'orchestration du bloc opératoire et des lits"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi[standard]>=0.141.1",

@@ -1,6 +1,6 @@
 # KYST — Fonctionnalités
 
-KYST (*Keep Your Surgeries Timelies*) aide à programmer les interventions chirurgicales en tenant compte **à la fois du bloc opératoire et des lits**. Aujourd'hui, la programmation suit un « flux poussé » : on fixe l'intervention, puis on cherche un lit. KYST part au contraire de la capacité prévue pour proposer les meilleures dates (« flux tiré »). **Le chirurgien garde la décision** : KYST propose et explique, un humain confirme.
+KYST (*Keep Your Surgeries Timely*) aide à programmer les interventions chirurgicales en tenant compte **à la fois du bloc opératoire et des lits**. Aujourd'hui, la programmation suit un « flux poussé » : on fixe l'intervention, puis on cherche un lit. KYST part au contraire de la capacité prévue pour proposer les meilleures dates (« flux tiré »). **Le chirurgien garde la décision** : KYST propose et explique, un humain confirme.
 
 Ce document décrit ce que fait l'application, pour qui, et où en est chaque fonctionnalité :
 

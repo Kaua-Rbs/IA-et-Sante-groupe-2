@@ -24,7 +24,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="KYST API",
-    summary="Keep Your Surgeries Timelies",
+    summary="Keep Your Surgeries Timely",
     description="Orchestration du bloc opératoire et des lits : demandes d'intervention, "
     "prédictions, propositions de dates et validation humaine.",
     version=__version__,

@@ -208,9 +208,9 @@
 				<a href="#methode">Méthode</a>
 			</div>
 
-			<a class="lnav__brand" href="/" title="Keep Your Surgeries Timelies">
+			<a class="lnav__brand" href="/" title="Keep Your Surgeries Timely">
 				<span class="lnav__mark"><img src={logo} alt="" width="26" height="26" />KYST</span>
-				<span class="lnav__meta">// keep your surgeries timelies</span>
+				<span class="lnav__meta">// keep your surgeries Timely</span>
 			</a>
 
 			<div class="lnav__side lnav__side--right">
@@ -386,7 +386,7 @@
 			<div class="overlay">
 				<div class="overlay__panel" class:is-hero={shown === 0} class:is-switching={switching}>
 					<p class="eyebrow">
-						{shown === 0 ? 'KYST · Keep Your Surgeries Timelies' : `${pad(shown)} / ${pad(N - 1)} · ${scene.label}`}
+						{shown === 0 ? 'KYST · Keep Your Surgeries Timely' : `${pad(shown)} / ${pad(N - 1)} · ${scene.label}`}
 					</p>
 					{#if shown === 0}
 						<h1 class="overlay__title">{HERO_TITLE}</h1>
@@ -424,7 +424,7 @@
 		<div class="scenes-fallback">
 			<!-- La scène est masquée en mode statique : l'accroche passe ici -->
 			<div class="fallback-intro">
-				<p class="eyebrow">KYST · Keep Your Surgeries Timelies</p>
+				<p class="eyebrow">KYST · Keep Your Surgeries Timely</p>
 				<h1>{HERO_TITLE}</h1>
 				<p>
 					KYST propose des dates d'intervention compatibles avec le bloc opératoire et les lits.

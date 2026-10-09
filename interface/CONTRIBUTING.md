@@ -26,7 +26,7 @@ Le projet s'appuie sur une suite d'outils modernes pour garantir des environneme
 
 ## Architecture du projet
 
-L'interface KYST (*Keep Your Surgeries Timelies*) est structurée de la manière suivante :
+L'interface KYST (*Keep Your Surgeries Timely*) est structurée de la manière suivante :
 
 ```text
 interface/

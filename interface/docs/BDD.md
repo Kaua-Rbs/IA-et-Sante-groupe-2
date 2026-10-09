@@ -1,6 +1,6 @@
 # KYST — Modèle de données
 
-Ce document décrit les tables de l'API KYST (*Keep Your Surgeries Timelies*), définies avec SQLModel dans `interface/api/*/models.py`. Les tables sont regroupées par domaine.
+Ce document décrit les tables de l'API KYST (*Keep Your Surgeries Timely*), définies avec SQLModel dans `interface/api/*/models.py`. Les tables sont regroupées par domaine.
 
 ## Diagramme
 

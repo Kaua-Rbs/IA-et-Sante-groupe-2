@@ -59,7 +59,7 @@
 
 <header>
     <div class="title">
-        <a class="brand" href="/" title="Keep Your Surgeries Timelies">
+        <a class="brand" href="/" title="Keep Your Surgeries Timely">
             <img src={logo} alt="" width="28" height="28" />
             KYST
         </a>

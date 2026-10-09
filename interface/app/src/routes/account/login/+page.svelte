@@ -16,7 +16,7 @@
 		<a class="login-title" href="/">
 			<img src={logo} alt="" width="56" height="56" />
 			<h1>KYST</h1>
-			<span class="login-tagline">Keep Your Surgeries Timelies</span>
+			<span class="login-tagline">Keep Your Surgeries Timely</span>
 		</a>
 
 		{#if form?.error}

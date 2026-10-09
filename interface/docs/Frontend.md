@@ -1,6 +1,6 @@
 # KYST — interface web
 
-Front de KYST (*Keep Your Surgeries Timelies*), en [SvelteKit 3](https://svelte.dev/docs/kit) et Svelte 5 (runes), avec du CSS écrit à la main. Le code est dans `interface/app` ; il parle à l'API FastAPI de `interface/api`.
+Front de KYST (*Keep Your Surgeries Timely*), en [SvelteKit 3](https://svelte.dev/docs/kit) et Svelte 5 (runes), avec du CSS écrit à la main. Le code est dans `interface/app` ; il parle à l'API FastAPI de `interface/api`.
 
 ## Lancer en local
 

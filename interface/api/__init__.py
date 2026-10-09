@@ -1,4 +1,4 @@
-"""KYST — Keep Your Surgeries Timelies.
+"""KYST — Keep Your Surgeries Timely.
 
 API d'orchestration du bloc opératoire et des lits : demandes d'intervention,
 prédictions (durée de séjour, temps de salle), propositions de dates et

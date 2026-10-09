@@ -29,7 +29,7 @@
 </script>
 
 <svelte:head>
-	<title>KYST — Keep Your Surgeries Timelies</title>
+	<title>KYST — Keep Your Surgeries Timely</title>
 	<meta
 		name="description"
 		content="KYST propose des dates d'intervention compatibles avec le bloc opératoire et les lits, à partir de durées prédites."
