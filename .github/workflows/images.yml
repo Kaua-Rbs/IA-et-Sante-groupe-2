@@ -1,0 +1,70 @@
+# Teste l'API puis publie les images de l'API et du front sur le GitHub Container Registry.
+# Images : ghcr.io/<propriétaire>/kyst-api et ghcr.io/<propriétaire>/kyst-app
+# Tags : nom de la branche (main, feat-fastapi...), sha-<commit>, et latest pour main.
+name: Images
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - interface/api/**
+      - interface/app/**
+      - .github/workflows/images.yml
+  # Lancement manuel, sur n'importe quelle branche (ex. avant une démonstration)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test-api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: interface/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen
+      - run: uv run pytest -q
+
+  publish:
+    needs: test-api
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        component: [api, app]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/kyst-${{ matrix.component }}
+          tags: |
+            type=ref,event=branch
+            type=sha,format=long
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: interface/${{ matrix.component }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # URL publique du front, figée au build (variable de dépôt, facultative)
+          build-args: |
+            ORIGIN=${{ vars.KYST_ORIGIN }}
+          cache-from: type=gha,scope=${{ matrix.component }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.component }}

@@ -200,8 +200,6 @@
 </script>
 
 <div class="landing">
-	<div class="frame" aria-hidden="true"></div>
-
 	<div class="lnav">
 		<nav class="lnav__inner" aria-label="Navigation principale">
 			<div class="lnav__side">
@@ -619,14 +617,6 @@
 		letter-spacing: 0.14em;
 		color: var(--green);
 		margin: 0 0 1.1rem;
-	}
-
-	.frame {
-		position: fixed;
-		inset: clamp(8px, 1.1vw, 16px);
-		border: 0.5px solid var(--line-ink-strong);
-		pointer-events: none;
-		z-index: 70;
 	}
 
 	/* ── Boutons ───────────────────────────────────────────────────────── */

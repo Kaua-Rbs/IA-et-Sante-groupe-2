@@ -1,24 +1,30 @@
-FROM node:22-slim AS builder
+# Image du front KYST (SvelteKit, adapter-node). Contexte de build : interface/app
+FROM node:24-slim AS builder
 
 WORKDIR /app
 
-RUN corepack enable pnpm
+RUN npm install --global pnpm@12.9.1
 
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+RUN pnpm install --frozen-lockfile
 
 COPY . .
-RUN pnpm build
+# URL publique du site, figée au build (protection CSRF des formulaires, voir vite.config.ts).
+# Vide : déduite de l'en-tête Host en supposant https.
+ARG ORIGIN=""
+RUN ORIGIN="$ORIGIN" pnpm build
 
-FROM node:22-slim
+FROM node:24-slim
 
 WORKDIR /app
+ENV NODE_ENV=production
 
+# Toutes les dépendances sont des devDependencies : adapter-node les intègre au build
 COPY --from=builder /app/build ./build
-COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
 
-ENV PORT=3000
+USER node
+ENV HOST=0.0.0.0 PORT=3000
 EXPOSE 3000
 
 CMD ["node", "build/index.js"]

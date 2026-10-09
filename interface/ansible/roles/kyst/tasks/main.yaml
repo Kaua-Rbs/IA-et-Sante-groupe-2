@@ -1,0 +1,133 @@
+##### Configuration #####
+- name: Create project directory
+  ansible.builtin.file:
+    path: "{{ kyst_project_dir }}"
+    state: directory
+    owner: podman
+    group: podman
+    mode: "0755"
+  become: true
+
+- name: Copy compose file
+  ansible.builtin.copy:
+    src: compose.yml
+    dest: "{{ kyst_project_dir }}/compose.yml"
+    owner: podman
+    group: podman
+    mode: "0644"
+  register: kyst_compose_file
+  become: true
+
+- name: Copy and fill .env file
+  ansible.builtin.template:
+    src: ias.env.j2
+    dest: "{{ kyst_project_dir }}/.env"
+    owner: podman
+    group: podman
+    mode: "0600"
+  register: kyst_env_file
+  no_log: true
+  become: true
+
+##### Images de l'API et du front #####
+- name: Log in to the container registry
+  ansible.builtin.command:
+    cmd: podman login {{ kyst_registry }} --username {{ kyst_registry_user }} --password-stdin
+    stdin: "{{ kyst_registry_token }}"
+  when: kyst_registry_token | length > 0
+  changed_when: false
+  no_log: true
+  become: true
+  become_user: podman
+
+- name: Read current KYST image IDs
+  ansible.builtin.command:
+    cmd: podman image inspect {{ item }}
+  loop:
+    - "{{ kyst_api_image }}"
+    - "{{ kyst_app_image }}"
+  register: kyst_images_before
+  failed_when: false
+  changed_when: false
+  become: true
+  become_user: podman
+
+# « Changé » si l'image était absente ou si le registre en a une plus récente pour ce tag
+- name: Pull KYST images
+  ansible.builtin.command:
+    cmd: podman pull --quiet {{ item.item }}
+  loop: "{{ kyst_images_before.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+  register: kyst_images_pulled
+  changed_when: >-
+    item.rc != 0
+    or (item.stdout | from_json)[0].Id != kyst_images_pulled.stdout_lines[-1]
+  become: true
+  become_user: podman
+
+##### Démarrage #####
+- name: List running containers
+  ansible.builtin.command:
+    cmd: podman ps --filter status=running --format json
+  register: kyst_running
+  changed_when: false
+  become: true
+  become_user: podman
+
+# Ne relance compose que si la configuration ou une image a changé, ou si un service est arrêté
+- name: Start KYST services
+  ansible.builtin.command:
+    cmd: podman-compose up -d --force-recreate
+    chdir: "{{ kyst_project_dir }}"
+  when: >-
+    kyst_compose_file is changed
+    or kyst_env_file is changed
+    or kyst_images_pulled is changed
+    or not (['postgres', 'pgadmin', 'kyst-api', 'kyst-app']
+            is subset(kyst_running.stdout | from_json | map(attribute='Names') | flatten))
+  changed_when: true
+  become: true
+  become_user: podman
+
+# L'API crée ses tables au démarrage ; elle redémarre tant que PostgreSQL n'est pas prêt
+- name: Wait for the API to be ready
+  ansible.builtin.command:
+    cmd: podman exec kyst-api python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"
+  register: kyst_api_health
+  until: kyst_api_health.rc == 0
+  retries: 30
+  delay: 2
+  changed_when: false
+  become: true
+  become_user: podman
+
+- name: Create demo resources
+  ansible.builtin.command:
+    cmd: podman exec --workdir /srv kyst-api python -m api.seed
+  when: kyst_seed_demo
+  register: kyst_seed
+  changed_when: "'Demo resources created' in kyst_seed.stdout"
+  become: true
+  become_user: podman
+
+##### Pare-feu #####
+- name: Add firewall rules for KYST services
+  ansible.builtin.import_role:
+    name: firewall
+    tasks_from: create_rule.yml
+  vars:
+    firewall_rules:
+      050-kyst:
+        - rule_name: "Allow traffic from the reverse proxy to the KYST front (port 3000)"
+          chain: INPUT
+          protocol: tcp
+          source: "{{ kyst_allowed_source }}"
+          destination_port: 3000
+          target: ACCEPT
+        - rule_name: "Allow traffic from the reverse proxy to pgAdmin (port 3001)"
+          chain: INPUT
+          protocol: tcp
+          source: "{{ kyst_allowed_source }}"
+          destination_port: 3001
+          target: ACCEPT

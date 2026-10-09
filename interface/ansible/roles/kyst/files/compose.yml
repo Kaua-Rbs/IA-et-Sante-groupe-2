@@ -1,0 +1,85 @@
+services:
+  postgres:
+    image: docker.io/library/postgres:18
+    container_name: postgres
+    restart: unless-stopped
+    volumes:
+      # Depuis PostgreSQL 18, les données vont dans /var/lib/postgresql/<version>/
+      - ./postgresql_data:/var/lib/postgresql:Z
+      - ./initdb.d:/docker-entrypoint-initdb.d:Z
+    # Chaque service ne reçoit que ses variables ; .env sert à l'interpolation des ${...}
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      # Publié sur l'hôte : seul le pare-feu (politique INPUT DROP) en protège l'accès
+      - "5432:5432" # HOST_PORT:CONTAINER_PORT
+    networks:
+      - internal
+
+  pgadmin:
+    image: docker.io/dpage/pgadmin4:latest
+    container_name: pgadmin
+    restart: unless-stopped
+    volumes:
+      # Volume nommé : pgAdmin tourne sous l'UID 5050, qui ne peut pas écrire dans un dossier
+      # de l'hôte créé par Podman rootless. Ne pas monter /pgadmin4 : c'est le code de l'image.
+      - pgadmin_data:/var/lib/pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_LISTEN_ADDRESS: ${PGADMIN_LISTEN_ADDRESS}
+      PGADMIN_LISTEN_PORT: ${PGADMIN_LISTEN_PORT}
+    depends_on:
+      - postgres
+    ports:
+      - "3001:80" # HOST_PORT:CONTAINER_PORT (PGADMIN_LISTEN_PORT)
+    networks:
+      - internal
+
+  api:
+    image: ${KYST_API_IMAGE}
+    container_name: kyst-api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      SECRET_KEY: ${SECRET_KEY}
+      FIRST_ADMIN_EMAIL: ${FIRST_ADMIN_EMAIL}
+      FIRST_ADMIN_PASSWORD: ${FIRST_ADMIN_PASSWORD}
+      ACCOUNT_VALIDATION: ${ACCOUNT_VALIDATION}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS}
+      AI_BACKEND: ${AI_BACKEND}
+    # Si PostgreSQL n'est pas encore prêt au premier démarrage, l'API s'arrête et Podman la relance
+    depends_on:
+      - postgres
+    # Pas de port publié : seul le front l'appelle, par le réseau interne
+    networks:
+      - internal
+
+  app:
+    image: ${KYST_APP_IMAGE}
+    container_name: kyst-app
+    restart: unless-stopped
+    environment:
+      KYST_API_URL: http://api:8000
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS}
+    # ORIGIN est figé dans l'image au build (variable KYST_ORIGIN de la CI) : vide, le front
+    # suppose https et l'en-tête Host transmis par le proxy. Les cookies de session sont « Secure ».
+    depends_on:
+      - api
+    ports:
+      - "3000:3000" # HOST_PORT:CONTAINER_PORT
+    networks:
+      - internal
+
+volumes:
+  pgadmin_data:
+
+networks:
+  internal:
+    driver: bridge
+    x-podman:
+      dns_enabled: true

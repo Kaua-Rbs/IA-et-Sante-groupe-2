@@ -1,3 +1,3 @@
 # Podman
 
-This role configures Podman to run as a rootless user. You can check [Hestia](/roles/hestia/README.md) for an exemple.
+This role configures Podman to run as a rootless user. You can check [KYST](../kyst/README.md) for an example.

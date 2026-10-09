@@ -1,0 +1,48 @@
+---
+# Dossier du projet compose, dans le home de l'utilisateur rootless
+kyst_project_dir: /home/podman/ias
+
+# Seule machine autorisée à joindre les services exposés (reverse proxy)
+kyst_allowed_source: 10.12.2.2/32
+
+# Images publiées par la CI (.github/workflows/images.yml). Le tag est le nom de la branche
+# (main, feat-fastapi...), latest (dernier main) ou sha-<commit> pour une version figée.
+kyst_registry: ghcr.io
+kyst_image_owner: kaua-rbs
+kyst_image_tag: latest
+kyst_api_image: "{{ kyst_registry }}/{{ kyst_image_owner }}/kyst-api:{{ kyst_image_tag }}"
+kyst_app_image: "{{ kyst_registry }}/{{ kyst_image_owner }}/kyst-app:{{ kyst_image_tag }}"
+# Connexion au registre, seulement si les paquets GHCR sont privés : compte GitHub et jeton
+# avec le droit read:packages (à chiffrer avec ansible-vault)
+kyst_registry_user: ""
+kyst_registry_token: ""
+
+kyst_postgres_db: kyst
+kyst_postgres_user: kyst
+kyst_pgadmin_email: dummyemail@dummy.org
+
+# Application
+kyst_first_admin_email: admin@kyst.fr
+kyst_account_validation: true
+kyst_access_token_expire_minutes: 30
+kyst_refresh_token_expire_days: 7
+kyst_ai_backend: fixtures
+# Crée les ressources de démonstration (spécialités, salles, lits, vacations) si la base
+# n'en a aucune. À désactiver avant d'y mettre de vraies données.
+kyst_seed_demo: true
+
+# Secrets générés au premier déploiement, puis relus à chaque exécution.
+# Ils restent sur la machine de contrôle, dans credentials/ (non versionné).
+kyst_credentials_dir: "{{ playbook_dir }}/../credentials/{{ inventory_hostname }}/kyst"
+kyst_postgres_password: >-
+  {{ lookup('ansible.builtin.password', kyst_credentials_dir ~ '/postgres_password',
+            length=32, chars=['ascii_letters', 'digits']) }}
+kyst_pgadmin_password: >-
+  {{ lookup('ansible.builtin.password', kyst_credentials_dir ~ '/pgadmin_password',
+            length=32, chars=['ascii_letters', 'digits']) }}
+kyst_secret_key: >-
+  {{ lookup('ansible.builtin.password', kyst_credentials_dir ~ '/secret_key',
+            length=64, chars=['hexdigits']) }}
+kyst_first_admin_password: >-
+  {{ lookup('ansible.builtin.password', kyst_credentials_dir ~ '/first_admin_password',
+            length=20, chars=['ascii_letters', 'digits']) }}
