@@ -1,0 +1,79 @@
+% =============================================================================
+\section{Introduction et contexte}
+% =============================================================================
+
+% Les trois ressources du fil rouge et leur interdépendance.
+\begin{frame}{Le bloc opératoire : des ressources rares et couplées}
+  \small
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.31\textwidth}
+      \begin{exampleblock}{\centering Bloc opératoire}
+        \centering\footnotesize
+        Salles, vacations de 4\,h\\
+        Chirurgien, équipe d'anesthésie\\
+        Temps opératoire contraint
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{block}{\centering Lits d'hospitalisation}
+        \centering\footnotesize
+        Capacité limitée ($\sim$45 lits)\\
+        Séjours de plusieurs jours\\
+        Pics et creux d'occupation
+      \end{block}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{alertblock}{\centering Places ambulatoires}
+        \centering\footnotesize
+        Séjours courts\\
+        Forte sensibilité à l'heure\\
+        Ressource distincte des lits
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.35cm}
+  \begin{alertblock}{Le constat}
+    \small Ces décisions sont \textbf{interdépendantes} : un lit non disponible
+    annule une opération, une place ambulatoire saturée bloque la sortie de
+    salle, une salle fermée déplace toute la journée. Pourtant, ces ressources
+    sont le plus souvent \textbf{pilotées séparément}.
+  \end{alertblock}
+  \source{Dimensionnement clinique : $\sim$45 lits classiques et 21 lits
+    ambulatoires (consignes du fil rouge).}
+\end{frame}
+
+% Le glissement de logique : flux poussé -> flux tiré.
+\begin{frame}{Du flux poussé au flux tiré}
+  \small
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Organisation actuelle : flux poussé}
+        \begin{itemize}
+          \item Le chirurgien choisit une date selon son planning.
+          \item Blocs, lits et équipes s'adaptent ensuite.
+          \item Résultat : pics et creux d'activité.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Approche proposée : flux tiré}
+        \begin{itemize}
+          \item La date dépend des ressources disponibles.
+          \item Bloc et lits sont optimisés conjointement.
+          \item Le chirurgien choisit parmi deux propositions.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.2cm}
+  \begin{alertblock}{Idée centrale du projet}
+    Optimiser \textbf{simultanément} le bloc, les lits et l'ambulatoire, et
+    proposer au praticien une \textbf{Date A} (optimale) et une
+    \textbf{Date B} (alternative).
+  \end{alertblock}
+  \source{Le chirurgien conserve la décision finale : l'outil est une aide à la
+    décision, pas un automate.}
+\end{frame}
+

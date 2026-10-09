@@ -1,0 +1,247 @@
+% =============================================================================
+\section{L'application KYST}
+% =============================================================================
+% KYST (Keep Your Surgeries Timelies) : l'outil web qui met le flux tiré entre
+% les mains des équipes. Sources : interface/docs (Features.md, Frontend.md),
+% interface/ansible/roles/kyst, docs/todo.md.
+
+% Ouverture : l'application est en ligne, le jury peut l'ouvrir pendant la soutenance.
+\begin{frame}{KYST est en ligne}
+  \begin{columns}[c,onlytextwidth]
+    \begin{column}{0.56\textwidth}
+      {\Large\bfseries\color{mcmPrimary} sandbox.rezoleo.fr}\\[0.3cm]
+      \small
+      KYST (\emph{Keep Your Surgeries Timelies}) est l'application web du
+      projet. Elle est \textbf{déployée et utilisable dès maintenant}, sur
+      ordinateur comme sur téléphone.
+      \vspace{0.15cm}
+      \begin{exampleblock}{Ce que l'on peut y faire}
+        \begin{itemize}
+          \item saisir une demande d'intervention en consultation ;
+          \item obtenir deux dates, \textbf{justifiées}, compatibles avec le
+            bloc et les lits ;
+          \item confirmer une date : la vacation et le lit sont réservés.
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.40\textwidth}
+      \centering
+      \qrcode[height=4.2cm]{https://sandbox.rezoleo.fr}\\[0.2cm]
+      {\footnotesize Données de démonstration\\synthétiques, aucune donnée réelle}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Architecture : trois services, le navigateur ne parle qu'au front.
+\begin{frame}{Architecture}
+  \small
+  \centering
+  \begin{tikzpicture}[
+      card/.style={draw=McmTerracotta,rounded corners=2pt,fill=white,
+                   minimum height=1.25cm,text width=2.0cm,align=center,
+                   inner sep=3pt,font=\footnotesize},
+      ext/.style={card,draw=McmMuted,dashed},
+      flow/.style={{Latex[length=2mm]}-{Latex[length=2mm]},thick,draw=McmTerracotta},
+      lab/.style={font=\scriptsize,text=McmMuted,inner sep=1pt}]
+    \node[ext]  (user)  at (0,0)    {\textbf{Navigateur}\\ordinateur\\ou téléphone};
+    \node[card] (front) at (3.5,0)  {\textbf{Front}\\SvelteKit};
+    \node[card] (api)   at (7.0,0)  {\textbf{API}\\FastAPI};
+    \node[card] (db)    at (10.5,0) {\textbf{Base}\\PostgreSQL};
+    \node[ext]  (ai)    at (7.0,-1.85) {\textbf{Modules IA}\\prédictions,\\ordonnanceur};
+    \draw[flow] (user)  -- node[lab,above=3pt] {HTTPS} (front);
+    \draw[flow] (front) -- node[lab,above=3pt] {interne} (api);
+    \draw[flow] (api)   -- node[lab,above=3pt] {SQL} (db);
+    \draw[flow] (api)   -- node[lab,right=3pt] {contrats Python} (ai);
+    \begin{scope}[on background layer]
+      \node[draw=McmSage,dashed,rounded corners=3pt,inner sep=5pt,
+            fit=(front)(api)(db)(ai)] (srv) {};
+    \end{scope}
+    \node[font=\scriptsize,text=McmSage,anchor=south east] at ([shift={(0,1pt)}]srv.north east)
+      {serveur : Podman rootless, Ansible};
+  \end{tikzpicture}
+  \vspace{0.05cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \begin{block}{Séparation des rôles}
+        \footnotesize Le navigateur n'appelle \textbf{jamais l'API} : seul le
+        serveur du front lui parle. L'API reste l'unique autorité sur les
+        droits et les données.
+      \end{block}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \begin{exampleblock}{Point de branchement de l'IA}
+        \footnotesize Les modèles et le solveur se branchent derrière des
+        \textbf{interfaces fixes}, sans modifier l'application.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% Interface : le parcours principal, de la consultation à la sortie.
+\begin{frame}{Interface : de la consultation à la sortie}
+  \small
+  \centering
+  \begin{tikzpicture}[
+      stage/.style={draw=McmTerracotta,rounded corners=2pt,fill=white,
+                   minimum height=1.25cm,text width=2.05cm,align=center,
+                   inner sep=3pt,font=\scriptsize},
+      human/.style={stage,fill=McmSand},
+      flow/.style={-{Latex[length=2mm]},thick,draw=McmTerracotta}]
+    \node[human] (s1) at (0,0)     {\textbf{Demande}\\saisie en\\consultation};
+    \node[stage]  (s2) at (2.75,0)  {\textbf{Prédiction}\\temps en salle,\\séjour, hébergement};
+    \node[stage]  (s3) at (5.50,0)  {\textbf{Dates A et B}\\chacune avec\\ses raisons};
+    \node[human] (s4) at (8.25,0)  {\textbf{Confirmation}\\par le\\chirurgien};
+    \node[stage]  (s5) at (11.00,0) {\textbf{Réservation}\\vacation\\et lit};
+    \foreach \a/\b in {s1/s2,s2/s3,s3/s4,s4/s5} \draw[flow] (\a) -- (\b);
+    \draw[flow] (s4.south) -- ++(0,-0.45) -| node[pos=0.25,below,font=\scriptsize,text=McmMuted]
+      {écarte : nouvelles dates} (s3.south);
+  \end{tikzpicture}
+  \vspace{0.15cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \begin{block}{Pages}
+        \footnotesize
+        \textbf{Tableau de bord} : lits du jour, remplissage du bloc,
+        demandes en attente.\\
+        \textbf{Bloc} : semaine par salle, jauge de chaque vacation.\\
+        \textbf{Lits} : occupation prévue sur 7, 14 ou 28 jours.\\
+        \textbf{Ressources} : salles, unités, chirurgiens.
+      \end{block}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \begin{exampleblock}{Choix d'interface}
+        \footnotesize
+        \begin{itemize}
+          \item Le chirurgien \textbf{garde la décision} : rien n'est
+            programmé sans confirmation.
+          \item Jours tendus signalés par un symbole, pas seulement la
+            couleur.
+          \item Utilisable sur téléphone, en consultation.
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+  \source{En beige : étapes humaines. Le chirurgien peut aussi relancer le
+    calcul ou annuler ; la place est alors libérée.}
+\end{frame}
+
+% Fonctionnalités : état réel par rapport au cahier des charges.
+\begin{frame}{Fonctionnalités et cahier des charges}
+  \footnotesize
+  \centering
+  \renewcommand{\arraystretch}{1.18}
+  \setlength{\tabcolsep}{7pt}
+  \begin{tabular}{p{6.6cm}p{5.6cm}l}
+    \toprule
+    Attendu & Dans KYST & État \\
+    \midrule
+    Donner une date au patient en consultation & Saisie et dates A/B, sur
+      mobile & {\color{McmSage}\textbf{Disponible}} \\
+    Prédire séjour, temps opératoire, hébergement & Prédictions avec
+      intervalles & {\color{McmAmber}\textbf{Démo}} \\
+    Proposer une ou deux dates selon bloc et lits & Vérifiées et justifiées
+      & {\color{McmAmber}\textbf{Démo}} \\
+    Marge pour les urgences & 10\,\% de chaque vacation réservés &
+      {\color{McmSage}\textbf{Disponible}} \\
+    Suivi du remplissage des lits & Occupation prévue, jours tendus &
+      {\color{McmSage}\textbf{Disponible}} \\
+    Expliquer, laisser la main au chirurgien & Raisons affichées,
+      confirmation & {\color{McmSage}\textbf{Disponible}} \\
+    Apprendre de la réalité observée & Durées réelles, précision mesurée &
+      {\color{McmSage}\textbf{Disponible}} \\
+    Vacations hebdomadaires par spécialité & Ouverture une à une &
+      {\color{McmTerracotta}\textbf{Partiel}} \\
+    Lissage week-ends et vacances & --- & {\color{McmMuted}\textbf{Prévu}} \\
+    \bottomrule
+  \end{tabular}
+  \source{Démo : le parcours fonctionne de bout en bout, avec des durées de
+    démonstration et un ordonnanceur glouton à la place des modèles et du
+    solveur.}
+\end{frame}
+
+% Sécurité : application, données, infrastructure.
+\begin{frame}{Sécurité et confidentialité}
+  \footnotesize
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.32\textwidth}
+      \begin{block}{Comptes et sessions}
+        \begin{itemize}
+          \item Compte validé par un administrateur, \textbf{rôles} vérifiés
+            par l'API.
+          \item Mots de passe hachés (\textbf{Argon2}), tentatives limitées.
+          \item Jetons en cookies \textbf{HttpOnly}, \textbf{Secure},
+            invisibles du JavaScript.
+          \item Formulaires protégés contre les requêtes intersites (CSRF).
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{exampleblock}{Données patient}
+        \begin{itemize}
+          \item \textbf{Pseudonymisées} : ni nom ni date de naissance, seulement
+            l'année et le sexe.
+          \item Tableaux de bord \textbf{agrégés}, sans ligne patient.
+          \item Chaque décision garde son auteur et sa date.
+          \item Aucune donnée réelle dans le dépôt ni sur le serveur.
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{alertblock}{Infrastructure}
+        \begin{itemize}
+          \item API et base \textbf{non exposées} : pare-feu fermé par défaut.
+          \item Seul le reverse proxy TLS joint le front.
+          \item Conteneurs \textbf{sans privilèges} (Podman rootless).
+          \item Secrets générés au déploiement, hors du dépôt.
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+  \source{Prévu : journal d'audit des accès aux données patient, droits limités
+    aux demandes de chaque chirurgien.}
+\end{frame}
+
+% Reste a faire : d'abord brancher les travaux des autres parties.
+\begin{frame}{Ce qui reste à faire}
+  \footnotesize
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \begin{alertblock}{Brancher l'IA du projet}
+        \begin{itemize}
+          \item Modèles de \textbf{durée de séjour} et de \textbf{temps en
+            salle}, classifieur ambulatoire / conventionnel.
+          \item Remplacer l'ordonnanceur glouton par le \textbf{solveur}
+            (tabou, recuit, génétique), hors du fil des requêtes.
+          \item Relier le coordinateur de \texttt{hospital\_sim} : urgences,
+            annulations, salle indisponible.
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \begin{block}{Compléter l'outil}
+        \begin{itemize}
+          \item \textbf{Planning du jour} : ordre de passage et remise en état.
+          \item Modèles de vacations hebdomadaires tirés de l'historique.
+          \item Aide au lissage des week-ends et vacances.
+          \item Droits par chirurgien et journal d'audit.
+          \item Migrations de schéma, tests de bout en bout.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+  \vspace{0.05cm}
+  \begin{exampleblock}{Message clé}
+    \centering
+    L'application est prête à \textbf{recevoir les modèles et le solveur} :
+    ils remplacent les valeurs de démonstration sans changer l'interface.
+  \end{exampleblock}
+\end{frame}
+
+% Rappel : la démonstration est accessible maintenant.
+\begin{frame}{Essayez KYST}
+  \centering
+  \vspace{0.2cm}
+  \qrcode[height=5.2cm]{https://sandbox.rezoleo.fr}\\[0.45cm]
+  {\LARGE\bfseries\color{mcmPrimary} sandbox.rezoleo.fr}\\[0.25cm]
+  \small Demandez un accès sur le site : un administrateur de l'équipe le valide.
+\end{frame}
