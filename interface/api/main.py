@@ -14,6 +14,7 @@ from api.bootstrap import init_db
 from api.clinical.router import router as clinical_router
 from api.config import limiter, settings
 from api.planning.router import router as planning_router
+from api.planning.replanning import change_worker
 from api.resources.router import router as resources_router
 
 
@@ -23,7 +24,8 @@ async def lifespan(app: FastAPI):
         # Fail at startup if either local artifact is unavailable or unreadable.
         get_predictors()
     init_db()
-    yield
+    async with change_worker():
+        yield
 
 
 app = FastAPI(

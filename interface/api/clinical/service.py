@@ -1,12 +1,28 @@
 from math import ceil
+from collections.abc import Iterable
+from uuid import UUID
 
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from api.ai.contracts import PredictionInput
 from api.ai.providers import Predictors
 from api.clinical.models import Patient, Prediction, SurgicalRequest
 from api.config import settings
 from api.resources.models import Specialty
+
+
+def supersede_proposals(session: Session, request_ids: Iterable[UUID]) -> None:
+    """Invalidate dates and reset rejections when clinical inputs change."""
+    from api.planning.models import Proposal, ProposalStatus
+    ids = tuple(request_ids)
+    if not ids:
+        return
+    for proposal in session.exec(select(Proposal).where(
+        Proposal.request_id.in_(ids),
+        Proposal.status.in_((ProposalStatus.proposed, ProposalStatus.rejected)),
+    )).all():
+        proposal.status = ProposalStatus.superseded
+        session.add(proposal)
 
 
 def prediction_input(session: Session, request: SurgicalRequest) -> PredictionInput:
@@ -22,8 +38,8 @@ def prediction_input(session: Session, request: SurgicalRequest) -> PredictionIn
     )
 
 
-def predict(session: Session, request: SurgicalRequest, predictors: Predictors) -> Prediction:
-    """Run every predictor on the request and store the result."""
+def build_prediction(session: Session, request: SurgicalRequest, predictors: Predictors) -> Prediction:
+    """Build a prediction without committing, for single or cohort transactions."""
     inputs = prediction_input(session, request)
     room = predictors.room_duration.predict(inputs)
     los = predictors.los.predict(inputs)
@@ -44,8 +60,13 @@ def predict(session: Session, request: SurgicalRequest, predictors: Predictors) 
         })),
         source=settings.AI_BACKEND,
     )
+    return prediction
+
+
+def predict(session: Session, request: SurgicalRequest, predictors: Predictors) -> Prediction:
+    """Run every predictor on the request and store the result."""
+    prediction = build_prediction(session, request, predictors)
     session.add(prediction)
     session.commit()
     session.refresh(prediction)
     return prediction
-

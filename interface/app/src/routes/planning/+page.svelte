@@ -9,6 +9,9 @@
 	import type { PageProps } from './$types';
 
 	let { data, form }: PageProps = $props();
+	const runLabel: Record<string, string> = {
+		running: 'En cours', succeeded: 'Terminé', failed: 'Échec', interrupted: 'Interrompu'
+	};
 
 	let days = $derived(Array.from({ length: 7 }, (_, i) => addDays(data.start, i)));
 	// Le week-end n'apparaît que s'il porte des vacations
@@ -143,6 +146,33 @@
 </div>
 
 {#if data.user?.canPlan}
+	{#if data.conflicts.length}
+		<section class="card add">
+			<h2>Interventions confirmées à revoir</h2>
+			<p>Les changements de ressources affectent {data.conflicts.length} interventions confirmées. Leurs réservations restent en place pour organiser leur révision avec les équipes.</p>
+			<ul>{#each data.conflicts as conflict}
+				<li><a href="/requests/{conflict.request_id}">Intervention du {conflict.admission_date}</a> : {conflict.reasons.join(' ')}</li>
+			{/each}</ul>
+		</section>
+	{/if}
+	{#if data.replanning}
+		<section class="card add">
+			<div class="card-head"><h2>Actualisation des propositions</h2></div>
+			<p>{data.replanning.pending_changes} changements en attente · mode {data.replanning.automatic ? 'automatique' : 'manuel'} · {data.replanning.method} sur {data.replanning.horizon_days} jours.</p>
+			<p class="muted">Le calcul actualise les propositions des demandes en attente. Les interventions confirmées gardent leurs réservations et les nouvelles dates attendent une confirmation clinique.</p>
+			<form method="POST" action="?/refreshProposals" use:enhance><button class="btn" type="submit">Actualiser les propositions</button></form>
+			{#if form?.replanRun}
+				<p>{form.replanRun.status === 'succeeded' ? `${form.replanRun.proposals_count} propositions actualisées.` : "Le calcul a échoué. Les propositions précédentes sont conservées ; vous pouvez relancer l'actualisation."}</p>
+			{:else if form?.refreshQueued}
+				<p>Un calcul est déjà en cours ; la demande d'actualisation reste en attente.</p>
+			{/if}
+			{#if data.replanning.runs.length}
+				<div class="table-wrap"><table><thead><tr><th>Calcul</th><th>État</th><th>Changements</th><th>Propositions</th></tr></thead>
+					<tbody>{#each data.replanning.runs as run}<tr><td>{run.started_at}</td><td>{runLabel[run.status] ?? run.status}</td><td>{run.event_count}</td><td>{run.proposals_count}</td></tr>{/each}</tbody>
+				</table></div>
+			{/if}
+		</section>
+	{/if}
 	<section class="card add">
 		<div class="card-head"><h2>Simulation Mesa : salles</h2></div>
 		<p class="muted">Scénario hypothétique sur les demandes en attente. Les durées d'exécution sont les prédictions multipliées par le facteur choisi. Les lits, les spécialités et les vacations ne sont pas simulés dans cet aperçu.</p>
@@ -184,10 +214,34 @@
 	</section>
 
 	<section class="card add">
+		<div class="card-head"><h2>Simulation Mesa : salles et lits</h2></div>
+		<p class="muted">Aperçu sur 14 jours au plus. Les réservations existantes réduisent les minutes de vacation et les lits disponibles. Les cas en attente portent au jour suivant. Une durée de séjour réalisée plus longue peut créer un conflit de lits, qui est compté.</p>
+		<form method="POST" action="?/previewWard" use:enhance>
+			<div class="fields">
+				<div class="field"><label for="ward-start">Du</label><input id="ward-start" name="start" type="date" min={today()} value={today()} required /></div>
+				<div class="field"><label for="ward-end">Au</label><input id="ward-end" name="end" type="date" min={today()} value={addDays(today(), 6)} required /></div>
+				<div class="field"><label for="ward-method">Méthode salle</label><select id="ward-method" name="method">{#each data.simulationMethods as method}<option value={method}>{method}</option>{/each}</select></div>
+				<div class="field"><label for="ward-policy">Politique</label><select id="ward-policy" name="policy"><option value="reactive">Réactive</option><option value="static">Figée</option></select></div>
+				<div class="field"><label for="ward-room-factor">Facteur temps en salle</label><input id="ward-room-factor" name="realized_factor" type="number" min="1" max="2" step="0.1" value="1.2" required /></div>
+				<div class="field"><label for="ward-los-factor">Facteur séjour</label><input id="ward-los-factor" name="los_factor" type="number" min="1" max="2" step="0.1" value="1" required /></div>
+				<div class="field"><label><input name="outage" type="checkbox" checked /> Salle 1 fermée aux nouvelles entrées de 10 h à 12 h</label></div>
+			</div>
+			<div class="form-footer"><button class="btn" type="submit">Simuler salles et lits</button></div>
+		</form>
+		{#if form?.ward}
+			<p><strong>{form.ward.completed}</strong> interventions commencées sur {form.ward.cases} ; <strong>{form.ward.unstarted}</strong> non commencées ; <strong>{form.ward.overcapacity_bed_days}</strong> jours-unité de lits en conflit.</p>
+			<p class="muted">Dépassement des salles : {formatMinutes(form.ward.overtime_minutes)} · {form.ward.replanning_count} replanifications · {form.ward.failures} échecs.</p>
+			<div class="table-wrap"><table><thead><tr><th>Jour</th><th>Offertes</th><th>Commencées</th><th>En attente</th><th>Lits occupés</th></tr></thead>
+				<tbody>{#each form.ward.daily as day}<tr><td>{day.date}</td><td>{day.offered}</td><td>{day.started}</td><td>{day.waiting}</td><td>{day.occupied_beds}</td></tr>{/each}</tbody>
+			</table></div>
+		{/if}
+	</section>
+
+	<section class="card add">
 		<div class="card-head">
 			<h2>Optimisation de la cohorte</h2>
 		</div>
-		<p class="muted">Aperçu en lecture seule des demandes en attente. Il ne réserve aucune date ; les chirurgiens confirment les propositions individuellement.</p>
+		<p class="muted">L'aperçu ne réserve aucune date. Vous pouvez ensuite publier des propositions recalculées ; les chirurgiens les confirment individuellement.</p>
 		<form method="POST" action="?/previewOptimization" use:enhance>
 			<div class="fields">
 				<div class="field">
@@ -207,8 +261,21 @@
 					</select>
 				</div>
 			</div>
-			<div class="form-footer"><button class="btn" type="submit">Calculer un aperçu</button></div>
+			<div class="form-footer">
+				<button class="btn btn--ghost" type="submit">Calculer un aperçu</button>
+				<button class="btn" type="submit" formaction="?/publishOptimization">Publier des propositions</button>
+			</div>
 		</form>
+		{#if form?.published}
+			<p><strong>{form.published.length}</strong> propositions publiées après un nouveau calcul et un contrôle des capacités. Elles attendent la confirmation clinique.</p>
+			{#if form.published.length}
+				<ul>
+					{#each form.published as proposal}
+						<li><a href="/requests/{proposal.request_id}">Demande {proposal.request_id.slice(0, 8)}</a> · {proposal.admission_date}</li>
+					{/each}
+				</ul>
+			{/if}
+		{/if}
 		{#if form?.preview}
 			<p><strong>{form.preview.assignments.length}</strong> demandes placées sur {form.preview.evaluated_cases} · <strong>{form.preview.unassigned.length}</strong> non placées.</p>
 			{#if form.preview.assignments.length}

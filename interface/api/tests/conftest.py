@@ -10,6 +10,7 @@ os.environ.update({
     "FIRST_ADMIN_EMAIL": "admin@kyst.fr",
     "FIRST_ADMIN_PASSWORD": "admin-password",
     "AI_BACKEND": "fixtures",
+    "AUTO_REPLAN_ENABLED": "false",
     "EMERGENCY_MARGIN": "0.1",
     "PROPOSAL_COUNT": "2",
 })

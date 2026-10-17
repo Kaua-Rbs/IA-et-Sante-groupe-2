@@ -1,8 +1,15 @@
+import asyncio
 import datetime as dt
+from threading import Event
 
 import pytest
+from sqlmodel import Session, select
 
 from api.accounts.models import Role
+from api.db import engine
+from api.config import settings
+from api.planning import replanning, service
+from api.planning.models import ReplanRun
 
 DAY = dt.timedelta(days=1)
 
@@ -98,6 +105,140 @@ def test_stale_proposal_cannot_be_accepted(setup):
     response = s["client"].post(f"/proposals/{b['id']}/accept", headers=s["doctor"])
     assert response.status_code == 409
     assert response.json()["detail"]["reasons"]
+
+
+@pytest.mark.parametrize("edit", ["request", "patient"])
+def test_clinical_edits_invalidate_old_dates(setup, edit):
+    s = setup
+    request = s["new_request"]()
+    old = propose(s, request)[0]
+    if edit == "request":
+        path, body = f"/requests/{request['id']}", {"principal_diagnosis": "M16.1"}
+    else:
+        path, body = f"/patients/{request['patient_id']}", {"sex": 1}
+    changed = s["client"].patch(path, headers=s["doctor"], json=body)
+    assert changed.status_code == 200, changed.text
+    assert s["client"].post(
+        f"/proposals/{old['id']}/accept", headers=s["doctor"],
+    ).status_code == 409
+    assert all(row["status"] == "superseded" for row in s["client"].get(
+        f"/requests/{request['id']}/proposals", headers=s["doctor"],
+    ).json())
+    assert len(propose(s, changed.json() if edit == "request" else request)) == 2
+
+
+def test_replanning_publishes_pending_cases_and_preserves_confirmed_cases(setup):
+    s = setup
+    request = s["new_request"]()
+    assert s["client"].get("/planning/replanning", headers=s["planner"]).json()["pending_changes"] > 0
+    assert s["client"].post("/planning/replanning/run", headers=s["doctor"]).status_code == 403
+    run = s["client"].post("/planning/replanning/run", headers=s["planner"])
+    assert run.status_code == 200, run.text
+    assert run.json()["run"]["status"] == "succeeded"
+    proposals = s["client"].get(
+        f"/requests/{request['id']}/proposals", headers=s["doctor"],
+    ).json()
+    assert len(proposals) == 1
+    assert proposals[0]["scheduler"].startswith("cohort:")
+    case = s["client"].post(
+        f"/proposals/{proposals[0]['id']}/accept", headers=s["doctor"],
+    ).json()
+    refreshed = s["client"].post("/planning/replanning/run", headers=s["planner"])
+    assert refreshed.json()["run"]["status"] == "succeeded"
+    assert s["client"].get("/cases", headers=s["doctor"]).json() == [case]
+    assert s["client"].get("/planning/replanning", headers=s["planner"]).json()["pending_changes"] == 0
+
+
+def test_failed_refresh_preserves_previous_proposals_without_error_details(setup, monkeypatch):
+    s = setup
+    request = s["new_request"]()
+    original = propose(s, request)
+
+    def failing(*args, **kwargs):
+        raise RuntimeError("private clinical payload")
+
+    monkeypatch.setattr(service, "publish_cohort_proposals", failing)
+    response = s["client"].post("/planning/replanning/run", headers=s["planner"])
+    assert response.status_code == 200, response.text
+    assert response.json()["run"]["status"] == "failed"
+    assert response.json()["run"]["failure_type"] == "RuntimeError"
+    assert "private clinical payload" not in response.text
+    current = s["client"].get(
+        f"/requests/{request['id']}/proposals", headers=s["doctor"],
+    ).json()
+    assert {row["id"]: row for row in current} == {row["id"]: row for row in original}
+
+
+def test_automatic_worker_processes_committed_changes(setup, monkeypatch):
+    s = setup
+    request = s["new_request"]()
+    done = Event()
+    original = replanning.process_pending_changes
+    results = []
+
+    def process():
+        try:
+            results.append(original())
+        finally:
+            done.set()
+
+    monkeypatch.setattr(replanning, "process_pending_changes", process)
+    monkeypatch.setattr(settings, "AUTO_REPLAN_ENABLED", True)
+
+    async def execute():
+        async with replanning.change_worker():
+            assert await asyncio.to_thread(done.wait, 10)
+
+    asyncio.run(execute())
+    assert results[0]["status"] == "succeeded"
+    assert s["client"].get(
+        f"/requests/{request['id']}/proposals", params={"status": "proposed"}, headers=s["doctor"],
+    ).json()
+
+
+def test_interrupted_refresh_is_retried_after_restart(client):
+    with Session(engine) as session:
+        run = ReplanRun(method="SMA", start=dt.date.today(), end=dt.date.today())
+        session.add(run)
+        session.commit()
+    replanning.recover_interrupted_runs()
+    with Session(engine) as session:
+        assert session.exec(select(ReplanRun)).one().status == "interrupted"
+        assert replanning.queue_status(session)["pending_changes"] == 1
+    replanning.recover_interrupted_runs()
+    with Session(engine) as session:
+        assert replanning.queue_status(session)["pending_changes"] == 1
+
+
+def test_rejected_dates_are_not_reoffered_by_a_refresh(setup):
+    s = setup
+    request = s["new_request"]()
+    old = propose(s, request)[0]
+    rejected = s["client"].post(f"/proposals/{old['id']}/reject", headers=s["doctor"])
+    assert rejected.status_code == 200
+    refreshed = s["client"].post("/planning/replanning/run", headers=s["planner"])
+    assert refreshed.json()["run"]["status"] == "succeeded"
+    opened = s["client"].get(
+        f"/requests/{request['id']}/proposals", params={"status": "proposed"}, headers=s["doctor"],
+    ).json()
+    assert opened
+    assert all(row["admission_date"] != old["admission_date"] for row in opened)
+
+
+def test_refresh_removes_open_dates_for_newly_unassignable_requests(setup):
+    s = setup
+    request = s["new_request"]()
+    propose(s, request)
+    closed = s["client"].patch(
+        f"/bed-units/{s['beds']['id']}", json={"active": False}, headers=s["planner"],
+    )
+    assert closed.status_code == 200
+    refreshed = s["client"].post("/planning/replanning/run", headers=s["planner"])
+    assert refreshed.json()["run"]["status"] == "succeeded"
+    assert refreshed.json()["run"]["proposals_count"] == 0
+    assert s["client"].get(
+        f"/requests/{request['id']}/proposals", params={"status": "proposed"}, headers=s["doctor"],
+    ).json() == []
 
 
 def test_cancelling_a_case_frees_capacity(setup):
