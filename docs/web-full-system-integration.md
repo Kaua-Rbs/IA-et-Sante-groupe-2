@@ -4,6 +4,9 @@ Branche de travail : `codex/web-full-system`, créée depuis `origin/main`.
 Les calculs historiques et les artefacts de modèles restent locaux ; aucune
 donnée patient n'est ajoutée au dépôt ou à l'image de l'API.
 
+Pour présenter les changements : [résumé pour l'équipe](web-integration-summary.md)
+et [parcours utilisateurs illustrés avec des patients synthétiques](web-user-stories/README.md).
+
 ## État comparé
 
 | Domaine | Application sur `main` | Dans le moteur de recherche/simulation | Intégration sur cette branche |
