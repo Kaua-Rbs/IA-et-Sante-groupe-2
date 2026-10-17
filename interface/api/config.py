@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -44,6 +45,11 @@ class Settings(BaseSettings):
     EMERGENCY_MARGIN: float = 0.1
     PROPOSAL_COUNT: int = 2
     SCHEDULING_HORIZON_DAYS: int = 60
+    AUTO_REPLAN_ENABLED: bool = False
+    REPLAN_METHOD: str = "SMA x Metaheuristiques"
+    REPLAN_HORIZON_DAYS: int = Field(default=14, ge=1, le=60)
+    REPLAN_BUDGET_SECONDS: float = Field(default=1.0, gt=0, le=5)
+    REPLAN_MAX_CASES: int = Field(default=200, ge=1, le=500)
 
 
 settings = Settings()

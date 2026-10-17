@@ -27,6 +27,7 @@ class CohortCase:
     care_type: CareType
     earliest_date: dt.date
     latest_date: dt.date
+    rejected_dates: tuple[dt.date, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -97,6 +98,7 @@ def optimize_cohort(
                        if slot.specialty_id == case.specialty_id
                        and slot.surgeon_id in (None, case.surgeon_id)
                        and case.earliest_date <= slot.date <= case.latest_date
+                       and slot.date not in case.rejected_dates
                        and ceil(case.room_minutes) <= remaining[slot.id]]
             if options and units:
                 eligible.append(case)

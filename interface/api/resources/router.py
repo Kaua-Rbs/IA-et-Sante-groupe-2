@@ -7,6 +7,7 @@ from api.accounts.models import User
 from api.accounts.security import CurrentUser, PlannerUser
 from api.crud import get_or_404, remove, require_exists, save
 from api.db import SessionDep
+from api.planning.replanning import record_change
 from api.resources.models import (
     BedUnit, BedUnitCreate, BedUnitPublic, BedUnitUpdate,
     OperatingRoom, OperatingRoomCreate, OperatingRoomPublic, OperatingRoomUpdate,
@@ -27,6 +28,7 @@ def list_specialties(session: SessionDep, current_user: CurrentUser):
 
 @router.post("/specialties", response_model=SpecialtyPublic, status_code=201)
 def create_specialty(body: SpecialtyCreate, session: SessionDep, current_user: PlannerUser):
+    record_change(session, "specialty_created", current_user.id)
     return save(session, Specialty.model_validate(body))
 
 
@@ -36,11 +38,13 @@ def update_specialty(
 ):
     specialty = get_or_404(session, Specialty, specialty_id)
     specialty.sqlmodel_update(body.model_dump(exclude_unset=True))
+    record_change(session, "specialty_changed", current_user.id)
     return save(session, specialty)
 
 
 @router.delete("/specialties/{specialty_id}")
 def delete_specialty(specialty_id: int, session: SessionDep, current_user: PlannerUser):
+    record_change(session, "specialty_deleted", current_user.id)
     return remove(session, get_or_404(session, Specialty, specialty_id))
 
 
@@ -57,6 +61,7 @@ def list_rooms(session: SessionDep, current_user: CurrentUser, active: bool | No
 @router.post("/rooms", response_model=OperatingRoomPublic, status_code=201)
 def create_room(body: OperatingRoomCreate, session: SessionDep, current_user: PlannerUser):
     require_exists(session, Specialty, body.default_specialty_id)
+    record_change(session, "room_created", current_user.id)
     return save(session, OperatingRoom.model_validate(body))
 
 
@@ -67,12 +72,14 @@ def update_room(
     room = get_or_404(session, OperatingRoom, room_id)
     require_exists(session, Specialty, body.default_specialty_id)
     room.sqlmodel_update(body.model_dump(exclude_unset=True))
+    record_change(session, "room_changed", current_user.id)
     return save(session, room)
 
 
 @router.delete("/rooms/{room_id}")
 def delete_room(room_id: int, session: SessionDep, current_user: PlannerUser):
     """Delete a room without history; deactivate it (`active=false`) otherwise."""
+    record_change(session, "room_deleted", current_user.id)
     return remove(session, get_or_404(session, OperatingRoom, room_id))
 
 
@@ -85,6 +92,7 @@ def list_bed_units(session: SessionDep, current_user: CurrentUser):
 
 @router.post("/bed-units", response_model=BedUnitPublic, status_code=201)
 def create_bed_unit(body: BedUnitCreate, session: SessionDep, current_user: PlannerUser):
+    record_change(session, "bed_unit_created", current_user.id)
     return save(session, BedUnit.model_validate(body))
 
 
@@ -94,11 +102,13 @@ def update_bed_unit(
 ):
     unit = get_or_404(session, BedUnit, unit_id)
     unit.sqlmodel_update(body.model_dump(exclude_unset=True))
+    record_change(session, "bed_unit_changed", current_user.id)
     return save(session, unit)
 
 
 @router.delete("/bed-units/{unit_id}")
 def delete_bed_unit(unit_id: int, session: SessionDep, current_user: PlannerUser):
+    record_change(session, "bed_unit_deleted", current_user.id)
     return remove(session, get_or_404(session, BedUnit, unit_id))
 
 
@@ -123,6 +133,7 @@ def read_surgeon(surgeon_id: int, session: SessionDep, current_user: CurrentUser
 def create_surgeon(body: SurgeonCreate, session: SessionDep, current_user: PlannerUser):
     require_exists(session, Specialty, body.specialty_id)
     require_exists(session, User, body.user_id)
+    record_change(session, "surgeon_created", current_user.id)
     return save(session, Surgeon.model_validate(body))
 
 
@@ -134,11 +145,13 @@ def update_surgeon(
     require_exists(session, Specialty, body.specialty_id)
     require_exists(session, User, body.user_id)
     surgeon.sqlmodel_update(body.model_dump(exclude_unset=True))
+    record_change(session, "surgeon_changed", current_user.id)
     return save(session, surgeon)
 
 
 @router.delete("/surgeons/{surgeon_id}")
 def delete_surgeon(surgeon_id: int, session: SessionDep, current_user: PlannerUser):
+    record_change(session, "surgeon_deleted", current_user.id)
     return remove(session, get_or_404(session, Surgeon, surgeon_id))
 
 
@@ -196,6 +209,7 @@ def read_vacation(vacation_id: int, session: SessionDep, current_user: CurrentUs
 @router.post("/vacations", response_model=VacationPublic, status_code=201)
 def create_vacation(body: VacationCreate, session: SessionDep, current_user: PlannerUser):
     _check_vacation(session, body)
+    record_change(session, "vacation_created", current_user.id)
     return save(session, Vacation.model_validate(body))
 
 
@@ -209,9 +223,11 @@ def update_vacation(
     )
     _check_vacation(session, merged, exclude_id=vacation_id)
     vacation.sqlmodel_update(merged.model_dump())
+    record_change(session, "vacation_changed", current_user.id)
     return save(session, vacation)
 
 
 @router.delete("/vacations/{vacation_id}")
 def delete_vacation(vacation_id: int, session: SessionDep, current_user: PlannerUser):
+    record_change(session, "vacation_deleted", current_user.id)
     return remove(session, get_or_404(session, Vacation, vacation_id))
