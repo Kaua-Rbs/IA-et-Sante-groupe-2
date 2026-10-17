@@ -1,6 +1,12 @@
 # Intégration du moteur complet dans KYST
 
-Branche de travail : `codex/web-full-system`, créée depuis `origin/main`.
+Branche d'intégration : `codex/web-integration`, basée sur `codex/research-foundation`.
+La [PR de fondation #5](https://github.com/Kaua-Rbs/IA-et-Sante-groupe-2/pull/5)
+importe les moteurs et leurs tests dans `main` ; la
+[PR web #6](https://github.com/Kaua-Rbs/IA-et-Sante-groupe-2/pull/6)
+contient les adaptateurs, les parcours web et la documentation illustrée.
+Fusionner #5 d'abord, puis recibler #6 vers `main` avant sa fusion.
+La branche initiale `codex/web-full-system` reste conservée comme référence.
 Les calculs historiques et les artefacts de modèles restent locaux ; aucune
 donnée patient n'est ajoutée au dépôt ou à l'image de l'API.
 
