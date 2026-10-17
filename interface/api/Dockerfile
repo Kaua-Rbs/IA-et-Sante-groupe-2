@@ -1,7 +1,7 @@
-# Image de l'API KYST. Contexte de build : interface/api
+# Image de l'API KYST. Contexte de build : racine du depot.
 FROM python:3.13-slim
 
-COPY --from=ghcr.io/astral-sh/uv:0.8.22 /uv /bin/uv
+COPY --from=ghcr.io/astral-sh/uv:0.13.1 /uv /bin/uv
 
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
@@ -12,10 +12,15 @@ ENV UV_COMPILE_BYTECODE=1 \
 WORKDIR /srv/api
 
 # Dépendances d'abord, pour garder ce calque en cache tant que uv.lock ne change pas
-COPY pyproject.toml uv.lock ./
+COPY interface/api/pyproject.toml interface/api/uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project
 
-COPY . .
+COPY interface/api/ ./
+COPY optimiseur/ /srv/optimiseur/
+COPY hospital_sim/ /srv/hospital_sim/
+COPY duration_features.py surgery_duration.py los_model.py /srv/
+
+ENV PYTHONPATH=/srv
 
 RUN useradd --system --no-create-home kyst
 USER kyst

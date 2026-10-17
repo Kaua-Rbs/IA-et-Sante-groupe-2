@@ -165,6 +165,41 @@ export interface VacationFill {
 	fill_rate: number;
 }
 
+export interface CohortPreview {
+	method: string;
+	evaluated_cases: number;
+	assignments: {
+		request_id: string;
+		vacation_id: number;
+		bed_unit_id: number;
+		admission_date: string;
+		discharge_date: string;
+		planned_minutes: number;
+	}[];
+	unassigned: string[];
+}
+
+export interface RoomSimulationPreview {
+	date: string;
+	method: string;
+	policy: 'static' | 'reactive';
+	cases: number;
+	completed: number;
+	unstarted: number;
+	overtime_minutes: number;
+	replanning_count: number;
+	failures: number;
+	assumptions: {
+		rooms: number;
+		opening: string;
+		closing: string;
+		turnover_minutes: number;
+		room_1_closure: string | null;
+		realized_duration_factor: number;
+		beds_and_specialty_constraints: string;
+	};
+}
+
 export interface PredictionAccuracy {
 	evaluated_cases: number;
 	room_minutes_mae: number | null;

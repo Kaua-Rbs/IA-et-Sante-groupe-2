@@ -51,6 +51,10 @@ services:
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
       REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS}
       AI_BACKEND: ${AI_BACKEND}
+      ROOM_MODEL_PATH: /srv/models/surgery_duration_model.joblib
+      LOS_MODEL_PATH: /srv/models/los_regressor.joblib
+    volumes:
+      - ${KYST_MODEL_DIR:-./models}:/srv/models:ro,Z
     # Si PostgreSQL n'est pas encore prêt au premier démarrage, l'API s'arrête et Podman la relance
     depends_on:
       - postgres

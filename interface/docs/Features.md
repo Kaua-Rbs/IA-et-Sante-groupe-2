@@ -77,9 +77,10 @@ flowchart LR
 | Durée de séjour | Démonstration | Jours calendaires inclusifs (ambulatoire = 1), avec un intervalle. |
 | Type d'hébergement | Démonstration | Ambulatoire si le séjour prédit tient en une journée, sinon hospitalisation conventionnelle. |
 | Traçabilité | Disponible | Chaque prédiction garde la version du modèle et sa source. L'interface signale clairement les valeurs de démonstration. |
-| Modèles entraînés | Prévu | Ils seront branchés derrière les mêmes interfaces (`api/ai/contracts.py`), sans changer l'application. |
+| Modèles entraînés | Démonstration | Mode `AI_BACKEND=trained` avec artefacts locaux non versionnés ; les champs d'anesthésie et de praticien manquent à la consultation, donc les performances doivent être revalidées. |
 
 Les valeurs de démonstration (`api/ai/fixtures.json`) dépendent de la spécialité, du type d'intervention et de l'âge. Elles sont plausibles mais **ni ajustées ni calibrées** sur les données de l'hôpital.
+Le mode entraîné utilise les modèles de durée de salle et de séjour, sans intégrer leurs fichiers dans le dépôt ou l'image. Voir [l'état de l'intégration](../../docs/web-full-system-integration.md).
 
 ### 3. Planning du bloc (vacations)
 
@@ -93,6 +94,8 @@ Une **vacation** est un créneau d'une salle attribué à une spécialité, et �
 | Ouvrir ou supprimer une vacation | Disponible | Réservé au cadre et à l'administrateur. Deux vacations d'une même salle ne peuvent pas se chevaucher. |
 | Modèles hebdomadaires | Prévu | Générer la répartition des vacations par spécialité à partir de l'historique, et justifier chaque aménagement. |
 | Planning du jour et ordre de passage | Prévu | Liste des patients par salle, actes, ordre et remise en état entre deux interventions. |
+| Aperçu d'optimisation de cohorte | Démonstration | Jusqu'à 50 demandes en attente, 10 méthodes, contrôle de la capacité avant affichage ; aucune réservation n'est créée. |
+| Aperçu de simulation Mesa | Démonstration | Journée hypothétique, durées réalisées majorées par un facteur choisi, fermeture optionnelle et replanification ; salles uniquement, sans lits ni spécialités. |
 
 ### 4. Lits et places
 

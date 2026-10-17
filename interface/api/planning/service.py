@@ -1,11 +1,13 @@
 import datetime as dt
 from math import ceil
 
+from sqlalchemy import or_
 from sqlmodel import Session, select
 
 from api.accounts.models import User
 from api.ai.contracts import BedUnitLoad, SchedulingInput, Scheduler, VacationSlot
 from api.ai.providers import Predictors
+from api.ai.cohort import CohortCase, CohortPreview, optimize_cohort
 from api.clinical import service as clinical
 from api.clinical.models import Prediction, RequestStatus, SurgicalRequest
 from api.config import settings
@@ -59,6 +61,64 @@ def scheduling_input(
         bed_units=bed_units,
         emergency_margin=settings.EMERGENCY_MARGIN,
     )
+
+
+def cohort_snapshot(
+    session: Session, start: dt.date, end: dt.date, predictors: Predictors,
+) -> tuple[tuple[CohortCase, ...], tuple[VacationSlot, ...], tuple[BedUnitLoad, ...]]:
+    """Read pending requests and current resources without creating predictions."""
+    if end < start or (end - start).days > 60 or start < dt.date.today():
+        raise ValueError("Choose a future planning window of at most 60 days")
+    requests = session.exec(select(SurgicalRequest).where(
+        SurgicalRequest.status == RequestStatus.pending,
+        SurgicalRequest.earliest_date <= end,
+        or_(SurgicalRequest.latest_date == None, SurgicalRequest.latest_date >= start),  # noqa: E711
+    ).order_by(SurgicalRequest.created_at, SurgicalRequest.id).limit(51)).all()
+    if len(requests) > 50:
+        raise ValueError("Limit the cohort to 50 pending requests per preview")
+
+    cases = []
+    for request in requests:
+        features = clinical.prediction_input(session, request)
+        room = predictors.room_duration.predict(features)
+        los = predictors.los.predict(features)
+        if room.unit != "minutes" or los.unit != "inclusive_calendar_days":
+            raise ValueError("Prediction units do not match the scheduling contract")
+        days = ceil(los.value)
+        if days > 365:
+            raise ValueError("Predicted stay exceeds the supported planning horizon")
+        cases.append(CohortCase(
+            request.id, request.specialty_id, request.surgeon_id, room.value, days,
+            predictors.care_type.predict(features), max(start, request.earliest_date),
+            min(end, request.latest_date or end),
+        ))
+
+    rows = session.exec(select(Vacation, OperatingRoom).join(
+        OperatingRoom, Vacation.room_id == OperatingRoom.id,
+    ).where(Vacation.date >= start, Vacation.date <= end,
+            OperatingRoom.active == True)).all()  # noqa: E712
+    used = used_minutes(session, (vacation.id for vacation, _ in rows))
+    vacations = tuple(VacationSlot(
+        vacation.id, vacation.date, room.name, vacation.specialty_id,
+        vacation.surgeon_id, vacation.duration_min, used.get(vacation.id, 0),
+    ) for vacation, room in rows)
+    max_stay = max((case.los_days for case in cases), default=1)
+    occupancy = bed_occupancy(session, start, end + dt.timedelta(days=max_stay - 1))
+    units = session.exec(select(BedUnit).where(BedUnit.active == True)).all()  # noqa: E712
+    bed_units = tuple(BedUnitLoad(unit.id, unit.name, unit.care_type, unit.capacity,
+                                  dict(occupancy.get(unit.id, {}))) for unit in units)
+    return tuple(cases), vacations, bed_units
+
+
+def preview_cohort(
+    session: Session, start: dt.date, end: dt.date, predictors: Predictors,
+    *, method: str, seed: int = 0, budget_seconds: float = 1.0,
+) -> CohortPreview:
+    """Optimize pending requests together without changing proposals or bookings."""
+    cases, vacations, bed_units = cohort_snapshot(session, start, end, predictors)
+    return optimize_cohort(cases, vacations, bed_units, method=method,
+                           emergency_margin=settings.EMERGENCY_MARGIN,
+                           seed=seed, budget_seconds=budget_seconds)
 
 
 def _open_proposals(session: Session, request: SurgicalRequest) -> list[Proposal]:

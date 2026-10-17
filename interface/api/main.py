@@ -8,6 +8,7 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from api import __version__
 from api.accounts.router import router as accounts_router
+from api.ai.providers import get_predictors
 from api.analytics.router import router as analytics_router
 from api.bootstrap import init_db
 from api.clinical.router import router as clinical_router
@@ -18,6 +19,9 @@ from api.resources.router import router as resources_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    if settings.AI_BACKEND == "trained":
+        # Fail at startup if either local artifact is unavailable or unreadable.
+        get_predictors()
     init_db()
     yield
 

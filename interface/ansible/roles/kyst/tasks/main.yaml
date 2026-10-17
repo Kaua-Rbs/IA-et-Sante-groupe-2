@@ -72,7 +72,8 @@
       --label kyst.commit={{ kyst_repo.after }}
       --label kyst.origin={{ kyst_origin | quote }}
       --build-arg ORIGIN={{ kyst_origin | quote }}
-      {{ kyst_src_dir }}/interface/{{ item.item.component }}
+      --file {{ kyst_src_dir }}/interface/{{ item.item.component }}/Dockerfile
+      {{ kyst_src_dir if item.item.component == 'api' else kyst_src_dir ~ '/interface/app' }}
   loop: "{{ kyst_images_current.results }}"
   loop_control:
     label: "{{ item.item.image }}"

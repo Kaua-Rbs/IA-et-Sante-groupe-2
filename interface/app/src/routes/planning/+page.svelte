@@ -144,6 +144,95 @@
 
 {#if data.user?.canPlan}
 	<section class="card add">
+		<div class="card-head"><h2>Simulation Mesa : salles</h2></div>
+		<p class="muted">Scénario hypothétique sur les demandes en attente. Les durées d'exécution sont les prédictions multipliées par le facteur choisi. Les lits, les spécialités et les vacations ne sont pas simulés dans cet aperçu.</p>
+		<form method="POST" action="?/previewSimulation" use:enhance>
+			<div class="fields">
+				<div class="field">
+					<label for="simulation-date">Date</label>
+					<input id="simulation-date" name="date" type="date" min={today()} value={today()} required />
+				</div>
+				<div class="field">
+					<label for="simulation-method">Méthode</label>
+					<select id="simulation-method" name="method" required>
+						{#each data.simulationMethods as method}
+							<option value={method}>{method}</option>
+						{/each}
+					</select>
+				</div>
+				<div class="field">
+					<label for="simulation-policy">Politique</label>
+					<select id="simulation-policy" name="policy">
+						<option value="reactive">Réactive</option>
+						<option value="static">Figée</option>
+					</select>
+				</div>
+				<div class="field">
+					<label for="simulation-factor">Facteur de durée réalisée</label>
+					<input id="simulation-factor" name="realized_factor" type="number" min="1" max="2" step="0.1" value="1.2" required />
+				</div>
+				<div class="field">
+					<label><input name="outage" type="checkbox" checked /> Salle 1 fermée aux nouvelles entrées de 10 h à 12 h</label>
+				</div>
+			</div>
+			<div class="form-footer"><button class="btn" type="submit">Simuler</button></div>
+		</form>
+		{#if form?.simulation}
+			<p><strong>{form.simulation.completed}</strong> interventions terminées sur {form.simulation.cases}, <strong>{form.simulation.unstarted}</strong> non commencées ; dépassement cumulé : <strong>{formatMinutes(form.simulation.overtime_minutes)}</strong>.</p>
+			<p class="muted">{form.simulation.replanning_count} replanifications · {form.simulation.failures} échecs · {form.simulation.assumptions.rooms} salles identiques, 08 h–17 h, remise en état de 15 min.</p>
+		{/if}
+	</section>
+
+	<section class="card add">
+		<div class="card-head">
+			<h2>Optimisation de la cohorte</h2>
+		</div>
+		<p class="muted">Aperçu en lecture seule des demandes en attente. Il ne réserve aucune date ; les chirurgiens confirment les propositions individuellement.</p>
+		<form method="POST" action="?/previewOptimization" use:enhance>
+			<div class="fields">
+				<div class="field">
+					<label for="cohort-start">Du</label>
+					<input id="cohort-start" name="start" type="date" min={today()} value={today()} required />
+				</div>
+				<div class="field">
+					<label for="cohort-end">Au</label>
+					<input id="cohort-end" name="end" type="date" min={today()} value={addDays(today(), 6)} required />
+				</div>
+				<div class="field">
+					<label for="cohort-method">Méthode</label>
+					<select id="cohort-method" name="method" required>
+						{#each data.methods as method}
+							<option value={method} selected={method === 'Tabou x Recuit'}>{method}</option>
+						{/each}
+					</select>
+				</div>
+			</div>
+			<div class="form-footer"><button class="btn" type="submit">Calculer un aperçu</button></div>
+		</form>
+		{#if form?.preview}
+			<p><strong>{form.preview.assignments.length}</strong> demandes placées sur {form.preview.evaluated_cases} · <strong>{form.preview.unassigned.length}</strong> non placées.</p>
+			{#if form.preview.assignments.length}
+				<div class="table-wrap">
+					<table>
+						<thead><tr><th>Demande</th><th>Date</th><th>Vacation</th><th>Unité de lits</th><th>Durée prévue</th></tr></thead>
+						<tbody>
+							{#each form.preview.assignments as assignment}
+								<tr>
+									<td><a href="/requests/{assignment.request_id}">{assignment.request_id.slice(0, 8)}</a></td>
+									<td>{assignment.admission_date}</td>
+									<td>#{assignment.vacation_id}</td>
+									<td>{nameOf(data.bedUnits, assignment.bed_unit_id)}</td>
+									<td>{formatMinutes(assignment.planned_minutes)}</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
+			{/if}
+		{/if}
+	</section>
+
+	<section class="card add">
 		<div class="card-head">
 			<h2>Ouvrir une vacation</h2>
 			<button class="btn btn--ghost btn--small" type="button" onclick={() => (showForm = !showForm)} aria-expanded={showForm}>
