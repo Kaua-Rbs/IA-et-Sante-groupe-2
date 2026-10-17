@@ -11,6 +11,7 @@ ScheduleT = TypeVar("ScheduleT")
 
 
 class EventKind(str, Enum):
+    SIMULATION_OBSERVATION = "simulation_observation"
     EMERGENCY_ARRIVAL = "emergency_arrival"
     CANCELLATION = "cancellation"
     SURGERY_OVERRUN = "surgery_overrun"

@@ -9,6 +9,7 @@ from slowapi.util import get_remote_address
 # interface/kyst.local.env, not versioned, overrides it with real secrets.
 # Process environment variables take precedence over both files.
 INTERFACE_DIR = Path(__file__).resolve().parent.parent
+REPOSITORY_DIR = INTERFACE_DIR.parent
 ENV_FILES = (INTERFACE_DIR / "kyst.env", INTERFACE_DIR / "kyst.local.env")
 
 PLACEHOLDER_SECRET = "change-me"
@@ -34,8 +35,10 @@ class Settings(BaseSettings):
     # Optional first administrator, created at startup if no user has this email yet
     FIRST_ADMIN_EMAIL: str | None = None
     FIRST_ADMIN_PASSWORD: str | None = None
-    # Prediction and scheduling backend: only "fixtures" exists until the models are delivered
+    # "trained" loads local, untracked model artifacts. Fixtures remain the demo default.
     AI_BACKEND: str = "fixtures"
+    ROOM_MODEL_PATH: Path = REPOSITORY_DIR / "artifacts/ml-models/surgery_duration_model.joblib"
+    LOS_MODEL_PATH: Path = REPOSITORY_DIR / "artifacts/ml-models/los_regressor.joblib"
     # Scheduling: share of each vacation kept free for emergencies, proposals per request,
     # and how far after the earliest date to look when the request has no deadline
     EMERGENCY_MARGIN: float = 0.1

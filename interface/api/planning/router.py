@@ -1,21 +1,86 @@
 import datetime as dt
+import asyncio
+from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
 from sqlmodel import select
 
-from api.accounts.security import ClinicalUser, StaffUser
+from api.accounts.security import ClinicalUser, PlannerUser, StaffUser
 from api.ai.providers import PredictorsDep, SchedulerDep
+from api.ai.room_simulation import simulate_room_day
 from api.clinical.models import RequestStatus, SurgicalRequest
 from api.crud import get_or_404, save
 from api.db import SessionDep, utcnow
 from api.planning import service
+from optimiseur.optimizer import TOUTES_METHODES
+from hospital_sim.metaheuristics import METHODS as ROOM_METHODS
+from api.resources.models import OperatingRoom
 from api.planning.models import (
     CaseOutcome, CaseStatus, PlannedCase, PlannedCasePublic, Proposal, ProposalPublic,
     ProposalStatus,
 )
 
 router = APIRouter(tags=["planning"])
+
+
+class CohortPreviewRequest(BaseModel):
+    start: dt.date
+    end: dt.date
+    method: str = "Tabou x Recuit"
+    seed: int = 0
+    budget_seconds: float = Field(default=1.0, gt=0, le=5)
+
+
+@router.get("/planning/methods", response_model=list[str])
+def planning_methods(current_user: PlannerUser):
+    return list(TOUTES_METHODES)
+
+
+@router.post("/planning/cohort-preview")
+def cohort_preview(
+    body: CohortPreviewRequest, session: SessionDep, current_user: PlannerUser,
+    predictors: PredictorsDep,
+):
+    """Read-only multi-request optimization; a clinician still confirms dates."""
+    try:
+        return service.preview_cohort(session, body.start, body.end, predictors,
+                                      method=body.method, seed=body.seed,
+                                      budget_seconds=body.budget_seconds)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+class RoomSimulationRequest(BaseModel):
+    date: dt.date
+    method: str = "baseline"
+    policy: Literal["static", "reactive"] = "reactive"
+    realized_factor: float = Field(default=1.2, ge=1, le=2)
+    outage: bool = True
+
+
+@router.get("/planning/room-simulation-methods", response_model=list[str])
+def room_simulation_methods(current_user: PlannerUser):
+    return list(ROOM_METHODS)
+
+
+@router.post("/planning/room-simulation-preview")
+def room_simulation_preview(
+    body: RoomSimulationRequest, session: SessionDep, current_user: PlannerUser,
+    predictors: PredictorsDep,
+):
+    """Hypothetical room-only Mesa replay; never changes clinical bookings."""
+    try:
+        cases, _, _ = service.cohort_snapshot(session, body.date, body.date, predictors)
+        rooms = session.exec(select(OperatingRoom).where(OperatingRoom.active == True)).all()  # noqa: E712
+        return asyncio.run(simulate_room_day(
+            cases, day=body.date, rooms=len(rooms), method=body.method,
+            policy=body.policy, realized_factor=body.realized_factor,
+            outage=body.outage,
+        ))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 # --- Proposals ---
 

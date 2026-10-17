@@ -64,15 +64,14 @@ class FixtureCareTypeClassifier:
         return CareType.ambulatory if days <= 1 else CareType.conventional
 
 
-class GreedyFixtureScheduler:
+class GreedyCapacityScheduler:
     """Greedy baseline: scores each compatible vacation independently.
 
-    Placeholder for the optimisation team's solver (tabu search, simulated annealing,
-    genetic algorithm). It neither reorders existing cases nor plans several patients
-    together, and ignores weekends and holidays.
+    It neither reorders existing cases nor plans several patients together, and
+    ignores weekends and holidays. Cohort optimization is a separate operation.
     """
 
-    name = "greedy-fixture"
+    name = "greedy-capacity"
 
     def propose(self, request: SchedulingInput, count: int) -> list[Candidate]:
         window_days = max(1, (request.latest_date - request.earliest_date).days)
@@ -140,3 +139,9 @@ def _prefer_distinct_dates(candidates: list[Candidate], count: int) -> list[Cand
         if len(chosen) == count:
             break
     return chosen
+
+
+class GreedyFixtureScheduler(GreedyCapacityScheduler):
+    """Keep the original demo label and API behavior in fixture mode."""
+
+    name = "greedy-fixture"

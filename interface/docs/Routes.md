@@ -52,6 +52,10 @@ Le jeton d'accès contient `sub`, `full_name`, `admin`, `doctor` et `roles` ; le
 
 | Méthode | Route | Accès | Description |
 |---|---|---|---|
+| GET | `/planning/methods` | planner | Métaheuristiques de vacations disponibles pour la cohorte. |
+| POST | `/planning/cohort-preview` | planner | Optimise au plus 50 demandes en attente sur une fenêtre future de 60 jours au plus ; renvoie affectations et demandes non placées. Lecture seule. |
+| GET | `/planning/room-simulation-methods` | planner | Méthodes de planification disponibles dans la simulation Mesa de salles. |
+| POST | `/planning/room-simulation-preview` | planner | Simulation hypothétique d'une journée, jusqu'à 30 cas et 20 salles ; renvoie uniquement des agrégats. Lecture seule. |
 | POST | `/requests/{id}/proposals` | clinique | Prédit, puis propose jusqu'à `PROPOSAL_COUNT` dates (A, B…) avec leurs raisons. Remplace les propositions ouvertes. Une liste vide signifie qu'aucun créneau n'a été trouvé dans la fenêtre. |
 | GET | `/requests/{id}/proposals` | staff | `?status=` |
 | POST | `/proposals/{id}/accept` | clinique | Décision humaine. La capacité est revérifiée ; 409 avec `reasons` si la proposition est devenue infaisable. Crée le `PlannedCase`. |
@@ -60,6 +64,9 @@ Le jeton d'accès contient `sub`, `full_name`, `admin`, `doctor` et `roles` ; le
 | GET | `/cases/{id}` | staff | |
 | POST | `/cases/{id}/cancel` | clinique | Libère la capacité ; la demande repasse `pending` |
 | POST | `/cases/{id}/outcome` | staff | Durée réelle en salle et durée réelle du séjour ; alimente `/analytics/predictions` |
+
+Les aperçus de cohorte et de simulation ne créent ni proposition ni réservation.
+Leurs hypothèses et limites sont détaillées dans `docs/web-full-system-integration.md`.
 
 ## Indicateurs — `/analytics`
 
