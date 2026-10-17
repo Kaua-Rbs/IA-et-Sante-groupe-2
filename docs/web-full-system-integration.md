@@ -5,7 +5,9 @@ La [PR de fondation #5](https://github.com/Kaua-Rbs/IA-et-Sante-groupe-2/pull/5)
 importe les moteurs et leurs tests dans `main` ; la
 [PR web #6](https://github.com/Kaua-Rbs/IA-et-Sante-groupe-2/pull/6)
 contient les adaptateurs, les parcours web et la documentation illustrée.
-Fusionner #5 d'abord, puis recibler #6 vers `main` avant sa fusion.
+Fusionner #5 avec un commit de fusion, puis recibler #6 vers `main` avant sa fusion.
+Si #5 est fusionnée par squash ou rebase, rebaser #6 sur `main` avant le reciblage
+pour éviter de réafficher les imports de recherche dans son diff.
 La branche initiale `codex/web-full-system` reste conservée comme référence.
 Les calculs historiques et les artefacts de modèles restent locaux ; aucune
 donnée patient n'est ajoutée au dépôt ou à l'image de l'API.
