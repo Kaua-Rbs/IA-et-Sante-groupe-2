@@ -9,10 +9,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
 RUN pnpm install --frozen-lockfile
 
 COPY . .
-# URL publique du site, figée au build (protection CSRF des formulaires, voir vite.config.ts).
-# Vide : déduite de l'en-tête Host en supposant https.
-ARG ORIGIN=""
-RUN ORIGIN="$ORIGIN" pnpm build
+RUN pnpm build
 
 FROM node:24-slim
 
@@ -21,10 +18,12 @@ ENV NODE_ENV=production
 
 # Toutes les dépendances sont des devDependencies : adapter-node les intègre au build
 COPY --from=builder /app/build ./build
-COPY --from=builder /app/package.json ./
+COPY --from=builder /app/package.json /app/server.js ./
 
 USER node
-ENV HOST=0.0.0.0 PORT=3000
+# URL publique du site (protection CSRF des formulaires), lue au démarrage par server.js.
+# Vide : déduite de l'en-tête Host en supposant https.
+ENV HOST=0.0.0.0 PORT=3000 ORIGIN=""
 EXPOSE 3000
 
-CMD ["node", "build/index.js"]
+CMD ["node", "server.js"]

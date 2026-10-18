@@ -5,14 +5,14 @@ kyst_project_dir: /home/podman/ias
 # Seule machine autorisée à joindre les services exposés (reverse proxy)
 kyst_allowed_source: 10.12.2.2/32
 
-# Sources clonées et images construites sur le serveur. La version est une branche, un tag
-# ou un commit ; le dépôt est public, aucun identifiant n'est nécessaire.
-kyst_repo_url: https://github.com/Kaua-Rbs/IA-et-Sante-groupe-2.git
-kyst_repo_version: feat/fastapi
-kyst_src_dir: /home/podman/kyst-src
-kyst_api_image: localhost/kyst-api:latest
-kyst_app_image: localhost/kyst-app:latest
-# URL publique du front, figée dans l'image au build (protection CSRF des formulaires).
+# Images publiées par la CI sur ghcr.io à chaque release GitHub. La version est un tag
+# d'image : « latest » (dernière release stable), une version exacte (« 1.2.0 ») ou
+# « <majeure>.<mineure> » (« 1.2 »).
+kyst_image_registry: ghcr.io/kaua-rbs/ia-et-sante-groupe-2
+kyst_version: latest
+kyst_api_image: "{{ kyst_image_registry }}/api:{{ kyst_version }}"
+kyst_app_image: "{{ kyst_image_registry }}/app:{{ kyst_version }}"
+# URL publique du front (protection CSRF des formulaires), lue au démarrage du conteneur.
 # Vide : le front suppose https et l'en-tête Host transmis par le proxy.
 kyst_origin: ""
 

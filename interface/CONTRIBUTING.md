@@ -277,12 +277,12 @@ Recettes utiles :
 | `just prod` | Vérifie, installe, construit et lance tout |
 | `just serve` | Relance l'API et le front déjà construits (après un redémarrage, sans rebuild) |
 | `just preflight` | Vérifie seulement la configuration |
-| `just build` | Reconstruit le front, à refaire après tout changement de code ou d'`ORIGIN` |
+| `just build` | Reconstruit le front, à refaire après tout changement de code |
 | `just check` | Tests de l'API et vérification du front |
 
 Points d'attention :
 - **HTTPS** : en production, les cookies de session sont `Secure`. Servez le site en HTTPS derrière un proxy (Caddy, nginx...) qui redirige vers `PORT`. Seul `localhost` fonctionne en HTTP.
-- **`ORIGIN`** est figée au build, car elle sert à la protection CSRF des formulaires. Changer `ORIGIN` impose donc `just build`.
+- **`ORIGIN`** sert à la protection CSRF des formulaires. Elle est lue au démarrage du front (`app/server.js`) : la changer impose seulement `just serve`.
 - **L'API écoute sur `API_HOST`** (`127.0.0.1` par défaut) : seul le front, sur la même machine, l'appelle. N'ouvrez que le port du front.
 - **Un seul worker** pour l'API : l'état de coordination du planning vivra dans ce processus (voir [docs/todo.md](../docs/todo.md)).
 

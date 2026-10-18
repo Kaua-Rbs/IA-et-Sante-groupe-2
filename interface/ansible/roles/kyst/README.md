@@ -15,22 +15,22 @@ Le fichier [`files/compose.yml`](files/compose.yml) est copié dans `kyst_projec
 
 ## Images
 
-L'API et le front sont construits sur le serveur. Le rôle clone le dépôt public (`kyst_repo_url`) à la version `kyst_repo_version` (branche, tag ou commit) dans `kyst_src_dir`, puis construit `localhost/kyst-api` et `localhost/kyst-app` avec les Dockerfiles de `interface/api` et `interface/app`. Seul le code **poussé** sur GitHub est déployé.
+L'API et le front ne sont plus construits sur le serveur : le rôle tire les images publiées par la CI sur ghcr.io à chaque release GitHub (`kyst_image_registry`, par défaut `ghcr.io/kaua-rbs/ia-et-sante-groupe-2`). `kyst_version` choisit le tag : `latest` (défaut, dernière release stable), une version exacte (`1.2.0`) ou `<majeure>.<mineure>` (`1.2`). Les prereleases n'ont que leur version exacte.
 
-Chaque image porte le commit et l'URL publique dont elle est issue (labels `kyst.commit` et `kyst.origin`) : une image n'est reconstruite que si elle manque, ou si le commit cloné ou `kyst_origin` a changé. Les conteneurs ne sont recréés que si une image, `compose.yml` ou `.env` a changé, ou si un service est arrêté. Les anciennes images sont supprimées par le timer `podman-image-prune` du rôle `podman`.
+Le tag est tiré à chaque déploiement. Les conteneurs ne sont recréés que si une image a changé, si `compose.yml` ou `.env` a changé, ou si un service est arrêté. Les anciennes images sont supprimées par le timer `podman-image-prune` du rôle `podman`.
 
-L'URL publique du front est **figée dans l'image** (protection CSRF des formulaires) ; elle n'est pas lue au démarrage. Avec `kyst_origin` vide (défaut), le front suppose `https://` et l'en-tête `Host` transmis par le proxy, ce qui convient derrière un proxy TLS. Sinon, définir `kyst_origin` (ex. `https://kyst.example.org`) : les images sont reconstruites au déploiement suivant.
+L'URL publique du front (protection CSRF des formulaires) est lue au démarrage du conteneur, dans la variable `ORIGIN`. Avec `kyst_origin` vide (défaut), le front suppose `https://` et l'en-tête `Host` transmis par le proxy, ce qui convient derrière un proxy TLS. Sinon, définir `kyst_origin` (ex. `https://kyst.example.org`) : le front est recréé au déploiement suivant, sans changer d'image.
+
+Les serveurs déployés avant ce changement gardent le clone des sources et les images construites localement. Pour repartir de zéro, [`scripts/reset-kyst.sh`](../../scripts/reset-kyst.sh) supprime tout ce que le rôle a créé (Podman reste installé), puis relancer le playbook.
 
 ## Déployer
 
-1. Pousser le code à déployer sur GitHub.
-2. Lancer le playbook, en précisant la version si ce n'est pas `feat/fastapi` :
+1. Publier une release GitHub et attendre la fin de la CI, qui pousse les images.
+2. Lancer le playbook, en précisant la version si ce n'est pas `latest` :
 
    ```bash
-   just playbook-deploy-infra -e kyst_repo_version=main
+   just playbook-deploy-infra -e kyst_version=1.2.0
    ```
-
-   Le premier déploiement prend plusieurs minutes (téléchargement des images de base, `pnpm install`, build du front).
 
 3. Se connecter avec `kyst_first_admin_email` (`admin@kyst.fr`) et le mot de passe généré dans `credentials/<hôte>/kyst/first_admin_password`.
 
