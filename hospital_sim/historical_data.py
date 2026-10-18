@@ -127,17 +127,21 @@ def load_historical(path: Path) -> HistoricalData:
     frame = pd.DataFrame(records, columns=["source_id", "date", "procedure", "duration", "los_days", "preop_days"])
     frame["date"] = pd.to_datetime(frame["date"])
     missing_los = int((frame["los_days"].isna() | frame["preop_days"].isna()).sum())
+    in_training = frame["date"].ge("2019-01-01") & frame["date"].lt("2022-01-01")
+    # LOS estimates use observed stays only, before placeholders are filled in.
+    observed_los = frame.loc[in_training & frame["los_days"].notna(), ["procedure", "los_days"]]
+    los_grouped = observed_los.groupby("procedure")["los_days"].agg(["median", "count"])
+    los_medians = los_grouped.loc[los_grouped["count"].ge(10), "median"].to_dict()
+    los_fallback = float(observed_los["los_days"].median()) if not observed_los.empty else 1.0
     # Older room-only fixtures have no stay column. The bed experiment rejects
     # such input using this quality count rather than fabricating observations.
     frame["los_days"] = frame["los_days"].fillna(1).clip(lower=1).astype(int)
     frame["preop_days"] = frame["preop_days"].fillna(0).clip(lower=0).astype(int)
-    train = frame.loc[frame["date"].ge("2019-01-01") & frame["date"].lt("2022-01-01")]
+    train = frame.loc[in_training]
     if train.empty:
         raise ValueError("No valid 2019–2021 cases available for duration estimation")
     grouped = train.groupby("procedure")["duration"].agg(["median", "count"])
     medians = grouped.loc[grouped["count"].ge(10), "median"].to_dict()
-    los_grouped = train.groupby("procedure")["los_days"].agg(["median", "count"])
-    los_medians = los_grouped.loc[los_grouped["count"].ge(10), "median"].to_dict()
     quality = {
         "input_rows": len(raw), "usable_rows": len(frame),
         "excluded_rows": sum(counts.values()), "exclusions_by_reason": dict(counts),
@@ -145,9 +149,8 @@ def load_historical(path: Path) -> HistoricalData:
         "training_rows": len(train), "training_period": ["2019-01-01", "2021-12-31"],
         "evaluation_year": 2022, "minimum_procedure_training_count": 10,
         "fallback_median_minutes": float(train["duration"].median()),
-        "fallback_median_los_days": float(train["los_days"].median()),
+        "fallback_median_los_days": los_fallback,
         "missing_or_invalid_postop_los_rows": missing_los,
     }
     return HistoricalData(frame, medians, float(train["duration"].median()), quality,
-                          sha256(path.read_bytes()).hexdigest(), los_medians,
-                          float(train["los_days"].median()))
+                          sha256(path.read_bytes()).hexdigest(), los_medians, los_fallback)

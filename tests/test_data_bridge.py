@@ -38,6 +38,7 @@ class TestBuildPatients(unittest.TestCase):
         df = pd.DataFrame(
             {
                 "date_inter": pd.to_datetime(["2025-01-06", "2025-01-07"]),
+                "date_entree": pd.to_datetime(["2025-01-06", "2025-01-07"]),
                 "room_duration_min": [np.nan, 120.0],
                 "duree_sejour_corrigee": [2, np.nan],
                 "ccam_1": ["NAGA", "LAMA"],
@@ -51,6 +52,23 @@ class TestBuildPatients(unittest.TestCase):
         self.assertFalse(patients[["specialite", "duree_operatoire", "duree_sejour"]].isna().any().any())
         self.assertGreaterEqual(patients["duree_operatoire"].min(), 15)
         self.assertGreaterEqual(patients["duree_sejour"].min(), 0)
+
+    def test_sejour_converti_en_jours_post_operatoires(self):
+        df = pd.DataFrame(
+            {
+                "date_inter": pd.to_datetime(["2025-01-06", "2025-01-08", "2025-01-08", None]),
+                "date_entree": pd.to_datetime(["2025-01-06", "2025-01-06", None, "2025-01-06"]),
+                "room_duration_min": [60.0] * 4,
+                # ambulatoire ; 2 jours pre-op + 2 post-op ; dates manquantes
+                "duree_sejour_corrigee": [1, 5, 9, 9],
+                "ccam_1": ["NAGA"] * 4,
+            }
+        )
+        patients = db.build_patients(df)
+        # Les sejours sans date sont imputes par la mediane des sejours connus (0 et 2).
+        self.assertEqual(patients["duree_sejour"].tolist(), [0, 2, 1, 1])
+        sans_admission = db.build_patients(df.iloc[:2], admission_col=None)
+        self.assertEqual(sans_admission["duree_sejour"].tolist(), [0, 4])
 
     def test_colonne_manquante_leve_erreur(self):
         with self.assertRaises(ValueError):

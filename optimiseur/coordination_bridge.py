@@ -115,12 +115,16 @@ class EtatBlocAdapter:
             pid = int(payload.get("patient_id", max(deja) + 1 if deja else 0))
             if pid in deja:
                 raise ValueError(f"Patient deja present : {pid}")
+            duree = int(payload["duree_operatoire"])  # type: ignore[arg-type]
+            sejour = int(payload.get("duree_sejour", 0))  # type: ignore[arg-type]
+            if duree <= 0 or sejour < 0:
+                raise ValueError("duree_operatoire doit etre positive et duree_sejour non negative")
             ligne = pd.DataFrame(
                 [{
                     "patient_id": pid,
                     "specialite": payload["specialite"],
-                    "duree_operatoire": int(payload["duree_operatoire"]),  # type: ignore[arg-type]
-                    "duree_sejour": int(payload.get("duree_sejour", 0)),  # type: ignore[arg-type]
+                    "duree_operatoire": duree,
+                    "duree_sejour": sejour,
                 }]
             )
             return replace(etat, patients=pd.concat([etat.patients, ligne], ignore_index=True))
@@ -273,6 +277,16 @@ class ValidateurBloc:
         except KeyError as exc:
             raisons.append(f"Vacation ou patient inconnu : {exc}")
             return ValidationResult(False, tuple(raisons))
+
+        # Meme regle que le solveur : vacations de la specialite du patient,
+        # ou toute vacation si sa specialite n'en a aucune de disponible.
+        incompatibles = sorted(
+            int(problem.patients["patient_id"].iat[i])
+            for i, v in solution.items()
+            if v not in problem._options_for(i)
+        )
+        if incompatibles:
+            raisons.append(f"Vacation incompatible avec la specialite : patients {incompatibles}")
 
         depassement_vac, depassement_lits = problem.violations(solution)
         if depassement_vac > 1e-6:

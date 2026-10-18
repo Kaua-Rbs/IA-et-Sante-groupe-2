@@ -80,7 +80,7 @@ class Coordinator(Generic[StateT, ScheduleT]):
     def submit(self, event: HospitalEvent, *, replan: bool = True) -> None:
         """Apply an event; observations invalidate proposals without requesting a solve.
 
-        An already pending request is preserved and uses the latest state.
+        An already pending or running request is preserved and re-solved on the latest state.
         """
         self._check_loop()
         if event.event_id in self._seen_events:
@@ -122,6 +122,9 @@ class Coordinator(Generic[StateT, ScheduleT]):
                 solver_seconds = monotonic() - started
                 if self._state.version != version:
                     self._record("stale", version, solver_seconds)
+                    # The request that started this solve is still unanswered,
+                    # even if the newer event itself did not ask for a replan.
+                    self._pending = True
                     continue
                 if candidate is None:
                     self._record("no_proposal", version, solver_seconds)
@@ -141,12 +144,20 @@ class Coordinator(Generic[StateT, ScheduleT]):
                              latency=monotonic() - event_received_at)
             except asyncio.TimeoutError:
                 self._record("timeout", version, monotonic() - started)
+                self._retry_if_stale(version)
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
                 # Exception messages may contain clinical inputs; record only the type.
                 self._record("failed", version, solver_seconds or monotonic() - started,
                              reasons=(type(exc).__name__,))
+                self._retry_if_stale(version)
+
+    def _retry_if_stale(self, version: int) -> None:
+        # A failed solve of an outdated state leaves the latest state unanswered,
+        # as for a stale result, even if the newer event did not ask for a replan.
+        if self._state.version != version:
+            self._pending = True
 
     def _record(
         self, status: str, version: int, solver_seconds: float = 0.0,

@@ -2,13 +2,13 @@ import numpy as np
 import pandas as pd
 from optimiseur import data_bridge as db
 from los_model import DEFAULT_ARTIFACT as LOS_ARTIFACT, predict_los
-from surgery_duration import predict_schedule
+from surgery_duration import DEFAULT_ARTIFACT as ROOM_ARTIFACT, predict_schedule
 
 K_HIGH = 4
 EDA_PARQUET = "resources/donnees_bloc_pretraitees.parquet"
 LOS_PARQUET = "resources/model_los_dataset.parquet"
 LOS_MODEL_PATH = LOS_ARTIFACT
-ROOM_MODEL_PATH = "artifacts/ml-models/surgery_duration_model.joblib"
+ROOM_MODEL_PATH = ROOM_ARTIFACT
 
 def _filter_eda_by_horizon(eda, horizon_jours):
     if "date_inter" not in eda.columns:
@@ -25,20 +25,18 @@ def _predict_los(parquet_path, model_path):
     los_df = pd.read_parquet(parquet_path)
     return los_df, predict_los(los_df, model_path)
 
-def _find_merge_keys(eda, los_df):
-    id_candidates = [c for c in ["no_cas", "id_patient"] if c in eda.columns]
-    date_candidates = [c for c in ["date_inter"] if c in eda.columns]
-    los_id = "split_patient_id"
-    los_date = "split_event_date"
+def _id_overlap(eda, los_df):
+    """Share of EDA patients found in the LOS dataset.
 
-    best = (None, None, 0.0)
-    for id_col in id_candidates:
-        eda_ids = set(eda[id_col].astype(str).unique())
-        los_ids = set(los_df[los_id].astype(str).unique())
-        m = len(eda_ids & los_ids) / max(len(eda_ids), 1)
-        if m > best[2]:
-            best = (id_col, None, m)
-    return best[0], best[1], best[2]
+    ``split_patient_id`` is an ``id_patient`` value (see
+    ``hospital_sim.joint_experiment``); other identifiers such as ``no_cas``
+    may overlap numerically but would attach predictions to the wrong patient.
+    """
+    if "id_patient" not in eda.columns:
+        raise ValueError("EDA frame must provide id_patient to match LOS predictions")
+    eda_ids = set(eda["id_patient"].astype(str).unique())
+    los_ids = set(los_df["split_patient_id"].astype(str).unique())
+    return len(eda_ids & los_ids) / max(len(eda_ids), 1)
 
 def build_patients_with_uncertainty(
     parquet_path=EDA_PARQUET,
@@ -58,10 +56,10 @@ def build_patients_with_uncertainty(
     los_df, los_predictions = _predict_los(los_parquet, los_model_path)
 
     # Find merge key between EDA and LOS
-    id_col, _, match = _find_merge_keys(eda_filt, los_df)
-    print(f"[diag] Best EDA id key = '{id_col}' with {match:.1%} id-overlap")
+    match = _id_overlap(eda_filt, los_df)
+    print(f"[diag] EDA id_patient overlap with LOS: {match:.1%}")
 
-    if id_col is None or match < 0.1:
+    if match < 0.1:
         raise RuntimeError(
             "Could not find a matching key between EDA and LOS datasets. "
             f"EDA cols: {list(eda_filt.columns)} | "
@@ -84,7 +82,7 @@ def build_patients_with_uncertainty(
 
     # Merge with EDA-filtered
     eda_filt = eda_filt.copy()
-    eda_filt["patient_id_key"] = eda_filt[id_col]
+    eda_filt["patient_id_key"] = eda_filt["id_patient"]
     if "date_inter" in eda_filt.columns:
         eda_filt["event_date"] = pd.to_datetime(eda_filt["date_inter"]).dt.normalize()
     else:
@@ -129,9 +127,10 @@ def build_patients_with_uncertainty(
         "patient_id": np.arange(len(merged)),
         "specialite": specialite.to_numpy(),
         "duree_operatoire": dur,
-        "duree_sejour": merged["pred"].round().astype(int).values,
-        "duree_sejour_lower": merged["lower"].clip(lower=1).round().astype(int).values,
-        "duree_sejour_upper": np.ceil(merged["upper"]).astype(int).values,
+        # Inclusive postoperative day counts -> optimizer day offsets (0 = same-day discharge)
+        "duree_sejour": merged["pred"].round().astype(int).values - 1,
+        "duree_sejour_lower": merged["lower"].clip(lower=1).round().astype(int).values - 1,
+        "duree_sejour_upper": np.ceil(merged["upper"]).astype(int).values - 1,
         "risk_level": np.where(merged["pred"].values > K_HIGH, "HIGH", "LOW"),
         "los_pred": merged["pred"].values,
     })

@@ -184,3 +184,48 @@ class TestViolations(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestCorrectionsRevue(unittest.TestCase):
+    """Regressions des points releves en revue de code."""
+
+    def setUp(self):
+        self.vacations = [
+            {"vacation_id": 10, "jour": 0, "specialite": "X", "capacite_min": 240},
+            {"vacation_id": 11, "jour": 1, "specialite": "X", "capacite_min": 240},
+        ]
+
+    def test_memetiques_avec_un_seul_patient(self):
+        problem = make_problem(
+            [{"patient_id": 0, "specialite": "X", "duree_operatoire": 60, "duree_sejour": 1}],
+            self.vacations,
+        )
+        for fonction in (op.genetic_tabu, op.genetic_recuit):
+            resultat = fonction(problem, n_gen=5, pop_size=6, p_cross=1.0, seed=0)
+            self.assertEqual(set(resultat.meilleure_solution), {0})
+
+    def test_solution_initiale_evaluee_une_seule_fois(self):
+        from optimiseur.search_control import SearchControl
+
+        problem = op.PlanningProblem(*op.small_validation_instance())
+        initiale = problem.random_solution()
+        for fonction in (op.simulated_annealing, op.ant_colony_optimization):
+            control = SearchControl(max_evaluations=1)
+            resultat = fonction(problem, initial_solution=initiale, control=control)
+            self.assertEqual(resultat.meilleure_solution, initiale)
+        # recuit : une evaluation initiale puis une par iteration, sans doublon
+        control = SearchControl()
+        op.simulated_annealing(problem, initial_solution=initiale, control=control, n_iter=10)
+        self.assertEqual(control.evaluations, 11)
+        # fourmis : la solution initiale amorce les pheromones (rho=Q=0 les fige)
+        vus = {}
+        op.ant_colony_optimization(problem, initial_solution=initiale, control=SearchControl(),
+                                   n_iter=1, rho=0.0, Q=0.0, etat=vus)
+        for pid, vac in initiale.items():
+            self.assertEqual(vus["pheromones"][pid, vac], 2.0)
+            self.assertEqual(vus["pheromones"][pid, 1 - vac], 1.0)
+
+    def test_historique_echantillonne_sous_budget_temps(self):
+        problem = op.PlanningProblem(*op.small_validation_instance())
+        resultat = op.simulated_annealing(problem, n_iter=10**6, time_budget_s=0.3, seed=0)
+        self.assertGreater(len(resultat.historique), 10)

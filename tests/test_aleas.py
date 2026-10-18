@@ -196,6 +196,13 @@ class TestAdaptationDynamique(unittest.TestCase):
             al.adapter_planning(problem, {0: 0}, scenario_spec, jour_courant=1,
                                 n_iter=1)
 
+        # Un identifiant inconnu ne doit pas retomber sur un indice positionnel.
+        scenario_retard = al.ScenarioAleas(nom="Retard inconnu")
+        scenario_retard.ajouter_retard_bloc(0, 60)
+        with self.assertRaisesRegex(ValueError, "vacation inconnue"):
+            al.adapter_planning(problem, {0: 0}, scenario_retard, jour_courant=0,
+                                n_iter=1)
+
     def test_annulation_retiree_et_urgences_inserees(self):
         # Trouver un patient au jour 2
         pid_a_annuler = None
@@ -274,3 +281,33 @@ class TestPlottingAleas(unittest.TestCase):
         # Lits avec aleas plot
         fig_lits = pl.plot_occupation_lits_aleas(prob, sol, indisponibilites=sc.indisponibilites_lits)
         self.assertIsNotNone(fig_lits)
+
+
+class TestCorrectionsRevueAleas(unittest.TestCase):
+    def setUp(self):
+        self.patients, self.vacations = op.generate_test_data(n_patients=15, n_days=3, seed=5)
+        self.prob = op.PlanningProblem(self.patients, self.vacations, lits_capacity=20)
+
+    def test_parametres_scenario_invalides(self):
+        with self.assertRaisesRegex(ValueError, "max_retard_min"):
+            al.generer_scenario_aleas(self.prob, jour_courant=0, max_retard_min=10)
+        sans_vacation = op.PlanningProblem(self.patients, self.vacations.iloc[0:0])
+        with self.assertRaisesRegex(ValueError, "Aucune vacation"):
+            al.generer_scenario_aleas(sans_vacation, jour_courant=0)
+
+    def test_date_b_divergente_et_de_qualite_proche(self):
+        nominale = op.simulated_annealing(self.prob, n_iter=2000, seed=0).meilleure_solution
+        f_ref = self.prob.fitness(nominale)
+        date_b = al._generer_solution_diversifiee(self.prob, nominale, seed=3)
+        self.assertGreater(sum(date_b[p] != nominale[p] for p in nominale), 0)
+        self.assertGreaterEqual(self.prob.fitness(date_b), f_ref - max(0.05 * abs(f_ref), 1.0))
+
+    def test_variantes_conservent_retards_et_options(self):
+        delais = np.zeros(self.prob.n_vacations)
+        delais[0] = 60
+        options = [[0] for _ in range(self.prob.n_patients)]
+        prob = op.PlanningProblem(self.patients, self.vacations, lits_capacity=20,
+                                  vacation_delays=delais, patient_options=options)
+        alts = al.generer_plannings_alternatifs(prob, seed=0, metaheuristic_kwargs={"n_iter": 30})
+        for nom in ("Robuste_Buffer", "Securite_Lits"):
+            self.assertEqual(set(alts[nom].solution.values()), {0})

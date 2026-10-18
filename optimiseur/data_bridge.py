@@ -95,18 +95,27 @@ def build_patients(
     duration_col: str = "room_duration_min",
     stay_col: str = "duree_sejour_corrigee",
     date_col: str = "date_inter",
+    admission_col: str | None = "date_entree",
     max_specialites: int = 6,
     min_duree_min: int = 15,
 ) -> pd.DataFrame:
     """Construit la table patients au format de ``optimizer.py``.
 
     - ``duree_operatoire``  <- duree d'occupation de salle (minutes)
-    - ``duree_sejour``      <- duree de sejour corrigee (jours, incluse)
+    - ``duree_sejour``      <- jours post-operatoires apres le jour d'intervention
+      (0 = sortie le jour meme), comme l'attend ``PlanningProblem``
     - ``specialite``        <- proxy derive (voir ``derive_specialite``)
+
+    ``stay_col`` est un decompte inclusif depuis l'admission (``admission_col``) :
+    les jours pre-operatoires, ``date_col - admission_col``, en sont retires. Avec
+    ``admission_col=None``, le decompte inclusif commence le jour d'intervention.
+    Une date manquante rend le sejour inconnu ; il est alors impute comme les
+    autres valeurs manquantes (mediane de la specialite, puis globale).
     """
     specialite = derive_specialite(df, specialite_col, max_specialites)
 
-    for col in (duration_col, stay_col):
+    required = (duration_col, stay_col) + ((date_col, admission_col) if admission_col else ())
+    for col in required:
         if col not in df.columns:
             raise ValueError(
                 f"Colonne '{col}' absente du Parquet EDA. Colonnes disponibles : {list(df.columns)}"
@@ -116,7 +125,11 @@ def build_patients(
     duree = _fill_by_group(duree, specialite)
     duree = duree.fillna(min_duree_min).clip(lower=min_duree_min).round().astype(int)
 
-    sejour = pd.to_numeric(df[stay_col], errors="coerce")
+    sejour = pd.to_numeric(df[stay_col], errors="coerce") - 1
+    if admission_col:
+        intervention = pd.to_datetime(df[date_col], errors="coerce").dt.normalize()
+        admission = pd.to_datetime(df[admission_col], errors="coerce").dt.normalize()
+        sejour = sejour - (intervention - admission).dt.days
     sejour = _fill_by_group(sejour, specialite)
     sejour = sejour.fillna(0).clip(lower=0).round().astype(int)
 

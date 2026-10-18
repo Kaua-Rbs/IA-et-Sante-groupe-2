@@ -97,6 +97,16 @@ class TestEtatBlocAdapter(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.adapter.apply_event(_snapshot(self.etat), event)
 
+    def test_arrivee_urgence_durees_invalides(self):
+        for durees in ({"duree_operatoire": 0}, {"duree_operatoire": -60},
+                       {"duree_operatoire": 90, "duree_sejour": -1}):
+            with self.subTest(**durees):
+                event = HospitalEvent(
+                    "e", 1.0, EventKind.EMERGENCY_ARRIVAL, {"specialite": "X", **durees},
+                )
+                with self.assertRaises(ValueError):
+                    self.adapter.apply_event(_snapshot(self.etat), event)
+
     def test_sejour_prolonge(self):
         event = HospitalEvent("e", 1.0, EventKind.DELAYED_DISCHARGE, {"patient_id": 0, "jours": 3})
         nouveau = self.adapter.apply_event(_snapshot(self.etat), event)
@@ -160,6 +170,13 @@ class TestValidateur(unittest.TestCase):
         affectation[0] = 999
         resultat = self.validator.validate(self.snapshot, Proposal(Planning(affectation, "test"), 0))
         self.assertFalse(resultat.feasible)
+
+    def test_specialite_incompatible(self):
+        affectation = dict(self.affectation)
+        affectation[2] = 10  # patient Y sur une vacation X
+        resultat = self.validator.validate(self.snapshot, Proposal(Planning(affectation, "test"), 0))
+        self.assertFalse(resultat.feasible)
+        self.assertTrue(any("incompatible" in raison for raison in resultat.reasons))
 
     def test_capacite_depassee(self):
         etat = _etat(

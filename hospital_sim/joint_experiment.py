@@ -150,7 +150,8 @@ async def execute(args):
     eligible = (_heldout_source_keys(args.eda_input, args.surgery_data)
                 if args.cohort == "model_test" else None)
     originals = _daily_scenarios(data, days, eligible)
-    predictions = load_model_predictions(args.eda_input, args.room_model, args.los_model)
+    predictions = (load_model_predictions(args.eda_input, args.room_model, args.los_model)
+                   if "model" in args.modes else None)
     outage = (Outage(args.outage_room, args.outage_start, args.outage_end)
               if args.scenario == "outage" else None)
     config = SimulationConfig(args.rooms, args.opening, args.closing, args.turnover, outage)
@@ -159,7 +160,7 @@ async def execute(args):
         raise ValueError("Output directory must be empty")
     manifest = {
         "dataset_sha256": data.fingerprint,
-        "prediction_artifacts_sha256": predictions.fingerprints,
+        "prediction_artifacts_sha256": predictions.fingerprints if predictions is not None else None,
         "code": git_metadata(),
         "python": platform.python_version(),
         "dependencies": {name: version(name) for name in (

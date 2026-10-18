@@ -211,6 +211,8 @@ async def run_day(scenario, config, policy="reactive", scheduler=None, timeout_s
                 coordinator.accept(coordinator.snapshot.version)
             initial = coordinator.snapshot.accepted_schedule or initial
             schedules.append(schedule_record(initial, config.opening, "initial"))
+        # The accepted schedule only changes on accept(); avoid a snapshot copy per minute.
+        current = initial
         while model.has_work():
             model.step()
             first = model.minute == config.opening and initial_schedule is None
@@ -224,17 +226,20 @@ async def run_day(scenario, config, policy="reactive", scheduler=None, timeout_s
             )
             if replan:
                 await coordinator.wait_idle()
+                snapshot = coordinator.snapshot
                 if coordinator.proposal is not None:
-                    coordinator.accept(coordinator.snapshot.version)
-                schedule = coordinator.snapshot.accepted_schedule or initial
+                    coordinator.accept(snapshot.version)
+                    snapshot = coordinator.snapshot
+                schedule = snapshot.accepted_schedule or initial
                 # Initial fallback is explicitly empty if no valid proposal exists.
                 if first:
                     initial = schedule
+                current = schedule
                 schedules.append(schedule_record(schedule, model.minute, "initial" if first else "replan"))
             for outcome in coordinator.outcomes[outcome_index:]:
                 model.log("coordinator", **asdict(outcome))
             outcome_index = len(coordinator.outcomes)
-            model.start_cases(coordinator.snapshot.accepted_schedule or initial)
+            model.start_cases(current)
             await asyncio.sleep(0)
     executed = [{
         "case_id": a.case.case_id, "status": a.status,

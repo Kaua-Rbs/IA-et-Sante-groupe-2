@@ -2,10 +2,12 @@
 
 from dataclasses import dataclass, field
 from functools import wraps
+import inspect
 from math import isfinite
 from time import monotonic
 from typing import Callable
 
+import numpy as np
 import pandas as pd
 
 
@@ -58,11 +60,17 @@ class _ControlledProblem:
         self._problem = problem
         self._control = control
         self._initial = dict(initial) if initial is not None else None
+        self._initial_fitness = None
 
     def __getattr__(self, name):
         return getattr(self._problem, name)
 
     def fitness(self, solution):
+        # The initial solution was already evaluated up front: reuse that value once
+        # so it is neither counted twice against the budget nor logged twice.
+        if self._initial_fitness is not None and solution == self._initial_fitness[0]:
+            value, self._initial_fitness = self._initial_fitness[1], None
+            return value
         return self._control.evaluate(self._problem, solution)
 
     def random_solution(self, rng=None):
@@ -70,6 +78,20 @@ class _ControlledProblem:
             initial, self._initial = self._initial, None
             return initial
         return self._problem.random_solution(rng)
+
+
+def _seed_colony(function, problem, initial, kwargs):
+    """Ant colonies never call random_solution; seed them with the initial plan."""
+    params = inspect.signature(function).parameters
+    kwargs = dict(kwargs)
+    if "meilleure_solution_initiale" in params and kwargs.get("meilleure_solution_initiale") is None:
+        kwargs["meilleure_solution_initiale"] = dict(initial)
+    if "pheromones_initiaux" in params and kwargs.get("pheromones_initiaux") is None:
+        tau = np.ones((problem.n_patients, problem.n_vacations))
+        for pid, vac in initial.items():
+            tau[pid, vac] += 1.0
+        kwargs["pheromones_initiaux"] = tau
+    return kwargs
 
 
 def controlled_search(function):
@@ -83,7 +105,9 @@ def controlled_search(function):
         proxy = _ControlledProblem(problem, control, initial_solution)
         try:
             if initial_solution is not None:
-                control.evaluate(problem, initial_solution)
+                value = control.evaluate(problem, initial_solution)
+                proxy._initial_fitness = (dict(initial_solution), value)
+                kwargs = _seed_colony(function, problem, initial_solution, kwargs)
             function(proxy, *args, **kwargs)
         except SearchStopped:
             pass

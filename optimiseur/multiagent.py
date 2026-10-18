@@ -194,14 +194,18 @@ class AgentGlouton(AgentChercheur):
 
 
 class AgentDescente(AgentChercheur):
-    """Descente stochastique : teste quelques voisins, garde le meilleur ;
-    redemarre localement si aucun voisin n'ameliore la solution."""
+    """Descente stochastique : teste quelques voisins, garde le meilleur.
+    Apres ``patience`` etapes sans amelioration, redemarre localement en
+    perturbant la solution courante (quelques mouvements aleatoires) plutot
+    que depuis un planning aleatoire."""
 
     nom = "descente"
 
-    def __init__(self, model, probleme, seed, voisins: int = 12):
+    def __init__(self, model, probleme, seed, voisins: int = 12, patience: int = 5):
         super().__init__(model, probleme, seed)
         self.voisins = voisins
+        self.patience = max(1, patience)
+        self.echecs = 0
 
     def etape(self) -> None:
         meilleur, meilleure_f = self.solution, self.fitness
@@ -212,9 +216,20 @@ class AgentDescente(AgentChercheur):
                 meilleur, meilleure_f = voisin, f
         if meilleure_f > self.fitness:
             self.solution, self.fitness = meilleur, meilleure_f
+            self.echecs = 0
         else:
-            self.repartir()
+            self.echecs += 1
+            if self.echecs >= self.patience:
+                # l'optimum local est deja publie ; on explore son voisinage elargi
+                self.repartir(self._perturber())
+                self.echecs = 0
         self.publier()
+
+    def _perturber(self) -> Solution:
+        solution = dict(self.solution)
+        for _ in range(max(2, self.probleme.n_patients // 10)):
+            solution, _ = self.probleme.neighbor(solution, self.alea)
+        return solution
 
 
 class AgentAleatoire(AgentChercheur):
@@ -464,11 +479,10 @@ class ModeleSMA(mesa.Model):
         self.nb_etapes = 0
 
     def step(self) -> None:
-        """Une etape : chaque agent cherche, puis le coordinateur intervient."""
+        """Une etape : chaque agent cherche (et publie), puis le coordinateur intervient."""
         self.nb_etapes += 1
         for agent in sorted(self.agents_chercheurs, key=lambda a: a.unique_id):
             agent.etape()
-            agent.publier()
         self.coordinateur.etape(
             self.agents_chercheurs, self.tableau_noir, self.probleme, self.rng_coordination, self.nb_etapes
         )
