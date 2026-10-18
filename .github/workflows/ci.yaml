@@ -1,0 +1,132 @@
+# Checks the research engines (tests/) and the KYST interface (interface/api and
+# interface/app) on every push to main and pull request, and publishes both images
+# to ghcr.io on every GitHub release:
+#
+#   ghcr.io/<owner>/<repo>/api:<version>, :<major>.<minor>, :latest
+#   ghcr.io/<owner>/<repo>/app:<version>, :<major>.<minor>, :latest
+#
+# Prereleases get only their exact version tag, never latest.
+#
+# Actions are pinned to a commit SHA; the comment gives the version it matches.
+# Tool versions follow the Dockerfiles (Python 3.13 + uv 0.8.22, Node 24 + pnpm 12.9.1).
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  release:
+    types: [published]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  research:
+    name: Research engine tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - run: pipx install uv==0.8.22
+
+      - run: uv venv --python 3.13 && uv pip install -r requirements.txt
+
+      # Tests needing the confidential EDA Parquet or a display skip themselves
+      - run: .venv/bin/python -m unittest discover -t . -s tests
+
+  api:
+    name: API tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: interface/api
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # uv fetches the Python version pyproject.toml requires
+      - run: pipx install uv==0.8.22
+
+      - run: uv sync --frozen
+
+      - run: uv run pytest -q
+
+  app:
+    name: Front build and type check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: interface/app
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - run: npm install --global pnpm@12.9.1
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm check
+
+      - run: pnpm build
+
+  publish:
+    name: Publish (${{ matrix.component }})
+    if: github.event_name == 'release'
+    needs: [api, app]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        component: [api, app]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ghcr.io/${{ github.repository }}/${{ matrix.component }}
+          flavor: |
+            latest=false
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable=${{ !github.event.release.prerelease }}
+
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: interface/${{ matrix.component }}
+          platforms: linux/amd64
+          push: true
+          provenance: true
+          sbom: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.component }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.component }}
