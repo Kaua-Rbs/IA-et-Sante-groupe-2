@@ -21,6 +21,14 @@ FUNCTIONS = {
     "aco_tabu": op.fourmis_tabu,
 }
 
+# Workers fork from a server that has already imported the optimizer, so each
+# request does not pay interpreter and numpy/pandas start-up out of its deadline.
+if "forkserver" in mp.get_all_start_methods():
+    _CONTEXT = mp.get_context("forkserver")
+    _CONTEXT.set_forkserver_preload(["hospital_sim.metaheuristics"])
+else:
+    _CONTEXT = mp.get_context("spawn")
+
 
 @dataclass(frozen=True)
 class SearchSettings:
@@ -100,6 +108,19 @@ def _search_worker(connection, request, settings, deadline):
         connection.close()
 
 
+def _reap(process):
+    """Blocking worker shutdown; runs in a thread so the event loop keeps going."""
+    process.join(timeout=0.02)
+    if process.is_alive():
+        process.terminate()
+        process.join(timeout=0.2)
+    if process.is_alive():
+        process.kill()
+        process.join(timeout=1.0)
+    if not process.is_alive():
+        process.close()
+
+
 class MetaheuristicScheduler:
     def __init__(self, settings=SearchSettings()):
         self.settings = settings
@@ -163,11 +184,11 @@ class MetaheuristicScheduler:
         if remaining <= 0.02:
             report["stop_reason"] = "deadline"
             return initial
-        parent, child = mp.get_context("spawn").Pipe(duplex=False)
+        parent, child = _CONTEXT.Pipe(duplex=False)
         # Leave a little time for IPC, validation and coordinator acceptance.
         deadline = request.deadline - min(0.05, remaining / 10)
         parent_deadline = request.deadline - min(0.01, remaining / 20)
-        process = mp.get_context("spawn").Process(
+        process = _CONTEXT.Process(
             target=_search_worker, args=(child, request, self.settings, deadline),
             name=f"hospital-{self.settings.method}",
         )
@@ -186,16 +207,22 @@ class MetaheuristicScheduler:
                         finished = True
                         break
                     if message["allocation"] is not None:
-                        # Ensure malformed progress cannot replace a valid incumbent.
-                        problem.decode(message["allocation"])
-                        best = message["allocation"]
+                        # Malformed progress cannot replace a valid incumbent.
+                        try:
+                            problem.decode(message["allocation"])
+                        except (ValueError, KeyError, TypeError, IndexError):
+                            report["malformed_progress"] = report.get("malformed_progress", 0) + 1
+                        else:
+                            best = message["allocation"]
                     report.update(evaluations=message["evaluations"], history=message["history"])
                     if message["stop_reason"] is not None:
                         report["stop_reason"] = message["stop_reason"]
                         finished = True
                         break
                 elif not process.is_alive():
-                    break
+                    # The worker may have sent its last messages between poll() and exit.
+                    if not parent.poll():
+                        break
                 else:
                     await asyncio.sleep(0.002)
             if not finished:
@@ -203,14 +230,10 @@ class MetaheuristicScheduler:
             return best
         finally:
             child.close()
-            # No await here: cancellation must not orphan the CPU-bound worker.
-            if process.pid is not None:
-                process.join(timeout=0.02)
-                if process.is_alive():
-                    process.terminate()
-                    process.join(timeout=0.2)
-                if process.is_alive():
-                    process.kill()
-                    process.join()
-                process.close()
             parent.close()
+            if process.pid is not None:
+                if not finished:
+                    # Signal first, synchronously: cancellation must not orphan the CPU-bound worker.
+                    process.terminate()
+                # Reap in a thread; shielding lets it finish even if we are cancelled again.
+                await asyncio.shield(asyncio.get_running_loop().run_in_executor(None, _reap, process))

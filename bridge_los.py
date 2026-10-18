@@ -2,13 +2,13 @@ import numpy as np
 import pandas as pd
 from optimiseur import data_bridge as db
 from los_model import DEFAULT_ARTIFACT as LOS_ARTIFACT, predict_los
-from surgery_duration import predict_schedule
+from surgery_duration import DEFAULT_ARTIFACT as ROOM_ARTIFACT, predict_schedule
 
 K_HIGH = 4
 EDA_PARQUET = "resources/donnees_bloc_pretraitees.parquet"
 LOS_PARQUET = "resources/model_los_dataset.parquet"
 LOS_MODEL_PATH = LOS_ARTIFACT
-ROOM_MODEL_PATH = "artifacts/ml-models/surgery_duration_model.joblib"
+ROOM_MODEL_PATH = ROOM_ARTIFACT
 
 def _filter_eda_by_horizon(eda, horizon_jours):
     if "date_inter" not in eda.columns:

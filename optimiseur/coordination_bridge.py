@@ -274,6 +274,16 @@ class ValidateurBloc:
             raisons.append(f"Vacation ou patient inconnu : {exc}")
             return ValidationResult(False, tuple(raisons))
 
+        # Meme regle que le solveur : vacations de la specialite du patient,
+        # ou toute vacation si sa specialite n'en a aucune de disponible.
+        incompatibles = sorted(
+            int(problem.patients["patient_id"].iat[i])
+            for i, v in solution.items()
+            if v not in problem._options_for(i)
+        )
+        if incompatibles:
+            raisons.append(f"Vacation incompatible avec la specialite : patients {incompatibles}")
+
         depassement_vac, depassement_lits = problem.violations(solution)
         if depassement_vac > 1e-6:
             raisons.append(f"Capacite vacation depassee de {depassement_vac:.1f} min")

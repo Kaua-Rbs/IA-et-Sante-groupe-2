@@ -64,6 +64,18 @@ class CoordinationTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(coordinator.proposal)
         self.assertEqual(coordinator.snapshot.accepted_schedule, DemoSchedule("a"))
 
+    async def test_observation_during_computation_still_replans(self):
+        scheduler = DemoScheduler(pause_first=True)
+        coordinator = self.make_coordinator(scheduler)
+        coordinator.submit(outage("1", 1.0, "a"))
+        await asyncio.wait_for(scheduler.started.wait(), 2.0)
+        coordinator.submit(outage("2", 2.0, "b"), replan=False)
+        scheduler.release.set()
+        await self.idle(coordinator)
+        self.assertEqual(scheduler.request_versions, [1, 2])
+        self.assertEqual([o.status for o in coordinator.outcomes], ["stale", "proposal_ready"])
+        self.assertEqual(coordinator.proposal.schedule, DemoSchedule("c"))
+
     async def test_new_event_invalidates_previously_exposed_proposal(self):
         coordinator = self.make_coordinator()
         coordinator.submit(outage("1", 1.0, "a"))

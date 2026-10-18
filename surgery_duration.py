@@ -19,6 +19,8 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, median_abso
 from sklearn.inspection import permutation_importance
 
 TARGET = 'target_surgery_duration_min'
+# Meme emplacement que los_model et les experiences hospital_sim.
+DEFAULT_ARTIFACT = Path('artifacts/ml-models/surgery_duration_model.joblib')
 CAT = ['sexe', 'interv_type', 'anesth_type', 'anesth_loco_reg', 'praticien', 'nom_chir',
        'cim_diag_pr', 'cim_diag_family', 'ccam_1', 'ccam_1_family']
 NUM = ['age_years', 'intervention_month_sin', 'intervention_month_cos',
@@ -214,7 +216,7 @@ def run_ccam_ablation(data, out, calendar=False):
     return result
 
 
-def run(data, out, train_bounds=False, calendar=False):
+def run(data, out, train_bounds=False, calendar=False, artifact=DEFAULT_ARTIFACT):
     from catboost import CatBoostRegressor
     from xgboost import XGBRegressor
     out.mkdir(parents=True, exist_ok=True)
@@ -346,7 +348,9 @@ def run(data, out, train_bounds=False, calendar=False):
                  category_mapping=mapping, calendar=calendar, artifact_version=2)
     if train_bounds:
         saved['bounds'] = fit_bounds(X, y, prepared(calibration), calibration[TARGET], columns)
-    joblib.dump(saved, out / 'surgery_duration_model.joblib')
+    artifact = Path(artifact)
+    artifact.parent.mkdir(parents=True, exist_ok=True)
+    joblib.dump(saved, artifact)
     (out / 'selection.json').write_text(json.dumps({'selected': selected, 'rule': 'Validation MAE within 0.2 minutes of best, then fastest training',
         'fit_partition': 'train only; early validation for selection/early stopping; later validation for calibration; test for reporting',
         'calendar': calendar, 'calibration_rows': len(calibration), 'selection_rows': len(val),
@@ -397,7 +401,7 @@ def run(data, out, train_bounds=False, calendar=False):
                   'std': importance.importances_std, 'Model': importance_name}).sort_values('MAE_increase_min', ascending=False).to_csv(out / 'feature_importance.csv', index=False)
     output = pd.DataFrame({'dataset_row_id': test.index, 'duration_point_min': predictions[selected]})
     output.to_csv(out / 'selected_test_predictions.csv', index=False)
-    scheduler = predict_schedule(test, out / 'surgery_duration_model.joblib')
+    scheduler = predict_schedule(test, artifact)
     scheduler.insert(0, 'dataset_row_id', test.index)
     scheduler.to_csv(out / 'scheduler_predictions_test.csv', index=False)
     if train_bounds:
@@ -480,7 +484,7 @@ def checked_prediction(prediction):
     return prediction
 
 
-def predict_schedule(frame, artifact='results/surgery_duration_model.joblib', raw=False):
+def predict_schedule(frame, artifact=DEFAULT_ARTIFACT, raw=False):
     """Predictions individuelles; P95 patient ne garantit pas P95 vacation."""
     return predict_schedule_loaded(frame, joblib.load(artifact), raw=raw)
 
@@ -504,11 +508,11 @@ def predict_schedule_loaded(frame, saved, raw=False):
     return result
 
 
-def predict_duration(frame, artifact='results/surgery_duration_model.joblib', raw=False):
+def predict_duration(frame, artifact=DEFAULT_ARTIFACT, raw=False):
     return predict_schedule(frame, artifact, raw).duration_point_min.rename('duree_operatoire')
 
 
-def apply_predicted_durations(patients, preoperative_features, artifact='results/surgery_duration_model.joblib',
+def apply_predicted_durations(patients, preoperative_features, artifact=DEFAULT_ARTIFACT,
                               risk='point', raw=False, allow_calendar=False):
     """Durees fixes: modele sans calendrier par defaut, index uniques alignes."""
     if risk not in ('point', 'p80', 'p95'):
@@ -531,6 +535,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', type=Path, default=Path('resources/model_surgery_duration_dataset.parquet'))
     parser.add_argument('--out', type=Path, default=Path('results'))
+    parser.add_argument('--artifact', type=Path, default=DEFAULT_ARTIFACT, help='Chemin du modele entraine')
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--baselines-only', action='store_true', help='Evaluer uniquement les references medianes')
     mode.add_argument('--ccam-ablation', action='store_true', help='Comparer avec/sans les deux variables CCAM')
@@ -544,4 +549,5 @@ if __name__ == '__main__':
     elif args.ccam_ablation:
         run_ccam_ablation(args.data, args.out, calendar=args.calendar)
     else:
-        run_comparison(args.data, args.out, train_bounds=args.train_bounds, calendar=args.calendar)
+        run_comparison(args.data, args.out, train_bounds=args.train_bounds, calendar=args.calendar,
+                       artifact=args.artifact)

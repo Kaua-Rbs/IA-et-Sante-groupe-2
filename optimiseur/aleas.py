@@ -212,11 +212,16 @@ def generer_scenario_aleas(
     """Simule de maniere reproductible un ensemble realiste d'aleas
     survenant a partir du jour courant.
     """
+    specialites_dispos = list(problem.compatible.keys())
+    if n_urgences > 0 and not specialites_dispos:
+        raise ValueError("Aucune vacation : impossible de generer des urgences")
+    if proba_retard_bloc > 0 and max_retard_min < 20:
+        raise ValueError("max_retard_min doit etre d'au moins 20 minutes")
+
     rng = random.Random(seed)
     np_rng = np.random.default_rng(seed)
     scenario = ScenarioAleas(nom=f"Simulation aleas au Jour {jour_courant}")
 
-    specialites_dispos = list(problem.compatible.keys())
     existing_pids = set(problem.patients["patient_id"])
     max_id = max(existing_pids) if existing_pids else 0
 
@@ -349,6 +354,12 @@ def generer_plannings_alternatifs(
     vac_buffer = problem.vacations.copy()
     vac_buffer["capacite_min"] = vac_buffer["capacite_min"] * (1.0 - marge_buffer_bloc)
     lits_buffer = np.maximum(1, np.floor(problem._lits_capacity_arr * (1.0 - marge_buffer_lits)))
+    # Les retards bloc et les vacations autorisees du probleme d'origine
+    # s'appliquent aussi aux variantes, sinon elles ne sont pas comparables.
+    contraintes = {
+        "vacation_delays": problem.vacation_delays.copy(),
+        "patient_options": [opts.copy() for opts in problem._patient_options],
+    }
     prob_buffer = PlanningProblem(
         problem.patients.copy(),
         vac_buffer,
@@ -356,6 +367,7 @@ def generer_plannings_alternatifs(
         w_vacation=problem.w_vacation,
         w_lits=problem.w_lits,
         w_balance=problem.w_balance,
+        **contraintes,
     )
     sol_robuste = _resoudre(prob_buffer, seed + 101)
 
@@ -367,14 +379,14 @@ def generer_plannings_alternatifs(
         w_vacation=problem.w_vacation,
         w_lits=problem.w_lits * 3.0,
         w_balance=problem.w_balance * 4.0,
+        **contraintes,
     )
     sol_securite_lits = _resoudre(prob_lits, seed + 202)
 
     # 4. Solution Alternative Diversifiee (Date B)
-    # Recherche d'une solution de qualite avec seed differente et contrainte de divergence
-    sol_diversifiee = _generer_solution_diversifiee(
-        problem, sol_nominale, seed=seed + 303, **kwargs
-    )
+    # Divergence maximale sous contrainte de qualite proche du nominal ; les
+    # kwargs de la metaheuristique ne s'appliquent pas (autre echelle de score).
+    sol_diversifiee = _generer_solution_diversifiee(problem, sol_nominale, seed=seed + 303)
 
     plannings_bruts = [
         (
@@ -434,39 +446,58 @@ def _generer_solution_diversifiee(
     problem: PlanningProblem,
     reference: Solution,
     seed: int = 42,
-    n_iter: int = 1500,
-    T0: float = 40.0,
-    alpha: float = 0.96,
-    w_distance: float = 4.0,
-    **kwargs,
+    n_iter: int | None = None,
+    tolerance: float = 0.05,
+    perte_min: float = 1.0,
 ) -> Solution:
-    """Genere une solution de haute fitness mais s'eloignant de la solution
-    de reference (distance de Hamming favorisee pour maximiser les options Date B).
+    """Genere une solution aussi divergente que possible de la reference
+    (distance de Hamming) tout en restant de qualite comparable.
+
+    La qualite est une contrainte, pas un bonus : la fitness ne doit pas
+    perdre plus de ``max(tolerance * |f_ref|, perte_min)`` par rapport a la
+    reference. Un recuit part de la reference (donc d'un planning de bonne
+    qualite) et maximise la divergence sous cette contrainte, avec un nombre
+    d'iterations proportionnel a la taille de l'instance par defaut.
     """
     rng = random.Random(seed)
-    current = problem.random_solution(rng)
+    n = max(1, problem.n_patients)
+    if n_iter is None:
+        n_iter = max(1500, 30 * problem.n_patients)
+    f_ref = problem.fitness(reference)
+    perte_max = max(tolerance * abs(f_ref), perte_min)
+    seuil = f_ref - perte_max
 
-    def _eval(sol: Solution) -> float:
+    def _evaluer(sol: Solution) -> tuple[float, float, int]:
         f = problem.fitness(sol)
         diffs = sum(1 for p, v in sol.items() if v != reference.get(p, -1))
-        # bonus de distance par rapport a reference
-        return f + w_distance * (diffs / max(1, problem.n_patients))
+        # divergence dans [0, 1] ; sortir de la tolerance coute 2 par tolerance
+        score = diffs / n - 2.0 * max(0.0, seuil - f) / perte_max
+        return score, f, diffs
 
-    current_score = _eval(current)
-    best = dict(current)
-    best_score = current_score
+    current = dict(reference)
+    current_score, _, _ = _evaluer(current)
+    # meilleur planning dans la tolerance : (divergence, fitness) maximales
+    best, best_cle = dict(current), (0, f_ref)
+    # repli si aucun planning divergent ne tient la tolerance
+    repli, repli_score = None, float("-inf")
+    T0, T_fin = 0.3, 1e-3
+    alpha = (T_fin / T0) ** (1.0 / max(1, n_iter))
     T = T0
 
     for _ in range(n_iter):
         neighbor, _ = problem.neighbor(current, rng)
-        sc = _eval(neighbor)
+        sc, f, diffs = _evaluer(neighbor)
         delta = sc - current_score
         if delta >= 0 or rng.random() < np.exp(delta / max(T, 1e-9)):
             current, current_score = neighbor, sc
-            if current_score > best_score:
-                best, best_score = dict(current), current_score
+            if f >= seuil and (diffs, f) > best_cle:
+                best, best_cle = dict(current), (diffs, f)
+            if diffs > 0 and sc > repli_score:
+                repli, repli_score = dict(current), sc
         T *= alpha
 
+    if best_cle[0] == 0 and repli is not None:
+        return repli
     return best
 
 
@@ -697,11 +728,10 @@ def adapter_planning(
         matches = problem.vacations.index[
             problem.vacations["vacation_id"] == retard.vacation_id
         ].tolist()
-        if matches:
-            v_idx = matches[0]
-            delays_adapte[v_idx] += retard.retard_min
-        elif 0 <= retard.vacation_id < problem.n_vacations:
-            delays_adapte[retard.vacation_id] += retard.retard_min
+        if not matches:
+            # Pas de repli positionnel : il appliquerait le retard a une autre vacation.
+            raise ValueError(f"RetardBloc : vacation inconnue {retard.vacation_id}")
+        delays_adapte[matches[0]] += retard.retard_min
 
     # Nouveau probleme adapte
     problem_adapte = PlanningProblem(

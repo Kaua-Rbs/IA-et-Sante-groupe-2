@@ -23,7 +23,7 @@ import random
 import time
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Sequence
+from typing import Callable, Sequence
 
 import numpy as np
 import pandas as pd
@@ -333,9 +333,30 @@ def _finalize(
     return RunResult(nom, best, best_f, hist, duree)
 
 
-def _record_every(n_iter: int, n_points: int = 300) -> int:
-    """Pas d'echantillonnage de l'historique (au plus ~n_points lignes)."""
-    return max(1, n_iter // n_points)
+def _record_every(
+    n_iter: int, n_points: int = 300, time_budget_s: float | None = None
+) -> Callable[[int], bool]:
+    """Predicat ``k -> bool`` d'echantillonnage de l'historique (~n_points lignes).
+
+    Sous budget temps, ``n_iter`` n'est qu'un plafond (ex. 10**6 dans les
+    campagnes) : un pas derive de lui ne garderait que k=0. On echantillonne
+    alors selon le temps ecoule.
+    """
+    if time_budget_s is None:
+        pas = max(1, n_iter // n_points)
+        return lambda k: k % pas == 0
+    intervalle = time_budget_s / n_points
+    prochain = 0.0
+
+    def enregistrer(k: int) -> bool:
+        nonlocal prochain
+        maintenant = time.perf_counter()
+        if k == 0 or maintenant >= prochain:
+            prochain = maintenant + intervalle
+            return True
+        return False
+
+    return enregistrer
 
 
 def _budget_atteint(t0: float, time_budget_s: float | None) -> bool:
@@ -371,7 +392,7 @@ def simulated_annealing(
     best, best_f = dict(current), current_f
     T = T0
     rows: list[tuple] = []
-    step = _record_every(n_iter)
+    enregistrer = _record_every(n_iter, time_budget_s=time_budget_s)
     t0 = time.perf_counter()
     nb_iter = 0
     for k in range(n_iter):
@@ -384,7 +405,7 @@ def simulated_annealing(
             if current_f > best_f:
                 best, best_f = dict(current), current_f
         T *= alpha
-        if k % step == 0:
+        if enregistrer(k):
             rows.append((k, time.perf_counter() - t0, current_f, best_f))
         if _budget_atteint(t0, time_budget_s):
             break
@@ -410,7 +431,7 @@ def tabu_search(
     best, best_f = dict(current), current_f
     tabu_list: deque = deque(maxlen=tabu_size)
     rows: list[tuple] = []
-    step = _record_every(n_iter)
+    enregistrer = _record_every(n_iter, time_budget_s=time_budget_s)
     t0 = time.perf_counter()
     nb_iter = 0
     for k in range(n_iter):
@@ -434,7 +455,7 @@ def tabu_search(
         if current_f > best_f:
             best, best_f = dict(current), current_f
 
-        if k % step == 0:
+        if enregistrer(k):
             rows.append((k, time.perf_counter() - t0, current_f, best_f))
         if _budget_atteint(t0, time_budget_s):
             break
@@ -471,7 +492,7 @@ def tabu_simulated_annealing(
     tabu_list: deque = deque(maxlen=tabu_size)
     T = T0
     rows: list[tuple] = []
-    step = _record_every(n_iter)
+    enregistrer = _record_every(n_iter, time_budget_s=time_budget_s)
     t0 = time.perf_counter()
     nb_iter = 0
     for k in range(n_iter):
@@ -499,7 +520,7 @@ def tabu_simulated_annealing(
                 best, best_f = dict(current), current_f
         T *= alpha
 
-        if k % step == 0:
+        if enregistrer(k):
             rows.append((k, time.perf_counter() - t0, current_f, best_f))
         if _budget_atteint(t0, time_budget_s):
             break
@@ -646,7 +667,7 @@ def ant_colony_optimization(
     else:
         best, best_f = None, -np.inf
     rows: list[tuple] = []
-    step = _record_every(n_iter)
+    enregistrer = _record_every(n_iter, time_budget_s=time_budget_s)
     t0 = time.perf_counter()
     nb_iter = 0
     iter_best_f = best_f
@@ -665,7 +686,7 @@ def ant_colony_optimization(
         for pid, vac_idx in iter_best.items():
             tau[pid, vac_idx] += depot
 
-        if k % step == 0:
+        if enregistrer(k):
             rows.append((k, time.perf_counter() - t0, iter_best_f, best_f))
         if _budget_atteint(t0, time_budget_s):
             break
@@ -719,7 +740,7 @@ def _genetic_memetique(
         return population[idx]
 
     def crossover(p1, p2):
-        if rng.random() > p_cross:
+        if len(pids) < 2 or rng.random() > p_cross:
             return dict(p1)
         cut = rng.randint(1, len(pids) - 1)
         return {pid: (p1[pid] if i < cut else p2[pid]) for i, pid in enumerate(pids)}
@@ -887,7 +908,7 @@ def fourmis_tabu(
     else:
         best, best_f = None, -np.inf
     rows: list[tuple] = []
-    step = _record_every(n_iter)
+    enregistrer = _record_every(n_iter, time_budget_s=time_budget_s)
     t0 = time.perf_counter()
     nb_iter = 0
     iter_best_f = best_f
@@ -918,7 +939,7 @@ def fourmis_tabu(
         for pid, vac_idx in iter_best.items():
             tau[pid, vac_idx] += depot
 
-        if k % step == 0:
+        if enregistrer(k):
             rows.append((k, time.perf_counter() - t0, iter_best_f, best_f))
         if _budget_atteint(t0, time_budget_s):
             break

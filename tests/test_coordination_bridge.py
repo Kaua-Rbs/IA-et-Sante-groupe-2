@@ -161,6 +161,13 @@ class TestValidateur(unittest.TestCase):
         resultat = self.validator.validate(self.snapshot, Proposal(Planning(affectation, "test"), 0))
         self.assertFalse(resultat.feasible)
 
+    def test_specialite_incompatible(self):
+        affectation = dict(self.affectation)
+        affectation[2] = 10  # patient Y sur une vacation X
+        resultat = self.validator.validate(self.snapshot, Proposal(Planning(affectation, "test"), 0))
+        self.assertFalse(resultat.feasible)
+        self.assertTrue(any("incompatible" in raison for raison in resultat.reasons))
+
     def test_capacite_depassee(self):
         etat = _etat(
             patients=[{"patient_id": 0, "specialite": "X", "duree_operatoire": 200, "duree_sejour": 0}],

@@ -80,7 +80,7 @@ class Coordinator(Generic[StateT, ScheduleT]):
     def submit(self, event: HospitalEvent, *, replan: bool = True) -> None:
         """Apply an event; observations invalidate proposals without requesting a solve.
 
-        An already pending request is preserved and uses the latest state.
+        An already pending or running request is preserved and re-solved on the latest state.
         """
         self._check_loop()
         if event.event_id in self._seen_events:
@@ -122,6 +122,9 @@ class Coordinator(Generic[StateT, ScheduleT]):
                 solver_seconds = monotonic() - started
                 if self._state.version != version:
                     self._record("stale", version, solver_seconds)
+                    # The request that started this solve is still unanswered,
+                    # even if the newer event itself did not ask for a replan.
+                    self._pending = True
                     continue
                 if candidate is None:
                     self._record("no_proposal", version, solver_seconds)
