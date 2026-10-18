@@ -15,6 +15,7 @@ from api.clinical.models import (
 from api.crud import get_or_404, remove, require_exists, save
 from api.db import SessionDep
 from api.resources.models import Surgeon
+from api.planning.replanning import record_change
 
 router = APIRouter(tags=["clinical"])
 
@@ -48,8 +49,17 @@ def create_patient(body: PatientCreate, session: SessionDep, current_user: Clini
 def update_patient(
     patient_id: UUID, body: PatientUpdate, session: SessionDep, current_user: ClinicalUser,
 ):
+    requests = session.exec(select(SurgicalRequest).where(
+        SurgicalRequest.patient_id == patient_id,
+        SurgicalRequest.status == RequestStatus.pending,
+    ).order_by(SurgicalRequest.id).with_for_update()).all()
     patient = get_or_404(session, Patient, patient_id)
-    patient.sqlmodel_update(body.model_dump(exclude_unset=True))
+    changes = body.model_dump(exclude_unset=True)
+    if any(name in changes and changes[name] != getattr(patient, name)
+           for name in ("birth_year", "sex")):
+        service.supersede_proposals(session, (request.id for request in requests))
+        record_change(session, "patient_inputs_changed", current_user.id)
+    patient.sqlmodel_update(changes)
     return save(session, patient)
 
 
@@ -95,11 +105,16 @@ def create_request(body: SurgicalRequestCreate, session: SessionDep, current_use
         "specialty_id": surgeon.specialty_id,
         "created_by": current_user.id,
     })
+    record_change(session, "request_created", current_user.id)
     return save(session, request)
 
 
 def _get_pending(session: SessionDep, request_id: UUID) -> SurgicalRequest:
-    request = get_or_404(session, SurgicalRequest, request_id)
+    request = session.exec(select(SurgicalRequest).where(
+        SurgicalRequest.id == request_id,
+    ).with_for_update().execution_options(populate_existing=True)).first()
+    if request is None:
+        raise HTTPException(status_code=404, detail="SurgicalRequest not found")
     if request.status != RequestStatus.pending:
         raise HTTPException(status_code=409, detail=f"Request is {request.status.value}")
     return request
@@ -115,6 +130,8 @@ def update_request(
         request.model_dump() | body.model_dump(exclude_unset=True)
     )
     request.sqlmodel_update(merged.model_dump())
+    service.supersede_proposals(session, (request.id,))
+    record_change(session, "request_changed", current_user.id)
     return save(session, request)
 
 
@@ -123,6 +140,8 @@ def cancel_request(request_id: UUID, session: SessionDep, current_user: Clinical
     """Cancel a pending request. A scheduled one is cancelled through its case."""
     request = _get_pending(session, request_id)
     request.status = RequestStatus.cancelled
+    service.supersede_proposals(session, (request.id,))
+    record_change(session, "request_cancelled", current_user.id)
     return save(session, request)
 
 

@@ -77,9 +77,10 @@ flowchart LR
 | Durée de séjour | Démonstration | Jours calendaires inclusifs (ambulatoire = 1), avec un intervalle. |
 | Type d'hébergement | Démonstration | Ambulatoire si le séjour prédit tient en une journée, sinon hospitalisation conventionnelle. |
 | Traçabilité | Disponible | Chaque prédiction garde la version du modèle et sa source. L'interface signale clairement les valeurs de démonstration. |
-| Modèles entraînés | Prévu | Ils seront branchés derrière les mêmes interfaces (`api/ai/contracts.py`), sans changer l'application. |
+| Modèles entraînés | Démonstration | Mode `AI_BACKEND=trained` avec artefacts locaux non versionnés. Le contrôle sur le test 2022 montre une perte de précision avec les champs manquants ; voir `docs/web-full-system-integration.md`. |
 
 Les valeurs de démonstration (`api/ai/fixtures.json`) dépendent de la spécialité, du type d'intervention et de l'âge. Elles sont plausibles mais **ni ajustées ni calibrées** sur les données de l'hôpital.
+Le mode entraîné utilise les modèles de durée de salle et de séjour, sans intégrer leurs fichiers dans le dépôt ou l'image. Voir [l'état de l'intégration](../../docs/web-full-system-integration.md).
 
 ### 3. Planning du bloc (vacations)
 
@@ -93,6 +94,10 @@ Une **vacation** est un créneau d'une salle attribué à une spécialité, et �
 | Ouvrir ou supprimer une vacation | Disponible | Réservé au cadre et à l'administrateur. Deux vacations d'une même salle ne peuvent pas se chevaucher. |
 | Modèles hebdomadaires | Prévu | Générer la répartition des vacations par spécialité à partir de l'historique, et justifier chaque aménagement. |
 | Planning du jour et ordre de passage | Prévu | Liste des patients par salle, actes, ordre et remise en état entre deux interventions. |
+| Optimisation de cohorte et publication | Démonstration | Jusqu'à 50 demandes en attente, 10 méthodes. Le cadre peut publier les affectations comme propositions après recalcul et contrôle ; chaque chirurgien confirme ensuite sa demande. |
+| Aperçu Mesa d'une journée | Démonstration | Durées réalisées hypothétiques, réservations existantes du jour, fermeture optionnelle et replanification ; salles uniquement. |
+| Aperçu Mesa multi-jours | Démonstration | Salles et lits par unité, réservations existantes, attente reportée et conflits de lits agrégés ; sans écriture dans le planning. |
+| Actualisation sur changement | Démonstration | File persistante, historique des calculs, reprise après interruption ; traitement manuel ou automatique des propositions, avec réservations confirmées conservées. |
 
 ### 4. Lits et places
 
@@ -164,11 +169,11 @@ Tous ces réglages se trouvent dans [`interface/kyst.env`](../kyst.env).
 | Fonction attendue (consignes) | Dans KYST |
 | :--- | :--- |
 | Outil web et smartphone pour donner une date au patient en consultation | Saisie de la demande et dates A/B, interface utilisable sur mobile. **Disponible** (dates en **démonstration**) |
-| Prédire la durée de séjour, le temps opératoire et le type de capacité | Prédictions avec intervalles. **Démonstration**, en attendant les modèles |
+| Prédire la durée de séjour, le temps opératoire et le type de capacité | Artefacts entraînés raccordés en mode optionnel ; sensibilité aux champs manquants mesurée, réentraînement et validation prospective requis. **Démonstration** |
 | Proposer une ou deux dates optimales selon les lits et le bloc | Deux dates vérifiées sur la vacation et les lits, et justifiées. **Démonstration** (ordonnanceur glouton) |
 | Liste des patients par vacation, durée totale, respect de la spécialité de la salle | Remplissage et nombre d'interventions par vacation, spécialité imposée. **Disponible** ; liste nominative et ordre de passage **prévus** |
 | Distribution hebdomadaire des vacations par spécialité, aménagements justifiés | Vacations ouvertes une à une. Modèles hebdomadaires déduits de l'historique **prévus** |
 | Gestion du remplissage des lits et places, week-ends et vacances | Occupation prévue par unité, jours tendus signalés. **Disponible** ; lissage week-ends et vacances **prévu** |
-| Marge pour les urgences et les aléas | Marge réservée sur chaque vacation. **Disponible** ; prise en compte des aléas en temps réel (`hospital_sim`) **prévue** |
+| Marge pour les urgences et les aléas | Marge réservée sur chaque vacation. File persistante pour demandes, refus, annulations et ressources ; les observations peropératoires et calendriers minute par minute restent **prévus**. |
 | Expliquer les propositions, le chirurgien garde la main | Raisons affichées et confirmation humaine obligatoire. **Disponible** |
 | Apprendre de la réalité observée | Saisie des durées réelles et mesure de la précision. **Disponible** ; ré-entraînement **prévu** |

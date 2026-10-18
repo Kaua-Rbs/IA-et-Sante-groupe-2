@@ -165,6 +165,85 @@ export interface VacationFill {
 	fill_rate: number;
 }
 
+export interface CohortPreview {
+	method: string;
+	evaluated_cases: number;
+	assignments: {
+		request_id: string;
+		vacation_id: number;
+		bed_unit_id: number;
+		admission_date: string;
+		discharge_date: string;
+		planned_minutes: number;
+	}[];
+	unassigned: string[];
+}
+
+export interface RoomSimulationPreview {
+	date: string;
+	method: string;
+	policy: 'static' | 'reactive';
+	cases: number;
+	completed: number;
+	unstarted: number;
+	booked_cases: number;
+	booked_completed: number;
+	overtime_minutes: number;
+	replanning_count: number;
+	failures: number;
+	assumptions: {
+		rooms: number;
+		opening: string;
+		closing: string;
+		turnover_minutes: number;
+		room_1_closure: string | null;
+		realized_duration_factor: number;
+		beds_and_specialty_constraints: string;
+	};
+}
+
+export interface WardSimulationPreview {
+	start: string;
+	end: string;
+	cases: number;
+	completed: number;
+	unstarted: number;
+	overtime_minutes: number;
+	replanning_count: number;
+	failures: number;
+	overcapacity_bed_days: number;
+	daily: { date: string; offered: number; started: number; waiting: number; occupied_beds: number }[];
+	assumptions: { realized_room_factor: number; realized_los_factor: number; room_model: string };
+}
+
+export interface ReplanRun {
+	id: string;
+	status: string;
+	method: string;
+	start: string;
+	end: string;
+	event_count: number;
+	proposals_count: number;
+	failure_type: string | null;
+	started_at: string;
+	finished_at: string | null;
+}
+
+export interface ReplanningStatus {
+	automatic: boolean;
+	method: string;
+	horizon_days: number;
+	pending_changes: number;
+	runs: ReplanRun[];
+}
+
+export interface CommitmentConflict {
+	case_id: string;
+	request_id: string;
+	admission_date: string;
+	reasons: string[];
+}
+
 export interface PredictionAccuracy {
 	evaluated_cases: number;
 	room_minutes_mae: number | null;

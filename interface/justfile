@@ -68,8 +68,9 @@ serve:
     api_port=$(just env API_PORT 8000)
     echo "API   : http://$api_host:$api_port   (docs : /docs)"
     echo "Front : http://$(just env HOST 0.0.0.0):$(just env PORT 3000)   (public : $(just env ORIGIN))"
-    # Un seul worker : l'état de coordination du planning vivra dans ce processus
-    (cd api && exec uv run --no-dev fastapi run main.py --host "$api_host" --port "$api_port" --workers 1) &
+    # Un seul worker : l'état de coordination du planning vivra dans ce processus.
+    # Les moteurs de recherche (optimiseur, hospital_sim, modèles) sont à la racine du dépôt.
+    (cd api && PYTHONPATH=../.. exec uv run --no-dev fastapi run main.py --host "$api_host" --port "$api_port" --workers 1) &
     api_pid=$!
     (cd app && exec pnpm start) &
     app_pid=$!

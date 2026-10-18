@@ -8,7 +8,8 @@
 # Prereleases get only their exact version tag, never latest.
 #
 # Actions are pinned to a commit SHA; the comment gives the version it matches.
-# Tool versions follow the Dockerfiles (Python 3.13 + uv 0.8.22, Node 24 + pnpm 12.9.1).
+# Tool versions follow the Dockerfiles (Python 3.13 + uv 0.13.1, Node 24 + pnpm 12.9.1).
+# The API image is built from the repository root: it bundles the research engines.
 
 name: CI
 
@@ -35,7 +36,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - run: pipx install uv==0.8.22
+      - run: pipx install uv==0.13.1
 
       - run: uv venv --python 3.13 && uv pip install -r requirements.txt
 
@@ -54,7 +55,7 @@ jobs:
           persist-credentials: false
 
       # uv fetches the Python version pyproject.toml requires
-      - run: pipx install uv==0.8.22
+      - run: pipx install uv==0.13.1
 
       - run: uv sync --frozen
 
@@ -94,7 +95,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        component: [api, app]
+        include:
+          - component: api
+            context: .
+          - component: app
+            context: interface/app
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -121,7 +126,8 @@ jobs:
 
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: interface/${{ matrix.component }}
+          context: ${{ matrix.context }}
+          file: interface/${{ matrix.component }}/Dockerfile
           platforms: linux/amd64
           push: true
           provenance: true

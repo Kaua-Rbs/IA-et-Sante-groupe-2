@@ -26,6 +26,12 @@ kyst_account_validation: true
 kyst_access_token_expire_minutes: 30
 kyst_refresh_token_expire_days: 7
 kyst_ai_backend: fixtures
+kyst_model_dir: ./models
+kyst_auto_replan_enabled: false
+kyst_replan_method: SMA x Metaheuristiques
+kyst_replan_horizon_days: 14
+kyst_replan_budget_seconds: 1
+kyst_replan_max_cases: 200
 # Crée les ressources de démonstration (spécialités, salles, lits, vacations) si la base
 # n'en a aucune. À désactiver avant d'y mettre de vraies données.
 kyst_seed_demo: true

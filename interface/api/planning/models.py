@@ -87,3 +87,28 @@ class CaseOutcome(SQLModel):
 
     actual_room_minutes: int = Field(gt=0, le=24 * 60)
     actual_los_days: int = Field(gt=0)
+
+
+class ReplanRun(SQLModel, table=True):
+    """Durable history of proposal refreshes; never stores clinical inputs."""
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    status: str = Field(default="running", index=True)
+    method: str
+    start: dt.date
+    end: dt.date
+    event_count: int = 0
+    proposals_count: int = 0
+    failure_type: str | None = None
+    started_at: NaiveDatetime = Field(default_factory=utcnow)
+    finished_at: NaiveDatetime | None = None
+
+
+class PlanningChange(SQLModel, table=True):
+    """A committed change needing a fresh view of the pending workload."""
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    kind: str = Field(max_length=64)
+    actor_id: UUID | None = Field(default=None, foreign_key="user.id")
+    created_at: NaiveDatetime = Field(default_factory=utcnow, index=True)
+    run_id: UUID | None = Field(default=None, foreign_key="replanrun.id", index=True)

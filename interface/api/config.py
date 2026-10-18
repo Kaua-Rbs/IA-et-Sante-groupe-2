@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -9,6 +10,7 @@ from slowapi.util import get_remote_address
 # interface/kyst.local.env, not versioned, overrides it with real secrets.
 # Process environment variables take precedence over both files.
 INTERFACE_DIR = Path(__file__).resolve().parent.parent
+REPOSITORY_DIR = INTERFACE_DIR.parent
 ENV_FILES = (INTERFACE_DIR / "kyst.env", INTERFACE_DIR / "kyst.local.env")
 
 PLACEHOLDER_SECRET = "change-me"
@@ -34,13 +36,20 @@ class Settings(BaseSettings):
     # Optional first administrator, created at startup if no user has this email yet
     FIRST_ADMIN_EMAIL: str | None = None
     FIRST_ADMIN_PASSWORD: str | None = None
-    # Prediction and scheduling backend: only "fixtures" exists until the models are delivered
+    # "trained" loads local, untracked model artifacts. Fixtures remain the demo default.
     AI_BACKEND: str = "fixtures"
+    ROOM_MODEL_PATH: Path = REPOSITORY_DIR / "artifacts/ml-models/surgery_duration_model.joblib"
+    LOS_MODEL_PATH: Path = REPOSITORY_DIR / "artifacts/ml-models/los_regressor.joblib"
     # Scheduling: share of each vacation kept free for emergencies, proposals per request,
     # and how far after the earliest date to look when the request has no deadline
     EMERGENCY_MARGIN: float = 0.1
     PROPOSAL_COUNT: int = 2
     SCHEDULING_HORIZON_DAYS: int = 60
+    AUTO_REPLAN_ENABLED: bool = False
+    REPLAN_METHOD: str = "SMA x Metaheuristiques"
+    REPLAN_HORIZON_DAYS: int = Field(default=14, ge=1, le=60)
+    REPLAN_BUDGET_SECONDS: float = Field(default=1.0, gt=0, le=5)
+    REPLAN_MAX_CASES: int = Field(default=200, ge=1, le=500)
 
 
 settings = Settings()

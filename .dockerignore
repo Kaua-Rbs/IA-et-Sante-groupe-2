@@ -1,0 +1,27 @@
+# Build context of the API image (interface/api/Dockerfile). Patterns without **/
+# only match at the repository root.
+.git
+.codex
+**/.venv
+venv
+**/node_modules
+**/__pycache__
+**/*.py[cod]
+**/.pytest_cache
+resources
+artifacts
+**/*.db
+**/*.sqlite*
+**/.env
+**/kyst.local.env
+*.ipynb
+interface/app
+interface/ansible
+interface/api/tests
+interface/api/Dockerfile
+interface/api/.dockerignore
+interface/api/justfile
+tests
+docs
+soutenance
+reference

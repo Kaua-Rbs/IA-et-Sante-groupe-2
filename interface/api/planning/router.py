@@ -1,21 +1,177 @@
 import datetime as dt
+import asyncio
+from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
 from sqlmodel import select
 
-from api.accounts.security import ClinicalUser, StaffUser
+from api.accounts.security import ClinicalUser, PlannerUser, StaffUser
 from api.ai.providers import PredictorsDep, SchedulerDep
+from api.ai.room_simulation import simulate_room_day
+from api.ai.ward_simulation import simulate_ward_window
 from api.clinical.models import RequestStatus, SurgicalRequest
+from api.config import settings
 from api.crud import get_or_404, save
 from api.db import SessionDep, utcnow
 from api.planning import service
+from api.planning import replanning
+from api.planning.capacity import ACTIVE_STATUSES
+from api.planning.commitments import confirmed_conflicts
+from optimiseur.optimizer import TOUTES_METHODES
+from hospital_sim.metaheuristics import METHODS as ROOM_METHODS
+from api.resources.models import OperatingRoom, Vacation
 from api.planning.models import (
     CaseOutcome, CaseStatus, PlannedCase, PlannedCasePublic, Proposal, ProposalPublic,
     ProposalStatus,
 )
 
 router = APIRouter(tags=["planning"])
+
+
+@router.get("/planning/replanning")
+def replanning_status(session: SessionDep, current_user: PlannerUser):
+    return replanning.queue_status(session)
+
+
+@router.get("/planning/commitment-conflicts")
+def commitment_conflicts(
+    session: SessionDep, current_user: PlannerUser,
+    start: dt.date | None = None, end: dt.date | None = None,
+):
+    start = start or dt.date.today()
+    end = end or start + dt.timedelta(days=settings.REPLAN_HORIZON_DAYS - 1)
+    try:
+        return confirmed_conflicts(session, start, end)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/planning/replanning/run")
+def run_replanning(session: SessionDep, current_user: PlannerUser):
+    replanning.record_change(session, "manual_refresh", current_user.id)
+    session.commit()
+    return {"run": replanning.process_pending_changes()}
+
+
+class CohortPreviewRequest(BaseModel):
+    start: dt.date
+    end: dt.date
+    method: str = "Tabou x Recuit"
+    seed: int = 0
+    budget_seconds: float = Field(default=1.0, gt=0, le=5)
+
+
+@router.get("/planning/methods", response_model=list[str])
+def planning_methods(current_user: PlannerUser):
+    return list(TOUTES_METHODES)
+
+
+@router.post("/planning/cohort-preview")
+def cohort_preview(
+    body: CohortPreviewRequest, session: SessionDep, current_user: PlannerUser,
+    predictors: PredictorsDep,
+):
+    """Read-only multi-request optimization; a clinician still confirms dates."""
+    try:
+        return service.preview_cohort(session, body.start, body.end, predictors,
+                                      method=body.method, seed=body.seed,
+                                      budget_seconds=body.budget_seconds)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.post("/planning/cohort-proposals", response_model=list[ProposalPublic], status_code=201)
+def publish_cohort_proposals(
+    body: CohortPreviewRequest, session: SessionDep, current_user: PlannerUser,
+    predictors: PredictorsDep,
+):
+    """Recompute the cohort and publish feasible dates for clinical confirmation."""
+    try:
+        return service.publish_cohort_proposals(
+            session, body.start, body.end, predictors, method=body.method,
+            seed=body.seed, budget_seconds=body.budget_seconds,
+        )
+    except service.CohortConflict as exc:
+        session.rollback()
+        raise HTTPException(status_code=409, detail=str(exc)) from exc
+    except ValueError as exc:
+        session.rollback()
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+class RoomSimulationRequest(BaseModel):
+    date: dt.date
+    method: str = "baseline"
+    policy: Literal["static", "reactive"] = "reactive"
+    realized_factor: float = Field(default=1.2, ge=1, le=2)
+    outage: bool = True
+
+
+class WardSimulationRequest(BaseModel):
+    start: dt.date
+    end: dt.date
+    method: str = "baseline"
+    policy: Literal["static", "reactive"] = "reactive"
+    realized_factor: float = Field(default=1.2, ge=1, le=2)
+    los_factor: float = Field(default=1.0, ge=1, le=2)
+    outage: bool = True
+
+
+@router.post("/planning/ward-simulation-preview")
+def ward_simulation_preview(
+    body: WardSimulationRequest, session: SessionDep, current_user: PlannerUser,
+    predictors: PredictorsDep,
+):
+    """Hypothetical Mesa replay with existing bookings and bed units."""
+    try:
+        cases, vacations, bed_units = service.cohort_snapshot(
+            session, body.start, body.end, predictors,
+            occupancy_extension=body.los_factor,
+        )
+        return asyncio.run(simulate_ward_window(
+            cases, vacations, bed_units, start=body.start, end=body.end,
+            emergency_margin=settings.EMERGENCY_MARGIN, method=body.method,
+            policy=body.policy, realized_factor=body.realized_factor,
+            los_factor=body.los_factor, outage=body.outage,
+        ))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+@router.get("/planning/room-simulation-methods", response_model=list[str])
+def room_simulation_methods(current_user: PlannerUser):
+    return list(ROOM_METHODS)
+
+
+@router.post("/planning/room-simulation-preview")
+def room_simulation_preview(
+    body: RoomSimulationRequest, session: SessionDep, current_user: PlannerUser,
+    predictors: PredictorsDep,
+):
+    """Hypothetical room-only Mesa replay; never changes clinical bookings.
+
+    Bookings already planned in active rooms that day keep their room time."""
+    try:
+        cases, _, _ = service.cohort_snapshot(session, body.date, body.date, predictors)
+        rooms = session.exec(select(OperatingRoom).where(OperatingRoom.active == True)).all()  # noqa: E712
+        booked = session.exec(
+            select(PlannedCase.planned_minutes)
+            .join(Vacation, Vacation.id == PlannedCase.vacation_id)
+            .join(OperatingRoom, OperatingRoom.id == Vacation.room_id)
+            .where(Vacation.date == body.date, OperatingRoom.active == True,  # noqa: E712
+                   PlannedCase.status.in_(ACTIVE_STATUSES))
+            .order_by(PlannedCase.id)
+        ).all()
+        return asyncio.run(simulate_room_day(
+            cases, day=body.date, rooms=len(rooms), booked_minutes=tuple(booked),
+            method=body.method,
+            policy=body.policy, realized_factor=body.realized_factor,
+            outage=body.outage,
+        ))
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 # --- Proposals ---
 
@@ -31,7 +187,11 @@ def generate_proposals(
 ):
     """Predict, then propose dates (best first). An empty list means no slot was found
     in the window, not that none exists: widen `latest_date` or add vacations."""
-    request = get_or_404(session, SurgicalRequest, request_id)
+    request = session.exec(select(SurgicalRequest).where(
+        SurgicalRequest.id == request_id,
+    ).with_for_update().execution_options(populate_existing=True)).first()
+    if request is None:
+        raise HTTPException(status_code=404, detail="SurgicalRequest not found")
     if request.status != RequestStatus.pending:
         raise HTTPException(status_code=409, detail=f"Request is {request.status.value}")
     return service.propose(session, request, predictors, scheduler)
@@ -56,6 +216,7 @@ def list_proposals(
 
 def _get_open_proposal(session: SessionDep, proposal_id: UUID) -> Proposal:
     proposal = get_or_404(session, Proposal, proposal_id)
+    service.lock_proposal_resources(session, proposal)
     if proposal.status != ProposalStatus.proposed:
         raise HTTPException(status_code=409, detail=f"Proposal is {proposal.status.value}")
     return proposal
@@ -81,6 +242,7 @@ def reject_proposal(proposal_id: UUID, session: SessionDep, current_user: Clinic
     proposal.status = ProposalStatus.rejected
     proposal.decided_by = current_user.id
     proposal.decided_at = utcnow()
+    replanning.record_change(session, "proposal_rejected", current_user.id)
     return save(session, proposal)
 
 
@@ -131,6 +293,7 @@ def cancel_case(case_id: UUID, session: SessionDep, current_user: ClinicalUser):
     case.status = CaseStatus.cancelled
     request.status = RequestStatus.pending
     session.add(request)
+    replanning.record_change(session, "case_cancelled", current_user.id)
     return save(session, case)
 
 
@@ -145,4 +308,5 @@ def record_outcome(
     case.status = CaseStatus.done
     request.status = RequestStatus.done
     session.add(request)
+    replanning.record_change(session, "case_outcome", current_user.id)
     return save(session, case)
