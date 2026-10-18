@@ -76,6 +76,34 @@ class CoordinationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([o.status for o in coordinator.outcomes], ["stale", "proposal_ready"])
         self.assertEqual(coordinator.proposal.schedule, DemoSchedule("c"))
 
+    async def test_observation_during_failed_or_timed_out_solve_still_replans(self):
+        for failure in ("timeout", "failed"):
+            with self.subTest(failure=failure):
+                started, release = asyncio.Event(), asyncio.Event()
+                versions = []
+
+                class FirstSolveFails(DemoScheduler):
+                    async def propose(self, request):
+                        versions.append(request.snapshot.version)
+                        if len(versions) == 1:
+                            started.set()
+                            await release.wait()
+                            if failure == "timeout":
+                                await asyncio.Event().wait()
+                            raise RuntimeError("solver crashed")
+                        return await super().propose(request)
+
+                coordinator = self.make_coordinator(FirstSolveFails(), timeout_seconds=0.2)
+                coordinator.submit(outage("1", 1.0, "a"))
+                await asyncio.wait_for(started.wait(), 2.0)
+                coordinator.submit(outage("2", 2.0, "b"), replan=False)
+                release.set()
+                await self.idle(coordinator)
+                self.assertEqual(versions, [1, 2])
+                self.assertEqual([o.status for o in coordinator.outcomes],
+                                 [failure, "proposal_ready"])
+                self.assertEqual(coordinator.proposal.schedule, DemoSchedule("c"))
+
     async def test_new_event_invalidates_previously_exposed_proposal(self):
         coordinator = self.make_coordinator()
         coordinator.submit(outage("1", 1.0, "a"))

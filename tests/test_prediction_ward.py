@@ -16,6 +16,8 @@ from hospital_sim.historical_data import ROOM_IN, ROOM_OUT, load_historical
 from hospital_sim.predictions import ModelPredictions
 from hospital_sim.simulation import run_day
 from hospital_sim.ward import HospitalWardModel
+from los_model import CALIBRATION_MIN_ROWS, TARGET, _partitions
+from surgery_duration import FIXED_FEATURES
 
 
 class PredictionBoundaryTests(unittest.TestCase):
@@ -88,7 +90,42 @@ class PredictionBoundaryTests(unittest.TestCase):
                 second, _, _ = build_patients_with_uncertainty(horizon_jours=2)
         pd.testing.assert_frame_equal(first, second)
         self.assertEqual(first["duree_operatoire"].tolist(), [40, 50])
-        self.assertEqual(first["duree_sejour"].tolist(), [1, 3])
+        self.assertEqual(first["duree_sejour"].tolist(), [0, 2])
+
+    def test_vacation_bridge_matches_predictions_on_id_patient_not_no_cas(self):
+        # Swapped identifiers overlap fully in both namespaces on the same date.
+        day = pd.to_datetime(["2022-01-03", "2022-01-03"])
+        eda = pd.DataFrame({"no_cas": [1, 2], "id_patient": [2, 1], "date_inter": day,
+                            "date_entree": day, "interv_type": ["A", "A"]})
+        los_rows = pd.DataFrame({"split_patient_id": [1, 2], "split_event_date": day})
+        los_prediction = pd.DataFrame({"los_point_days": [1.0, 5.0],
+                                       "los_lower_days": [1.0, 5.0],
+                                       "los_upper_days": [1.0, 5.0]})
+        room_prediction = pd.DataFrame({"duration_point_min": [40.0, 50.0]})
+        with patch("bridge_los.pd.read_parquet", return_value=los_rows), \
+             patch("bridge_los.predict_los", return_value=los_prediction), \
+             patch("bridge_los.predict_schedule", return_value=room_prediction), \
+             patch("bridge_los.db.load_preprocessed", return_value=eda):
+            patients, _, _ = build_patients_with_uncertainty(horizon_jours=1)
+        self.assertEqual(patients["los_pred"].tolist(), [5.0, 1.0])
+        with patch("bridge_los.pd.read_parquet", return_value=los_rows), \
+             patch("bridge_los.predict_los", return_value=los_prediction), \
+             patch("bridge_los.db.load_preprocessed",
+                   return_value=eda.drop(columns="id_patient")):
+            with self.assertRaisesRegex(ValueError, "id_patient"):
+                build_patients_with_uncertainty(horizon_jours=1)
+
+    def test_los_calibration_split_must_support_coverage_rank(self):
+        def frame(n_validation):
+            splits = ["train"] * 3 + ["validation"] * n_validation + ["test"] * 3
+            dates = pd.date_range("2020-01-01", periods=len(splits))
+            return pd.DataFrame({"split": splits, "split_patient_id": range(len(splits)),
+                                 "split_event_date": dates, TARGET: 2.0,
+                                 **{column: 0 for column in FIXED_FEATURES}})
+
+        self.assertEqual(len(_partitions(frame(CALIBRATION_MIN_ROWS))[1]), 9)
+        with self.assertRaisesRegex(ValueError, "at least 9"):
+            _partitions(frame(CALIBRATION_MIN_ROWS - 1))
 
 
 class CrossDayBedTests(unittest.TestCase):

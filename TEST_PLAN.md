@@ -15,7 +15,10 @@ venv/bin/python -m unittest tests.test_optimizer -v
 venv/bin/python -m unittest tests.test_optimizer.TestFitness -v
 ```
 
-Aucune dependance supplementaire : tout repose sur `unittest` (stdlib). La
+La suite repose sur `unittest` (stdlib) et sur les dependances de
+`requirements.txt` (modeles de prediction, Mesa, nbformat) : installez-les
+d'abord avec `pip install -r requirements.txt`. Seuls les tests du squelette de
+coordination (`tests.test_coordination`) tournent sans aucune dependance. La
 suite force le backend matplotlib `Agg` (pas d'affichage requis). Les tests qui
 ont besoin du Parquet EDA reel ou de tkinter sont **ignores** automatiquement
 si la ressource est absente.

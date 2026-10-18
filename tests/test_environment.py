@@ -39,6 +39,7 @@ class TestTkinterLocal(unittest.TestCase):
         root.destroy()
 
     @unittest.skipUnless(_tkinter_disponible(), "tkinter non installe")
+    @unittest.skipUnless(os.environ.get("DISPLAY"), "aucun affichage (DISPLAY absent)")
     def test_app_gui_importable(self):
         from optimiseur import app_gui  # noqa: F401
 

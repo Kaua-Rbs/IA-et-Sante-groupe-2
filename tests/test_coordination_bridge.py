@@ -97,6 +97,16 @@ class TestEtatBlocAdapter(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.adapter.apply_event(_snapshot(self.etat), event)
 
+    def test_arrivee_urgence_durees_invalides(self):
+        for durees in ({"duree_operatoire": 0}, {"duree_operatoire": -60},
+                       {"duree_operatoire": 90, "duree_sejour": -1}):
+            with self.subTest(**durees):
+                event = HospitalEvent(
+                    "e", 1.0, EventKind.EMERGENCY_ARRIVAL, {"specialite": "X", **durees},
+                )
+                with self.assertRaises(ValueError):
+                    self.adapter.apply_event(_snapshot(self.etat), event)
+
     def test_sejour_prolonge(self):
         event = HospitalEvent("e", 1.0, EventKind.DELAYED_DISCHARGE, {"patient_id": 0, "jours": 3})
         nouveau = self.adapter.apply_event(_snapshot(self.etat), event)

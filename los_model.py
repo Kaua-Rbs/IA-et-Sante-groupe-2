@@ -29,6 +29,7 @@ from surgery_duration import CAT, FIXED_FEATURES, NUM, prepared
 TARGET = "target_los_days"
 DEFAULT_DATA = Path("resources/model_los_dataset.parquet")
 DEFAULT_ARTIFACT = Path("artifacts/ml-models/los_regressor.joblib")
+CALIBRATION_MIN_ROWS = 9  # smallest n with ceil(0.9 (n + 1)) <= n
 
 
 def _partitions(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
@@ -50,6 +51,9 @@ def _partitions(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.Dat
     if not (parts[0]["split_event_date"].max() < parts[1]["split_event_date"].min()
             and parts[1]["split_event_date"].max() < parts[2]["split_event_date"].min()):
         raise ValueError("LOS splits must be chronological")
+    if len(parts[1]) < CALIBRATION_MIN_ROWS:
+        raise ValueError(f"LOS calibration requires at least {CALIBRATION_MIN_ROWS} "
+                         "validation rows for 90% coverage")
     return parts
 
 

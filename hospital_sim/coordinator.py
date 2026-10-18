@@ -144,12 +144,20 @@ class Coordinator(Generic[StateT, ScheduleT]):
                              latency=monotonic() - event_received_at)
             except asyncio.TimeoutError:
                 self._record("timeout", version, monotonic() - started)
+                self._retry_if_stale(version)
             except asyncio.CancelledError:
                 raise
             except Exception as exc:
                 # Exception messages may contain clinical inputs; record only the type.
                 self._record("failed", version, solver_seconds or monotonic() - started,
                              reasons=(type(exc).__name__,))
+                self._retry_if_stale(version)
+
+    def _retry_if_stale(self, version: int) -> None:
+        # A failed solve of an outdated state leaves the latest state unanswered,
+        # as for a stale result, even if the newer event did not ask for a replan.
+        if self._state.version != version:
+            self._pending = True
 
     def _record(
         self, status: str, version: int, solver_seconds: float = 0.0,

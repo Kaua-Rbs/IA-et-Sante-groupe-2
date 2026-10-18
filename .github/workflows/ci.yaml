@@ -1,5 +1,6 @@
-# Checks the KYST interface (interface/api and interface/app) on every push to main and
-# pull request, and publishes both images to ghcr.io on every GitHub release:
+# Checks the research engines (tests/) and the KYST interface (interface/api and
+# interface/app) on every push to main and pull request, and publishes both images
+# to ghcr.io on every GitHub release:
 #
 #   ghcr.io/<owner>/<repo>/api:<version>, :<major>.<minor>, :latest
 #   ghcr.io/<owner>/<repo>/app:<version>, :<major>.<minor>, :latest
@@ -26,6 +27,21 @@ permissions:
   contents: read
 
 jobs:
+  research:
+    name: Research engine tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - run: pipx install uv==0.8.22
+
+      - run: uv venv --python 3.13 && uv pip install -r requirements.txt
+
+      # Tests needing the confidential EDA Parquet or a display skip themselves
+      - run: .venv/bin/python -m unittest discover -t . -s tests
+
   api:
     name: API tests
     runs-on: ubuntu-latest

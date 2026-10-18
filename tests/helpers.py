@@ -39,13 +39,19 @@ def make_eda_frame(n_rows: int = 30, n_dates: int = 3, seed: int = 0) -> pd.Data
     base = pd.Timestamp("2025-01-06")
     dates = base + pd.to_timedelta(rng.integers(0, n_dates, n_rows), unit="D")
     ccam = rng.choice(["NAGA001", "NCHA002", "LAMA003", "HAMA004"], n_rows)
-    return pd.DataFrame(
+    room = rng.integers(30, 240, n_rows).astype(float)
+    postop = rng.integers(0, 8, n_rows)
+    frame = pd.DataFrame(
         {
             "date_inter": dates,
-            "room_duration_min": rng.integers(30, 240, n_rows).astype(float),
-            "duree_sejour_corrigee": rng.integers(0, 8, n_rows),
+            "room_duration_min": room,
             "ccam_1": ccam,
             "ghm_code": [c[:3] for c in ccam],
             "interv_type": rng.choice(["Prothese", "Laparotomie"], n_rows),
         }
     )
+    # Admission jusqu'a 2 jours avant l'intervention ; sejour inclusif depuis l'admission.
+    preop = rng.integers(0, 3, n_rows)
+    frame["date_entree"] = dates - pd.to_timedelta(preop, unit="D")
+    frame["duree_sejour_corrigee"] = preop + postop + 1
+    return frame
