@@ -3,18 +3,18 @@
 % Gestion conjointe et coordonnée : bloc opératoire / lits / ambulatoire.
 %
 % Fusionne les supports :
-%   - soutenance/Kaua_SMA_9_octobre.tex          (SMA, simulation, résultats)
+%   - soutenance/03 - sma_9_octobre/Contribution_SMA_9_octobre.tex          (SMA, simulation, résultats)
 %   - rapport_jupyter_notebook_LIRE_ALEA/slide_avancement_v2.tex
-%   - soutenance/Soutenance_intermediaire.tex     (sections 1-8, workflow)
+%   - soutenance/01 - intermediaire/Soutenance_intermediaire.tex     (sections 1-8, workflow)
 %   - rapport_jupyter_notebook_LIRE_ALEA/RAPPORT.md (benchmark 10 méthodes)
 %
 % Thème Mid-Century Modern, palette Kraft (comme Soutenance_intermediaire.tex).
 %
 % Organisation : ce master n'assemble que les inputs ; le contenu de chaque
 % partie vit dans sections/ (01_introduction ... 08_conclusion). La section
-% KYST est importee depuis ../thomas.tex, juste avant la conclusion.
+% KYST est importee depuis thomas.tex, juste avant la conclusion.
 %
-% Compilation (LuaLaTeX requis par le thème), depuis soutenance/prefinal/ :
+% Compilation (LuaLaTeX requis par le thème), depuis soutenance/04 - prefinal/ :
 %   lualatex Soutenance_prefinal.tex
 %   biber    Soutenance_prefinal
 %   lualatex Soutenance_prefinal.tex
@@ -24,7 +24,7 @@
 \usepackage{../beamerthememidcenturymodern}
 \mcmTheme{Kraft}
 
-% Palette Kraft reprise de Kaua_SMA_9_octobre.tex (frames importées telles quelles).
+% Palette Kraft reprise de Contribution_SMA_9_octobre.tex (frames importées telles quelles).
 \definecolor{McmTerracotta}{HTML}{9C4732}
 \definecolor{McmSage}{HTML}{6B7F3A}
 \definecolor{McmAmber}{HTML}{DB6720}
@@ -40,7 +40,7 @@
 \usetikzlibrary{arrows.meta,positioning,calc,babel,backgrounds,fit}
 \usepackage{graphicx}
 \usepackage{qrcode}
-\graphicspath{{../figures/}{../../rapport_jupyter_notebook_LIRE_ALEA/figures/}}
+\graphicspath{{../figures/}}
 \usepackage[backend=biber,style=authoryear,sorting=nyt]{biblatex}
 \addbibresource{../Etatdelart.bib}
 
@@ -85,7 +85,7 @@
 \input{sections/05_aleas}
 \input{sections/06_simulations}
 \input{sections/07_resultats}
-\input{../thomas}
+\input{thomas}
 \input{sections/08_conclusion}
 
 \nocite{*}

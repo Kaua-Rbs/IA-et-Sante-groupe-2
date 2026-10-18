@@ -83,6 +83,14 @@ Thumbs.db
 *.nav
 *.snm
 *.synctex.gz
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.out
+*.run.xml
+*.toc
+*.vrb
 
 # Local reference material and source documents
 /resources/
