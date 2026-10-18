@@ -1,33 +1,55 @@
-# Publishes two images to ghcr.io/<owner>/<repo> on every GitHub release:
+# Checks the KYST interface (interface/api and interface/app) on every push to main and
+# pull request, and publishes both images to ghcr.io on every GitHub release:
 #
-#   :<version>, :<major>.<minor>, :latest
-#       Current Debian (trixie), for any modern Docker host.
+#   ghcr.io/<owner>/<repo>/api:<version>, :<major>.<minor>, :latest
+#   ghcr.io/<owner>/<repo>/app:<version>, :<major>.<minor>, :latest
 #
-#   :<version>-legacy, :<major>.<minor>-legacy, :legacy
-#       For the association's server: Docker 19.03 (see DEPLOYMENT.md §3).
-#       Debian 11 base (no clone3), Docker v2 media types, a single-platform
-#       manifest and no provenance/SBOM attestations — an old daemon chokes on
-#       OCI indexes carrying attestation manifests.
+# Prereleases get only their exact version tag, never latest.
 #
 # Actions are pinned to a commit SHA; the comment gives the version it matches.
+# Tool versions follow the Dockerfiles (Python 3.13 + uv 0.8.22, Node 24 + pnpm 12.9.1).
 
-name: Publish Docker images
+name: CI
 
 on:
+  push:
+    branches: [main]
+  pull_request:
   release:
     types: [published]
 
 concurrency:
-  group: publish-${{ github.ref }}
-  cancel-in-progress: false
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
 
 jobs:
-  check:
-    name: Build and type check
+  api:
+    name: API tests
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: interface/api
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # uv fetches the Python version pyproject.toml requires
+      - run: pipx install uv==0.8.22
+
+      - run: uv sync --frozen
+
+      - run: uv run pytest -q
+
+  app:
+    name: Front build and type check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: interface/app
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -35,26 +57,20 @@ jobs:
 
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22
-          cache: npm
+          node-version: 24
 
-      - run: npm ci
+      - run: npm install --global pnpm@12.9.1
 
-      # The build generates src/lib/paraglide, which svelte-check needs. The env
-      # values are the same placeholders the Dockerfile uses: some server modules
-      # assert their environment at import time, nothing connects.
-      - run: npm run build
-        env:
-          DATABASE_URL: mysql://build:build@127.0.0.1:3306/build
-          S3_URL: https://build.invalid
-          S3_ACCESS_KEY_ID: build
-          S3_SECRET_ACCESS_KEY: build
+      - run: pnpm install --frozen-lockfile
 
-      - run: npm run check
+      - run: pnpm check
+
+      - run: pnpm build
 
   publish:
-    name: Publish (${{ matrix.variant }})
-    needs: check
+    name: Publish (${{ matrix.component }})
+    if: github.event_name == 'release'
+    needs: [api, app]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -62,17 +78,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - variant: modern
-            debian: trixie
-            suffix: ''
-            outputs: type=image,push=true
-            attestations: true
-          - variant: legacy
-            debian: bullseye
-            suffix: -legacy
-            outputs: type=image,push=true,oci-mediatypes=false
-            attestations: false
+        component: [api, app]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -89,26 +95,22 @@ jobs:
       - id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
-          images: ghcr.io/${{ github.repository }}
-          # Prereleases get only their exact version tag, never latest/legacy.
+          images: ghcr.io/${{ github.repository }}/${{ matrix.component }}
           flavor: |
             latest=false
-            suffix=${{ matrix.suffix }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest,enable=${{ !github.event.release.prerelease && matrix.variant == 'modern' }}
-            type=raw,value=legacy,suffix=,enable=${{ !github.event.release.prerelease && matrix.variant == 'legacy' }}
+            type=raw,value=latest,enable=${{ !github.event.release.prerelease }}
 
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
-          context: .
+          context: interface/${{ matrix.component }}
           platforms: linux/amd64
-          build-args: DEBIAN_RELEASE=${{ matrix.debian }}
-          outputs: ${{ matrix.outputs }}
-          provenance: ${{ matrix.attestations }}
-          sbom: ${{ matrix.attestations }}
+          push: true
+          provenance: true
+          sbom: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha,scope=${{ matrix.variant }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.variant }}
+          cache-from: type=gha,scope=${{ matrix.component }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.component }}
