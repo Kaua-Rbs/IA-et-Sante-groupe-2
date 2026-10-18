@@ -33,6 +33,7 @@ package = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-# Le package `api` s'importe depuis le dossier parent (interface/)
-pythonpath = [".."]
+# Le package `api` s'importe depuis le dossier parent (interface/), les moteurs de
+# recherche (optimiseur, hospital_sim, modeles) depuis la racine du depot
+pythonpath = ["..", "../.."]
 filterwarnings = ["ignore::DeprecationWarning:starlette.testclient"]

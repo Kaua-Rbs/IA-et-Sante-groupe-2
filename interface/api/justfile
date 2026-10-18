@@ -9,8 +9,9 @@ install:
     uv sync
 
 # Serveur de développement avec rechargement : http://127.0.0.1:8000/docs
+# Les moteurs de recherche (optimiseur, hospital_sim, modèles) sont à la racine du dépôt
 dev *args:
-    uv run fastapi dev main.py {{args}}
+    PYTHONPATH=../.. uv run fastapi dev main.py {{args}}
 
 # Lance les tests (arguments transmis à pytest)
 test *args:
@@ -18,4 +19,4 @@ test *args:
 
 # Crée des ressources de démonstration synthétiques (spécialités, salles, lits, vacations)
 seed:
-    PYTHONPATH=.. uv run python -m api.seed
+    PYTHONPATH=..:../.. uv run python -m api.seed
