@@ -176,7 +176,7 @@
 	<section class="card add">
 		<div class="card-head"><h2>Simulation Mesa : salles</h2></div>
 		<p class="muted">Scénario hypothétique sur les demandes en attente. Les durées d'exécution sont les prédictions multipliées par le facteur choisi. Les lits, les spécialités et les vacations ne sont pas simulés dans cet aperçu.</p>
-		<form method="POST" action="?/previewSimulation" use:enhance>
+		<form method="POST" action="?/previewSimulation" use:enhance={() => async ({ update }) => update({ reset: false })}>
 			<div class="fields">
 				<div class="field">
 					<label for="simulation-date">Date</label>
@@ -209,6 +209,7 @@
 		</form>
 		{#if form?.simulation}
 			<p><strong>{form.simulation.completed}</strong> interventions terminées sur {form.simulation.cases}, <strong>{form.simulation.unstarted}</strong> non commencées ; dépassement cumulé : <strong>{formatMinutes(form.simulation.overtime_minutes)}</strong>.</p>
+			<p class="muted">{form.simulation.booked_cases} interventions déjà réservées ce jour occupent aussi les salles ({form.simulation.booked_completed} terminées).</p>
 			<p class="muted">{form.simulation.replanning_count} replanifications · {form.simulation.failures} échecs · {form.simulation.assumptions.rooms} salles identiques, 08 h–17 h, remise en état de 15 min.</p>
 		{/if}
 	</section>
@@ -216,7 +217,7 @@
 	<section class="card add">
 		<div class="card-head"><h2>Simulation Mesa : salles et lits</h2></div>
 		<p class="muted">Aperçu sur 14 jours au plus. Les réservations existantes réduisent les minutes de vacation et les lits disponibles. Les cas en attente portent au jour suivant. Une durée de séjour réalisée plus longue peut créer un conflit de lits, qui est compté.</p>
-		<form method="POST" action="?/previewWard" use:enhance>
+		<form method="POST" action="?/previewWard" use:enhance={() => async ({ update }) => update({ reset: false })}>
 			<div class="fields">
 				<div class="field"><label for="ward-start">Du</label><input id="ward-start" name="start" type="date" min={today()} value={today()} required /></div>
 				<div class="field"><label for="ward-end">Au</label><input id="ward-end" name="end" type="date" min={today()} value={addDays(today(), 6)} required /></div>
@@ -242,7 +243,7 @@
 			<h2>Optimisation de la cohorte</h2>
 		</div>
 		<p class="muted">L'aperçu ne réserve aucune date. Vous pouvez ensuite publier des propositions recalculées ; les chirurgiens les confirment individuellement.</p>
-		<form method="POST" action="?/previewOptimization" use:enhance>
+		<form method="POST" action="?/previewOptimization" use:enhance={() => async ({ update }) => update({ reset: false })}>
 			<div class="fields">
 				<div class="field">
 					<label for="cohort-start">Du</label>

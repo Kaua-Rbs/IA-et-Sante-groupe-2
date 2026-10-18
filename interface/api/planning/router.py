@@ -17,10 +17,11 @@ from api.crud import get_or_404, save
 from api.db import SessionDep, utcnow
 from api.planning import service
 from api.planning import replanning
+from api.planning.capacity import ACTIVE_STATUSES
 from api.planning.commitments import confirmed_conflicts
 from optimiseur.optimizer import TOUTES_METHODES
 from hospital_sim.metaheuristics import METHODS as ROOM_METHODS
-from api.resources.models import OperatingRoom
+from api.resources.models import OperatingRoom, Vacation
 from api.planning.models import (
     CaseOutcome, CaseStatus, PlannedCase, PlannedCasePublic, Proposal, ProposalPublic,
     ProposalStatus,
@@ -149,12 +150,23 @@ def room_simulation_preview(
     body: RoomSimulationRequest, session: SessionDep, current_user: PlannerUser,
     predictors: PredictorsDep,
 ):
-    """Hypothetical room-only Mesa replay; never changes clinical bookings."""
+    """Hypothetical room-only Mesa replay; never changes clinical bookings.
+
+    Bookings already planned in active rooms that day keep their room time."""
     try:
         cases, _, _ = service.cohort_snapshot(session, body.date, body.date, predictors)
         rooms = session.exec(select(OperatingRoom).where(OperatingRoom.active == True)).all()  # noqa: E712
+        booked = session.exec(
+            select(PlannedCase.planned_minutes)
+            .join(Vacation, Vacation.id == PlannedCase.vacation_id)
+            .join(OperatingRoom, OperatingRoom.id == Vacation.room_id)
+            .where(Vacation.date == body.date, OperatingRoom.active == True,  # noqa: E712
+                   PlannedCase.status.in_(ACTIVE_STATUSES))
+            .order_by(PlannedCase.id)
+        ).all()
         return asyncio.run(simulate_room_day(
-            cases, day=body.date, rooms=len(rooms), method=body.method,
+            cases, day=body.date, rooms=len(rooms), booked_minutes=tuple(booked),
+            method=body.method,
             policy=body.policy, realized_factor=body.realized_factor,
             outage=body.outage,
         ))

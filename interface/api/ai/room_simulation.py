@@ -11,13 +11,16 @@ from hospital_sim.simulation import run_day
 
 
 async def simulate_room_day(
-    cases: tuple[CohortCase, ...], *, day, rooms: int, method: str = "baseline",
-    policy: str = "reactive", realized_factor: float = 1.2, outage: bool = True,
+    cases: tuple[CohortCase, ...], *, day, rooms: int, booked_minutes: tuple[int, ...] = (),
+    method: str = "baseline", policy: str = "reactive", realized_factor: float = 1.2,
+    outage: bool = True,
 ) -> dict:
     """Use predictions for planning and a declared stress factor for execution.
 
-    This is a room-only exploration with identical synthetic rooms. It does not
-    use historical outcomes, book clinical resources, or infer patient results.
+    This is a room-only exploration with identical synthetic rooms. Existing
+    bookings of the day (``booked_minutes``, their planned room time) share the
+    rooms with the pending cases and are stressed by the same factor. It does
+    not use historical outcomes, book clinical resources, or infer patient results.
     """
     if method not in METHODS or policy not in ("static", "reactive"):
         raise ValueError("Unknown simulation method or policy")
@@ -25,10 +28,18 @@ async def simulate_room_day(
         raise ValueError("Choose 1-20 rooms and a realized-duration factor of 1-2")
     if len(cases) > 30:
         raise ValueError("Limit the room preview to 30 cases")
-    selected = tuple(case for case in cases if case.earliest_date <= day <= case.latest_date)
-    inputs = tuple(CaseInput(f"case-{index:04d}", str(case.specialty_id),
-                             ceil(case.room_minutes), case.los_days)
-                   for index, case in enumerate(selected, 1))
+    if len(booked_minutes) > 200 or any(minutes < 1 for minutes in booked_minutes):
+        raise ValueError("Unsupported existing bookings for the room preview")
+    selected = tuple(
+        case for case in cases
+        if case.earliest_date <= day <= case.latest_date and day not in case.rejected_dates
+    )
+    pending = tuple(CaseInput(f"case-{index:04d}", str(case.specialty_id),
+                              ceil(case.room_minutes), case.los_days)
+                    for index, case in enumerate(selected, 1))
+    booked = tuple(CaseInput(f"booked-{index:04d}", "booked", minutes)
+                   for index, minutes in enumerate(booked_minutes, 1))
+    inputs = pending + booked
     realized = {case.case_id: ceil(case.predicted_minutes * realized_factor)
                 for case in inputs}
     if any(value > 1440 for value in realized.values()):
@@ -42,10 +53,16 @@ async def simulate_room_day(
     result = await run_day(scenario, config, policy, scheduler=scheduler,
                            timeout_seconds=2.0)
     metrics = result["metrics"]
+    status = {row["case_id"]: row["status"] for row in result["executed_schedule"]}
+
+    def count(group, value):
+        return sum(status.get(case.case_id) == value for case in group)
+
     return {
         "date": day.isoformat(), "method": method, "policy": policy,
-        "cases": len(inputs), "completed": metrics["completed"],
-        "unstarted": metrics["unstarted"],
+        "cases": len(pending), "completed": count(pending, "completed"),
+        "unstarted": count(pending, "waiting"),
+        "booked_cases": len(booked), "booked_completed": count(booked, "completed"),
         "overtime_minutes": metrics["overtime_minutes_including_turnover"],
         "replanning_count": metrics["replanning_count"],
         "failures": metrics["failures"],

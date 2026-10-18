@@ -42,8 +42,11 @@ Le gestionnaire du bloc voit les panneaux suivants sur la page **Planning** :
    salles identiques, 08 h–17 h et 15 minutes de remise en état. Les durées
    réalisées sont les prédictions multipliées par un facteur explicite de 1 à 2.
    La simulation ne connaît pas les résultats futurs réels ; son résultat est
-   agrégé et ne montre aucun identifiant d'épisode. Elle ne simule ni les lits,
-   ni les spécialités, ni les vacations dans cet aperçu.
+   agrégé et ne montre aucun identifiant d'épisode. Les réservations déjà
+   planifiées ce jour dans les salles actives occupent aussi les salles, avec le
+   même facteur, et sont comptées à part ; les dates écartées par le clinicien
+   sont exclues. Elle ne simule ni les lits, ni les spécialités, ni les
+   vacations dans cet aperçu.
 3. **Simulation Mesa : salles et lits** : sur 14 jours et 30 demandes au plus,
    les agents en attente peuvent passer au jour suivant. Les vacations
    compatibles, les minutes déjà réservées et l'occupation des lits par unité

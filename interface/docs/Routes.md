@@ -59,7 +59,7 @@ Le jeton d'accès contient `sub`, `full_name`, `admin`, `doctor` et `roles` ; le
 | POST | `/planning/cohort-preview` | planner | Optimise au plus 50 demandes en attente sur une fenêtre future de 60 jours au plus ; renvoie affectations et demandes non placées. Lecture seule. |
 | POST | `/planning/cohort-proposals` | planner | Recalcule la cohorte et publie ses affectations réalisables comme propositions à confirmer ; transaction unique, sans réservation. |
 | GET | `/planning/room-simulation-methods` | planner | Méthodes de planification disponibles dans la simulation Mesa de salles. |
-| POST | `/planning/room-simulation-preview` | planner | Simulation hypothétique d'une journée, jusqu'à 30 cas et 20 salles ; renvoie uniquement des agrégats. Lecture seule. |
+| POST | `/planning/room-simulation-preview` | planner | Simulation hypothétique d'une journée, jusqu'à 30 cas et 20 salles, avec les réservations existantes du jour ; renvoie uniquement des agrégats. Lecture seule. |
 | POST | `/planning/ward-simulation-preview` | planner | Simulation Mesa de 14 jours au plus, avec lits par unité et réservations existantes ; renvoie uniquement des agrégats. Lecture seule. |
 | POST | `/requests/{id}/proposals` | clinique | Prédit, puis propose jusqu'à `PROPOSAL_COUNT` dates (A, B…) avec leurs raisons. Remplace les propositions ouvertes. Une liste vide signifie qu'aucun créneau n'a été trouvé dans la fenêtre. |
 | GET | `/requests/{id}/proposals` | staff | `?status=` |

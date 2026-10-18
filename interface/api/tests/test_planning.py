@@ -241,6 +241,35 @@ def test_refresh_removes_open_dates_for_newly_unassignable_requests(setup):
     ).json() == []
 
 
+def test_care_type_change_flags_confirmed_stay_without_moving_it(setup):
+    s = setup
+    first = propose(s, s["new_request"]())[0]
+    case = s["client"].post(f"/proposals/{first['id']}/accept", headers=s["doctor"]).json()
+    assert s["client"].get("/planning/commitment-conflicts", headers=s["planner"]).json() == []
+    changed = s["client"].patch(f"/bed-units/{s['beds']['id']}", headers=s["planner"],
+                                json={"care_type": "ambulatory"})
+    assert changed.status_code == 200, changed.text
+    conflicts = s["client"].get("/planning/commitment-conflicts", headers=s["planner"]).json()
+    assert [row["case_id"] for row in conflicts] == [case["id"]]
+    assert any("hébergement" in reason for reason in conflicts[0]["reasons"])
+    assert s["client"].get("/cases", headers=s["doctor"]).json() == [case]
+
+
+def test_room_preview_counts_confirmed_bookings_of_the_day(setup):
+    s = setup
+    first = propose(s, s["new_request"]())[0]
+    s["client"].post(f"/proposals/{first['id']}/accept", headers=s["doctor"])
+    s["new_request"]()
+    preview = s["client"].post("/planning/room-simulation-preview", headers=s["planner"], json={
+        "date": first["admission_date"], "method": "baseline", "policy": "reactive",
+        "realized_factor": 1.0, "outage": False,
+    })
+    assert preview.status_code == 200, preview.text
+    assert preview.json()["cases"] == 1
+    assert preview.json()["booked_cases"] == 1
+    assert s["client"].get("/cases", headers=s["doctor"]).json()[0]["id"]
+
+
 def test_cancelling_a_case_frees_capacity(setup):
     s = setup
     request = s["new_request"]()

@@ -4,10 +4,10 @@ import datetime as dt
 
 from sqlmodel import Session, select
 
-from api.clinical.models import SurgicalRequest
+from api.clinical.models import Prediction, SurgicalRequest
 from api.config import settings
 from api.planning.capacity import bed_occupancy, stay_days, used_minutes
-from api.planning.models import CaseStatus, PlannedCase
+from api.planning.models import CaseStatus, PlannedCase, Proposal
 from api.resources.models import BedUnit, OperatingRoom, Vacation
 
 
@@ -15,9 +15,12 @@ def confirmed_conflicts(session: Session, start: dt.date, end: dt.date) -> list[
     if end < start or (end - start).days > 60:
         raise ValueError("Choose a window of at most 60 days")
     rows = session.exec(
-        select(PlannedCase, SurgicalRequest, Vacation, OperatingRoom, BedUnit)
+        select(PlannedCase, SurgicalRequest, Vacation, OperatingRoom, BedUnit, Prediction)
         .select_from(PlannedCase)
         .join(SurgicalRequest, SurgicalRequest.id == PlannedCase.request_id)
+        # The prediction accepted with the booking fixes the care type it needs
+        .join(Proposal, Proposal.id == PlannedCase.proposal_id)
+        .join(Prediction, Prediction.id == Proposal.prediction_id)
         .join(Vacation, Vacation.id == PlannedCase.vacation_id)
         .join(OperatingRoom, OperatingRoom.id == Vacation.room_id)
         .join(BedUnit, BedUnit.id == PlannedCase.bed_unit_id)
@@ -27,10 +30,10 @@ def confirmed_conflicts(session: Session, start: dt.date, end: dt.date) -> list[
     ).all()
     if not rows:
         return []
-    used = used_minutes(session, (vacation.id for _, _, vacation, _, _ in rows))
+    used = used_minutes(session, (vacation.id for _, _, vacation, _, _, _ in rows))
     occupancy = bed_occupancy(session, start, max(case.discharge_date for case, *_ in rows))
     conflicts = []
-    for case, request, vacation, room, unit in rows:
+    for case, request, vacation, room, unit, prediction in rows:
         reasons = []
         if case.admission_date >= start:
             if not room.active:
@@ -43,6 +46,8 @@ def confirmed_conflicts(session: Session, start: dt.date, end: dt.date) -> list[
                 reasons.append("La vacation dépasse sa capacité disponible.")
         if not unit.active:
             reasons.append("L'unité de lits a été désactivée.")
+        if unit.care_type != prediction.care_type:
+            reasons.append("Le type d'hébergement de l'unité ne correspond plus au séjour confirmé.")
         load = occupancy.get(unit.id, {})
         if any(load.get(day, 0) > unit.capacity
                for day in stay_days(max(start, case.admission_date), case.discharge_date)):

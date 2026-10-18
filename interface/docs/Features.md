@@ -95,7 +95,7 @@ Une **vacation** est un créneau d'une salle attribué à une spécialité, et �
 | Modèles hebdomadaires | Prévu | Générer la répartition des vacations par spécialité à partir de l'historique, et justifier chaque aménagement. |
 | Planning du jour et ordre de passage | Prévu | Liste des patients par salle, actes, ordre et remise en état entre deux interventions. |
 | Optimisation de cohorte et publication | Démonstration | Jusqu'à 50 demandes en attente, 10 méthodes. Le cadre peut publier les affectations comme propositions après recalcul et contrôle ; chaque chirurgien confirme ensuite sa demande. |
-| Aperçu Mesa d'une journée | Démonstration | Durées réalisées hypothétiques, fermeture optionnelle et replanification ; salles uniquement. |
+| Aperçu Mesa d'une journée | Démonstration | Durées réalisées hypothétiques, réservations existantes du jour, fermeture optionnelle et replanification ; salles uniquement. |
 | Aperçu Mesa multi-jours | Démonstration | Salles et lits par unité, réservations existantes, attente reportée et conflits de lits agrégés ; sans écriture dans le planning. |
 | Actualisation sur changement | Démonstration | File persistante, historique des calculs, reprise après interruption ; traitement manuel ou automatique des propositions, avec réservations confirmées conservées. |
 

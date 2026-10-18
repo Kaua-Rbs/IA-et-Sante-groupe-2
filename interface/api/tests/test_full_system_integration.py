@@ -7,6 +7,7 @@ import pytest
 from api.accounts.models import Role
 from api.ai.cohort import CohortCase, optimize_cohort
 from api.ai.contracts import BedUnitLoad, PredictionInput, VacationSlot
+from api.ai.room_simulation import simulate_room_day
 from api.ai.trained import _raw_features
 from api.ai.ward_simulation import simulate_ward_window
 from api.resources.models import CareType
@@ -49,6 +50,19 @@ def test_cohort_preview_never_overbooks_beds():
     assert len(result.unassigned) == 1
     assert {row.request_id for row in result.assignments} | set(result.unassigned) == {
         UUID(int=1), UUID(int=2)}
+
+
+def test_room_preview_skips_rejected_dates_and_counts_existing_bookings():
+    rejected = CohortCase(UUID(int=2), 1, 1, 95, 1, CareType.conventional, DAY, DAY, (DAY,))
+    result = asyncio.run(simulate_room_day((_case(1), rejected), day=DAY, rooms=1,
+                                           booked_minutes=(480,), outage=False))
+    assert result["cases"] == 1
+    assert result["booked_cases"] == 1
+    # One room: the stressed booking (576 min) already fills the 08:00-17:00 day.
+    assert result["overtime_minutes"] > 0
+    alone = asyncio.run(simulate_room_day((_case(1),), day=DAY, rooms=1, outage=False))
+    assert alone["completed"] == 1 and alone["booked_cases"] == 0
+    assert alone["overtime_minutes"] == 0
 
 
 def test_web_consultation_fields_map_to_model_features():

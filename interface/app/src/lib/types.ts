@@ -186,6 +186,8 @@ export interface RoomSimulationPreview {
 	cases: number;
 	completed: number;
 	unstarted: number;
+	booked_cases: number;
+	booked_completed: number;
 	overtime_minutes: number;
 	replanning_count: number;
 	failures: number;
