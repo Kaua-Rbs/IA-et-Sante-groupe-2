@@ -78,7 +78,7 @@ Objectif : une instance qui ressemble à la vraie vie d'un service, avec l'IA br
   - `docs/todo.md` est obsolète (parle de fixtures, du rôle `hestia` qui n'existe plus) : le fusionner avec ce fichier ou le supprimer
   - README racine : section « Current state » à mettre à jour (KYST, déploiement, optimiseur, simulation)
 - Organiser les dossiers
-  - Scripts Python de la racine rangés (fait, non commité) : modèles dans `prediction/`, tableau de bord dans `tools/dashboard.py` ; imports, Dockerfile, tests et README mis à jour
+  - modèles dans `prediction/` ; imports, Dockerfile, tests et README mis à jour
   - Notebooks de la racine rangés dans `notebooks/` (fait, non commité) ; leurs chemins `resources/` passent par `REPO`, ils se lancent depuis la racine ou depuis `notebooks/`
   - Supprimer les `kyst.db` / `__pycache__` locaux (non versionnés, mais à ne pas embarquer)
 - Merge avec mains

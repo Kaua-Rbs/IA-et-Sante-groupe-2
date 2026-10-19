@@ -17,7 +17,27 @@ Le fichier [`files/compose.yml`](files/compose.yml) est copié dans `kyst_projec
 
 L'API et le front ne sont plus construits sur le serveur : le rôle tire les images publiées par la CI sur ghcr.io à chaque release GitHub (`kyst_image_registry`, par défaut `ghcr.io/kaua-rbs/ia-et-sante-groupe-2`). `kyst_version` choisit le tag : `latest` (défaut, dernière release stable), une version exacte (`1.2.0`) ou `<majeure>.<mineure>` (`1.2`). Les prereleases n'ont que leur version exacte.
 
-Le tag est tiré à chaque déploiement. Les conteneurs ne sont recréés que si une image a changé, si `compose.yml` ou `.env` a changé, ou si un service est arrêté. Les anciennes images sont supprimées par le timer `podman-image-prune` du rôle `podman`.
+Le tag de l'API et du front est tiré à chaque déploiement, puis tous les conteneurs sont recréés. Les anciennes images sont supprimées par le timer `podman-image-prune` du rôle `podman`.
+
+## Mise à jour automatique
+
+Comme Watchtower, le serveur suit le tag `kyst_version` et applique les nouvelles images sans relancer le playbook. Le timer systemd `kyst-auto-update.timer` de l'utilisateur `podman` lance `kyst_project_dir/auto-update.sh` toutes les 15 minutes (`kyst_auto_update_schedule`, avec un délai aléatoire `kyst_auto_update_random_delay`). Le script :
+
+1. télécharge l'image de chaque service de `kyst_auto_update_services` (par défaut `api` et `app`) ;
+2. compare son identifiant à celui du conteneur en cours ;
+3. recrée uniquement les services dont l'image a changé (`podman-compose up -d --force-recreate --no-deps`), ainsi que ceux dont le conteneur a disparu.
+
+Une release GitHub suffit donc à mettre le serveur à jour : la CI pousse les images, le timer les applique au passage suivant. Avec une version exacte (`kyst_version: 1.2.0`), le tag ne bouge pas et rien n'est mis à jour. PostgreSQL et pgAdmin ne sont pas suivis : une nouvelle version majeure de PostgreSQL demande une migration des données.
+
+`kyst_auto_update: false` arrête et désactive le timer. Sur le serveur, en tant que `podman` :
+
+```bash
+systemctl --user list-timers kyst-auto-update.timer   # prochain passage
+journalctl --user -u kyst-auto-update                 # journal des mises à jour
+systemctl --user start kyst-auto-update.service       # forcer une vérification
+```
+
+Le script ne touche ni à `compose.yml`, ni à `.env`, ni aux modèles : leurs changements passent toujours par le playbook.
 
 L'URL publique du front (protection CSRF des formulaires) est lue au démarrage du conteneur, dans la variable `ORIGIN`. Avec `kyst_origin` vide (défaut), le front suppose `https://` et l'en-tête `Host` transmis par le proxy, ce qui convient derrière un proxy TLS. Sinon, définir `kyst_origin` (ex. `https://kyst.example.org`) : le front est recréé au déploiement suivant, sans changer d'image.
 

@@ -16,6 +16,19 @@ kyst_app_image: "{{ kyst_image_registry }}/app:{{ kyst_version }}"
 # Vide : le front suppose https et l'en-tête Host transmis par le proxy.
 kyst_origin: ""
 
+# Mise à jour automatique (à la manière de Watchtower) : un timer systemd de l'utilisateur
+# podman télécharge le tag suivi (kyst_version) et recrée les services dont l'image a changé.
+# Sans effet avec une version exacte (« 1.2.0 ») : utile avec « latest » ou « 1.2 ».
+kyst_auto_update: true
+# Format OnCalendar de systemd ; le délai aléatoire évite de toujours tomber à la même minute
+kyst_auto_update_schedule: "*:0/15"
+kyst_auto_update_random_delay: 2min
+# Services compose suivis et nom de leur conteneur. PostgreSQL et pgAdmin sont exclus :
+# une nouvelle version majeure de PostgreSQL demande une migration des données.
+kyst_auto_update_services:
+  api: kyst-api
+  app: kyst-app
+
 kyst_postgres_db: kyst
 kyst_postgres_user: kyst
 kyst_pgadmin_email: dummyemail@dummy.org

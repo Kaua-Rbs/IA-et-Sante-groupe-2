@@ -49,6 +49,14 @@
   become: true
 
 ##### Démarrage #####
+- name: Pull KYST images
+  ansible.builtin.command:
+    cmd: podman-compose pull {{ kyst_auto_update_services.keys() | join(' ') }}
+    chdir: "{{ kyst_project_dir }}"
+  changed_when: false
+  become: true
+  become_user: podman
+
 - name: Start KYST services
   ansible.builtin.command:
     cmd: podman-compose up -d --force-recreate
@@ -63,6 +71,41 @@
   when: kyst_seed_demo
   register: kyst_seed
   changed_when: "'Demo resources created' in kyst_seed.stdout"
+  become: true
+  become_user: podman
+
+##### Mise à jour automatique #####
+- name: Install the auto-update script
+  ansible.builtin.template:
+    src: kyst-auto-update.sh.j2
+    dest: "{{ kyst_project_dir }}/auto-update.sh"
+    owner: podman
+    group: podman
+    mode: "0755"
+  become: true
+
+- name: Install the auto-update systemd units
+  ansible.builtin.template:
+    src: "kyst-auto-update.{{ item }}.j2"
+    dest: "/home/podman/.config/systemd/user/kyst-auto-update.{{ item }}"
+    owner: podman
+    group: podman
+    mode: "0644"
+  loop:
+    - service
+    - timer
+  become: true
+
+- name: Enable or disable the auto-update timer
+  ansible.builtin.systemd_service:
+    name: kyst-auto-update.timer
+    state: "{{ 'started' if kyst_auto_update else 'stopped' }}"
+    enabled: "{{ kyst_auto_update }}"
+    daemon_reload: true
+    scope: user
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ podman_user.uid }}"
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ podman_user.uid }}/bus"
   become: true
   become_user: podman
 
