@@ -79,6 +79,6 @@ Objectif : une instance qui ressemble à la vraie vie d'un service, avec l'IA br
   - README racine : section « Current state » à mettre à jour (KYST, déploiement, optimiseur, simulation)
 - Organiser les dossiers
   - Scripts Python de la racine rangés (fait, non commité) : modèles dans `prediction/`, tableau de bord dans `tools/dashboard.py` ; imports, Dockerfile, tests et README mis à jour
-  - Reste à la racine : les notebooks (`EDA_donees_bloc.ipynb`, `preprocessing_*.ipynb`) à déplacer dans `notebooks/` (attention aux chemins relatifs `resources/`)
+  - Notebooks de la racine rangés dans `notebooks/` (fait, non commité) ; leurs chemins `resources/` passent par `REPO`, ils se lancent depuis la racine ou depuis `notebooks/`
   - Supprimer les `kyst.db` / `__pycache__` locaux (non versionnés, mais à ne pas embarquer)
 - Merge avec mains
