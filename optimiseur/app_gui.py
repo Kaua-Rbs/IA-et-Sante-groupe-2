@@ -285,7 +285,7 @@ class BlocOperatoireApp(tk.Tk):
         )
 
     def _charger_donnees_reelles(self):
-        """Charge le Parquet pretraite par EDA_donees_bloc.ipynb.
+        """Charge le Parquet pretraite par notebooks/EDA_donees_bloc.ipynb.
 
         Le classeur Excel source n'est jamais lu directement : le notebook EDA
         est la source de verite du pretraitement et produit ce Parquet, que
@@ -294,7 +294,7 @@ class BlocOperatoireApp(tk.Tk):
         chemin = Path(db.DEFAULT_PARQUET)
         if not chemin.exists():
             chemin = filedialog.askopenfilename(
-                title="Choisir le Parquet pretraite par EDA_donees_bloc.ipynb",
+                title="Choisir le Parquet pretraite par notebooks/EDA_donees_bloc.ipynb",
                 filetypes=[("Parquet pretraite", "*.parquet")],
             )
         if not chemin:

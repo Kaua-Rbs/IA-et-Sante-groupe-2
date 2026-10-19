@@ -144,7 +144,7 @@ traduire par un test en echec, pas par une inspection manuelle.
 - `optimiseur.run_demo` en sous-processus : code retour 0, 5 `[OPTIMUM ATTEINT]`,
   les 5 noms de methodes, plannings alternatifs, adaptation dynamique et presence de tous les fichiers attendus ;
 - `notebooks/guide_optimisation.ipynb` : notebook valide, sans cellule en erreur ;
-- `EDA_donees_bloc.ipynb` : **non modifie** (aucune cellule executee, aucune
+- `notebooks/EDA_donees_bloc.ipynb` : **non modifie** (aucune cellule executee, aucune
   sortie).
 
 ## Hors perimetre (verification manuelle)
@@ -155,7 +155,7 @@ traduire par un test en echec, pas par une inspection manuelle.
   d'evenements interactive).
 - Qualite clinique du proxy `specialite` (CCAM/GHM) : validation metier requise.
 - Pertinence des poids de la fonction de cout pour un usage reel.
-- Execution complete de `EDA_donees_bloc.ipynb` sur le classeur source (lente) :
+- Execution complete de `notebooks/EDA_donees_bloc.ipynb` sur le classeur source (lente) :
   la faire une fois via `jupyter nbconvert --execute` puis verifier le Parquet.
 
 ## Checklist de non-regression avant commit

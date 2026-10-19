@@ -76,7 +76,7 @@ class TestNotebooks(unittest.TestCase):
         self.assertEqual(erreurs, [], "le notebook rapport d'aleas contient des cellules en erreur")
 
     def test_eda_donees_bloc_non_modifie(self):
-        nb = nbformat.read(REPO / "EDA_donees_bloc.ipynb", as_version=4)
+        nb = nbformat.read(REPO / "notebooks" / "EDA_donees_bloc.ipynb", as_version=4)
         for i, cell in enumerate(nb.cells):
             if cell.cell_type == "code":
                 with self.subTest(cellule=i):

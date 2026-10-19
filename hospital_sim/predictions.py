@@ -51,8 +51,8 @@ class ModelPredictions:
 
 def load_model_predictions(eda_path: Path, room_artifact: Path,
                            los_artifact: Path) -> ModelPredictions:
-    from los_model import predict_los
-    from surgery_duration import predict_schedule
+    from prediction.los_model import predict_los
+    from prediction.surgery_duration import predict_schedule
 
     for path in (eda_path, room_artifact, los_artifact):
         if not path.is_file():

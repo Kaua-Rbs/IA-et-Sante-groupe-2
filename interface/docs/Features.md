@@ -126,7 +126,7 @@ Une **vacation** est un créneau d'une salle attribué à une spécialité, et �
 | Salles d'opération | Disponible | Spécialité habituelle, activation. Une salle désactivée ne reçoit plus de proposition. |
 | Chirurgiens | Disponible | Nom affiché, spécialité, lien avec un compte utilisateur (administrateur). |
 | Spécialités | Disponible | Ajout et suppression. |
-| Données de démonstration | Disponible | `just seed` crée 4 spécialités, 4 salles, 45 lits conventionnels, 21 places ambulatoires, 8 chirurgiens et 4 semaines de vacations, toutes synthétiques. |
+| Données de démonstration | Disponible | `just seed` crée un service synthétique : 4 spécialités, 4 salles, 45 lits conventionnels, 21 places ambulatoires, 8 chirurgiens, 8 semaines de vacations, environ 580 patients pseudonymes, 3 semaines d'interventions réalisées avec durées réelles, un planning à venir et des demandes en attente. |
 
 ### 7. Comptes et sécurité
 

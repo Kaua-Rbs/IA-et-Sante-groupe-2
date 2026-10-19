@@ -18,7 +18,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY interface/api/ ./
 COPY optimiseur/ /srv/optimiseur/
 COPY hospital_sim/ /srv/hospital_sim/
-COPY duration_features.py surgery_duration.py los_model.py /srv/
+COPY prediction/ /srv/prediction/
 
 ENV PYTHONPATH=/srv
 

@@ -15,6 +15,7 @@ artifacts
 **/.env
 **/kyst.local.env
 *.ipynb
+notebooks
 interface/app
 interface/ansible
 interface/api/tests

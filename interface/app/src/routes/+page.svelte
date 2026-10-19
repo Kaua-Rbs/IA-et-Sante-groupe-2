@@ -50,13 +50,6 @@
 		{/if}
 	</div>
 
-	{#if dash.health.ai_backend === 'fixtures'}
-		<p class="alert alert--info small">
-			Mode démonstration : les durées prédites et les dates proposées viennent de valeurs fixes, en
-			attendant les modèles entraînés et le solveur d'optimisation.
-		</p>
-	{/if}
-
 	{#if !data.user?.roles.length && !data.user?.admin}
 		<p class="alert alert--info small">
 			Votre compte n'a pas encore de rôle : demandez à un administrateur de vous en attribuer un

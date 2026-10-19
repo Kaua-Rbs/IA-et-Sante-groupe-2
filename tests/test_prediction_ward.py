@@ -9,15 +9,15 @@ from unittest.mock import patch
 
 import pandas as pd
 
-from bridge_los import build_patients_with_uncertainty
+from prediction.bridge_los import build_patients_with_uncertainty
 from hospital_sim.domain import CaseInput, SimulationConfig
 from hospital_sim.historical_data import DailyScenario
 from hospital_sim.historical_data import ROOM_IN, ROOM_OUT, load_historical
 from hospital_sim.predictions import ModelPredictions
 from hospital_sim.simulation import run_day
 from hospital_sim.ward import HospitalWardModel
-from los_model import CALIBRATION_MIN_ROWS, TARGET, _partitions
-from surgery_duration import FIXED_FEATURES
+from prediction.los_model import CALIBRATION_MIN_ROWS, TARGET, _partitions
+from prediction.surgery_duration import FIXED_FEATURES
 
 
 class PredictionBoundaryTests(unittest.TestCase):
@@ -79,14 +79,14 @@ class PredictionBoundaryTests(unittest.TestCase):
                                        "los_lower_days": [1.0, 2.0],
                                        "los_upper_days": [3.0, 4.0]})
         room_prediction = pd.DataFrame({"duration_point_min": [40.0, 50.0]})
-        with patch("bridge_los.pd.read_parquet", return_value=los_rows), \
-             patch("bridge_los.predict_los", return_value=los_prediction), \
-             patch("bridge_los.predict_schedule", return_value=room_prediction):
-            with patch("bridge_los.db.load_preprocessed", return_value=eda):
+        with patch("prediction.bridge_los.pd.read_parquet", return_value=los_rows), \
+             patch("prediction.bridge_los.predict_los", return_value=los_prediction), \
+             patch("prediction.bridge_los.predict_schedule", return_value=room_prediction):
+            with patch("prediction.bridge_los.db.load_preprocessed", return_value=eda):
                 first, _, _ = build_patients_with_uncertainty(horizon_jours=2)
             changed = eda.assign(room_duration_min=[900, 1200],
                                  duree_sejour_corrigee=[20, 30])
-            with patch("bridge_los.db.load_preprocessed", return_value=changed):
+            with patch("prediction.bridge_los.db.load_preprocessed", return_value=changed):
                 second, _, _ = build_patients_with_uncertainty(horizon_jours=2)
         pd.testing.assert_frame_equal(first, second)
         self.assertEqual(first["duree_operatoire"].tolist(), [40, 50])
@@ -102,15 +102,15 @@ class PredictionBoundaryTests(unittest.TestCase):
                                        "los_lower_days": [1.0, 5.0],
                                        "los_upper_days": [1.0, 5.0]})
         room_prediction = pd.DataFrame({"duration_point_min": [40.0, 50.0]})
-        with patch("bridge_los.pd.read_parquet", return_value=los_rows), \
-             patch("bridge_los.predict_los", return_value=los_prediction), \
-             patch("bridge_los.predict_schedule", return_value=room_prediction), \
-             patch("bridge_los.db.load_preprocessed", return_value=eda):
+        with patch("prediction.bridge_los.pd.read_parquet", return_value=los_rows), \
+             patch("prediction.bridge_los.predict_los", return_value=los_prediction), \
+             patch("prediction.bridge_los.predict_schedule", return_value=room_prediction), \
+             patch("prediction.bridge_los.db.load_preprocessed", return_value=eda):
             patients, _, _ = build_patients_with_uncertainty(horizon_jours=1)
         self.assertEqual(patients["los_pred"].tolist(), [5.0, 1.0])
-        with patch("bridge_los.pd.read_parquet", return_value=los_rows), \
-             patch("bridge_los.predict_los", return_value=los_prediction), \
-             patch("bridge_los.db.load_preprocessed",
+        with patch("prediction.bridge_los.pd.read_parquet", return_value=los_rows), \
+             patch("prediction.bridge_los.predict_los", return_value=los_prediction), \
+             patch("prediction.bridge_los.db.load_preprocessed",
                    return_value=eda.drop(columns="id_patient")):
             with self.assertRaisesRegex(ValueError, "id_patient"):
                 build_patients_with_uncertainty(horizon_jours=1)

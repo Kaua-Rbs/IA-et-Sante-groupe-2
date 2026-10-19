@@ -15,8 +15,8 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from los_model import predict_los_loaded
-from surgery_duration import predict_schedule_loaded
+from prediction.los_model import predict_los_loaded
+from prediction.surgery_duration import predict_schedule_loaded
 
 
 def _fingerprint(path: Path) -> str:

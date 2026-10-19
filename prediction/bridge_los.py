@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 from optimiseur import data_bridge as db
-from los_model import DEFAULT_ARTIFACT as LOS_ARTIFACT, predict_los
-from surgery_duration import DEFAULT_ARTIFACT as ROOM_ARTIFACT, predict_schedule
+from prediction.los_model import DEFAULT_ARTIFACT as LOS_ARTIFACT, predict_los
+from prediction.surgery_duration import DEFAULT_ARTIFACT as ROOM_ARTIFACT, predict_schedule
 
 K_HIGH = 4
 EDA_PARQUET = "resources/donnees_bloc_pretraitees.parquet"

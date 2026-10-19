@@ -46,10 +46,11 @@ Although the patient identifier is anonymized or pseudonymized, the workbook sti
 
 The repository is currently at the exploratory-analysis stage:
 
-- [`EDA_donees_bloc.ipynb`](EDA_donees_bloc.ipynb) provides an executable data-analysis and initial cleaning workflow;
-- [`preprocessing_los.ipynb`](preprocessing_los.ipynb) creates a leakage-conscious length-of-stay modeling table;
-- [`preprocessing_surgery_duration.ipynb`](preprocessing_surgery_duration.ipynb) creates a leakage-conscious operating-room-duration modeling table;
-- [`dashboard.py`](dashboard.py) provides an interactive, aggregate view of the preprocessed data;
+- [`notebooks/EDA_donees_bloc.ipynb`](notebooks/EDA_donees_bloc.ipynb) provides an executable data-analysis and initial cleaning workflow;
+- [`notebooks/preprocessing_los.ipynb`](notebooks/preprocessing_los.ipynb) creates a leakage-conscious length-of-stay modeling table;
+- [`notebooks/preprocessing_surgery_duration.ipynb`](notebooks/preprocessing_surgery_duration.ipynb) creates a leakage-conscious operating-room-duration modeling table;
+- [`prediction/`](prediction/) contains the operating-room-duration and length-of-stay models (training and inference);
+- [`tools/dashboard.py`](tools/dashboard.py) provides an interactive, aggregate view of the preprocessed data;
 - [`data_dictionary_donees_bloc.md`](data_dictionary_donees_bloc.md) documents and validates the workbook schema;
 - [`docs/patient-workflow.md`](docs/patient-workflow.md) provides a first activity-diagram draft of the planned surgical-patient journey;
 - [`report/`](report/) contains the collaborative LaTeX report and its local build instructions;
@@ -69,10 +70,14 @@ Predictive models, real scheduling algorithms, comparative experiments, and an o
 
 ```text
 .
-├── EDA_donees_bloc.ipynb          # Initial exploratory data analysis
-├── preprocessing_los.ipynb        # Length-of-stay model preprocessing
-├── preprocessing_surgery_duration.ipynb # Surgery-duration model preprocessing
-├── dashboard.py                    # Interactive aggregate-data dashboard
+├── notebooks/
+│   ├── EDA_donees_bloc.ipynb      # Initial exploratory data analysis
+│   ├── preprocessing_los.ipynb    # Length-of-stay model preprocessing
+│   ├── preprocessing_surgery_duration.ipynb # Surgery-duration model preprocessing
+│   ├── guide_optimisation.ipynb   # Step-by-step optimisation guide
+│   └── rapport_aleas_et_adaptation.ipynb # Disruption and adaptation report
+├── prediction/                     # Duration models: room time, length of stay, simulation bridge
+├── tools/dashboard.py              # Interactive aggregate-data dashboard
 ├── data_dictionary_donees_bloc.md # Description of the 30 source columns
 ├── docs/
 │   └── patient-workflow.md        # Versioned patient-journey diagram
@@ -127,14 +132,14 @@ From the repository root:
 jupyter lab
 ```
 
-Open `EDA_donees_bloc.ipynb`, select the virtual-environment kernel, and run the cells in order.
+Open `notebooks/EDA_donees_bloc.ipynb`, select the virtual-environment kernel, and run the cells in order.
 
 ### 4. Prepare model datasets
 
 After running the EDA notebook, run the two model-specific preprocessing notebooks:
 
-- `preprocessing_los.ipynb` writes `resources/model_los_dataset.parquet`;
-- `preprocessing_surgery_duration.ipynb` writes `resources/model_surgery_duration_dataset.parquet`.
+- `notebooks/preprocessing_los.ipynb` writes `resources/model_los_dataset.parquet`;
+- `notebooks/preprocessing_surgery_duration.ipynb` writes `resources/model_surgery_duration_dataset.parquet`.
 
 Both outputs contain patient-disjoint temporal train, validation, and test splits. Columns beginning
 with `split_` are audit metadata and must not be passed to a model. The notebooks retain categorical
@@ -145,7 +150,7 @@ features as strings so their encoding can be fitted inside each model pipeline w
 After the notebook has created the preprocessed Parquet file, run:
 
 ```bash
-streamlit run dashboard.py
+streamlit run tools/dashboard.py
 ```
 
 Use the sidebar to select a variable and one or more values—for example,

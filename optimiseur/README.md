@@ -26,7 +26,7 @@ depuis les données réelles prétraitées par le notebook EDA.
 | `optimiseur/run_coordination_demo.py` | Démonstration de re-planification dynamique via `hospital_sim` |
 | `optimiseur/app_gui.py` | Interface graphique Tkinter, visuelle et interactive (avec onglets Plannings alternatifs et Aléas & Adaptation) |
 | `optimiseur/data_bridge.py` | Convertit le Parquet prétraité par le notebook EDA au schéma de l'optimiseur |
-| `EDA_donees_bloc.ipynb` | Prétraitement du classeur réel (source de vérité, ne pas modifier) |
+| `notebooks/EDA_donees_bloc.ipynb` | Prétraitement du classeur réel (source de vérité, ne pas modifier) |
 | `notebooks/guide_optimisation.ipynb` | Guide pas à pas : des données EDA aux 5 métaheuristiques historiques |
 
 ## Structure du dépôt
@@ -38,8 +38,8 @@ optimiseur/               # package : tout le code
   run_coordination_demo.py
 hospital_sim/             # coordinateur et simulation Mesa de salles
 notebooks/
+  EDA_donees_bloc.ipynb   # prétraitement du classeur réel
   guide_optimisation.ipynb
-EDA_donees_bloc.ipynb     # prétraitement (racine- dépendances)
 tests/                    # suite unittest
 TEST_PLAN.md              # plan de tests détaillé
 resources/                # classeur réel + Parquet EDA (non versionné)
@@ -144,7 +144,7 @@ acceptation explicite.
 
 ## Utiliser les données réelles
 
-Le notebook `EDA_donees_bloc.ipynb` nettoie le classeur source et exporte
+Le notebook `notebooks/EDA_donees_bloc.ipynb` nettoie le classeur source et exporte
 `resources/donnees_bloc_pretraitees.parquet` (1 ligne = 1 intervention).
 `optimiseur.data_bridge.prepare_inputs` convertit ensuite ce Parquet en tables
 `patients` / `vacations` au format attendu par l'optimiseur :

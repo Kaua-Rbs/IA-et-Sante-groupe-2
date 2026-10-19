@@ -34,7 +34,9 @@ Les serveurs déployés avant ce changement gardent le clone des sources et les 
 
 3. Se connecter avec `kyst_first_admin_email` (`admin@kyst.fr`) et le mot de passe généré dans `credentials/<hôte>/kyst/first_admin_password`.
 
-Avec `kyst_seed_demo: true` (défaut), le rôle crée les ressources de démonstration (4 spécialités, 4 salles, 45 lits conventionnels, 21 places ambulatoires, 4 semaines de vacations) si la base n'en a aucune. À désactiver avant d'y mettre de vraies données.
+Les prédictions viennent toujours des modèles entraînés (`AI_BACKEND=trained`). Ces fichiers ne sont pas versionnés : le rôle copie `surgery_duration_model.joblib` et `los_regressor.joblib` depuis `kyst_models_src` (par défaut `artifacts/ml-models/` à la racine du dépôt, sur la machine de contrôle) vers `kyst_project_dir/models`, monté en lecture seule dans l'API. Le déploiement échoue s'ils sont absents.
+
+Avec `kyst_seed_demo: true` (défaut), le rôle crée, si la base n'a aucune ressource, un service fictif mais réaliste : 4 spécialités, 4 salles, 8 chirurgiens, 45 lits conventionnels, 21 places ambulatoires, des vacations de 3 semaines en arrière à 5 semaines en avant, et l'activité qui va avec. Cette activité comprend environ 250 interventions réalisées avec leurs durées réelles, les patients hospitalisés le jour du déploiement, un planning à venir de moins en moins rempli et 20 demandes en attente. Les prédictions et les dates passent par les modèles et l'ordonnanceur de l'API. Les dates sont calculées à partir du jour du déploiement. Après quelques semaines, le planning à venir se vide : pour repartir de données fraîches, vider la base, puis relancer le playbook. À désactiver avant d'y mettre de vraies données.
 
 ## Variables
 

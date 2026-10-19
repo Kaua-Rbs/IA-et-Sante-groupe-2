@@ -4,8 +4,8 @@
 
 Aujourd'hui, l'API utilise des **fixtures** (`interface/api/ai/fixtures.py` et `fixtures.json`) : les valeurs sont plausibles mais ni ajustées ni calibrées. Les points de branchement sont les protocoles de `interface/api/ai/contracts.py`, sélectionnés par `AI_BACKEND` (voir `interface/kyst.env`) dans `interface/api/ai/providers.py`.
 
-- [ ] Brancher le modèle de durée de séjour (`LOSPredictor`, jours calendaires inclusifs) à partir de `preprocessing_los.ipynb`
-- [ ] Brancher le modèle de temps de salle (`RoomDurationPredictor`, minutes de l'entrée à la sortie de salle) à partir de `preprocessing_surgery_duration.ipynb`
+- [ ] Brancher le modèle de durée de séjour (`LOSPredictor`, jours calendaires inclusifs) à partir de `notebooks/preprocessing_los.ipynb`
+- [ ] Brancher le modèle de temps de salle (`RoomDurationPredictor`, minutes de l'entrée à la sortie de salle) à partir de `notebooks/preprocessing_surgery_duration.ipynb`
 - [ ] Brancher le classifieur ambulatoire / conventionnel (`CareTypeClassifier`)
 - [ ] Remplacer `GreedyFixtureScheduler` par le solveur de l'équipe optimisation (tabou, recuit, génétique) derrière le protocole `Scheduler`
 - [ ] Faire tourner les solveurs gourmands en CPU hors de la boucle d'événements (`ProcessPoolExecutor`)

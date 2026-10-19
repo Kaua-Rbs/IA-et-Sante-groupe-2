@@ -50,7 +50,8 @@ services:
       ACCOUNT_VALIDATION: ${ACCOUNT_VALIDATION}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES}
       REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS}
-      AI_BACKEND: ${AI_BACKEND}
+      # Les prédictions viennent toujours des modèles entraînés, copiés dans ./models par le rôle
+      AI_BACKEND: trained
       AUTO_REPLAN_ENABLED: ${AUTO_REPLAN_ENABLED:-false}
       REPLAN_METHOD: ${REPLAN_METHOD:-SMA x Metaheuristiques}
       REPLAN_HORIZON_DAYS: ${REPLAN_HORIZON_DAYS:-14}
@@ -59,7 +60,7 @@ services:
       ROOM_MODEL_PATH: /srv/models/surgery_duration_model.joblib
       LOS_MODEL_PATH: /srv/models/los_regressor.joblib
     volumes:
-      - ${KYST_MODEL_DIR:-./models}:/srv/models:ro,Z
+      - ./models:/srv/models:ro,Z
     # Si PostgreSQL n'est pas encore prêt au premier démarrage, l'API s'arrête et Podman la relance
     depends_on:
       - postgres

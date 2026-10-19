@@ -23,8 +23,8 @@ from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import OneHotEncoder
 from xgboost import XGBRegressor
 
-from duration_features import apply_category_mapping, engineer_features, fit_category_mapping
-from surgery_duration import CAT, FIXED_FEATURES, NUM, prepared
+from prediction.duration_features import apply_category_mapping, engineer_features, fit_category_mapping
+from prediction.surgery_duration import CAT, FIXED_FEATURES, NUM, prepared
 
 TARGET = "target_los_days"
 DEFAULT_DATA = Path("resources/model_los_dataset.parquet")

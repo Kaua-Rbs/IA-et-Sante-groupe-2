@@ -1,7 +1,7 @@
 """Interactive dashboard for the preprocessed operating-room dataset.
 
 Run from the repository root with:
-    streamlit run dashboard.py
+    streamlit run tools/dashboard.py
 """
 
 from pathlib import Path
@@ -167,7 +167,7 @@ st.caption(
 if not DATA_FILE.exists():
     st.error(
         f"Preprocessed data was not found at `{DATA_FILE}`. Run all cells in "
-        "`EDA_donees_bloc.ipynb` first to create it."
+        "`notebooks/EDA_donees_bloc.ipynb` first to create it."
     )
     st.stop()
 

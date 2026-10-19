@@ -120,7 +120,7 @@ def main() -> None:
         chemin_parquet = args.parquet or str(db.DEFAULT_PARQUET)
         if not os.path.exists(chemin_parquet):
             parser.error(
-                f"Parquet introuvable : {chemin_parquet}. Executez d'abord EDA_donees_bloc.ipynb."
+                f"Parquet introuvable : {chemin_parquet}. Executez d'abord notebooks/EDA_donees_bloc.ipynb."
             )
 
     os.makedirs(args.out, exist_ok=True)

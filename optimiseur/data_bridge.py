@@ -2,7 +2,7 @@
 data_bridge.py
 --------------
 Pont entre le jeu de donnees reel pretraite par le notebook
-``EDA_donees_bloc.ipynb`` et le modele attendu par ``optimizer.py``.
+``notebooks/EDA_donees_bloc.ipynb`` et le modele attendu par ``optimizer.py``.
 
 Le notebook EDA produit ``resources/donnees_bloc_pretraitees.parquet`` (une
 ligne = une intervention). Le moteur d'optimisation, lui, attend deux tables :
@@ -40,7 +40,7 @@ def load_preprocessed(path: str | Path = DEFAULT_PARQUET) -> pd.DataFrame:
     path = Path(path)
     if not path.exists():
         raise FileNotFoundError(
-            f"{path.resolve()} introuvable. Executez d'abord EDA_donees_bloc.ipynb "
+            f"{path.resolve()} introuvable. Executez d'abord notebooks/EDA_donees_bloc.ipynb "
             "pour produire le Parquet pretraite."
         )
     return pd.read_parquet(path, engine="pyarrow")

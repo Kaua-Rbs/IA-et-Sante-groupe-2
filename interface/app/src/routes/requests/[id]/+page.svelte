@@ -216,7 +216,7 @@
 
 	<aside class="stack">
 		<section class="card">
-			<h2>Prédiction</h2>
+			<h2>Prédiction IA</h2>
 			{#if pred}
 				<div class="figures">
 					<div>
@@ -236,11 +236,10 @@
 				</div>
 				<p>{CARE_TYPE_LABELS[pred.care_type]}</p>
 				<p class="muted small">Modèle {pred.model_version} · {formatDateTime(pred.created_at)}</p>
-				{#if pred.source === 'fixtures'}
-					<p class="alert alert--info small">
-						Valeurs de démonstration : les modèles entraînés ne sont pas encore branchés.
-					</p>
-				{/if}
+				<p class="muted small">
+					Estimée par les modèles entraînés sur l'historique du bloc, à partir du diagnostic, des
+					actes, du type d'intervention, de l'âge et du sexe.
+				</p>
 			{:else}
 				<p class="muted">Pas encore de prédiction : elle est faite en proposant des dates.</p>
 			{/if}

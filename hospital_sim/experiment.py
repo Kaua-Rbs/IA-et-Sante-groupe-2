@@ -78,8 +78,8 @@ def git_metadata():
     digest = sha256()
     paths = sorted((root / "hospital_sim").glob("*.py"))
     paths += sorted((root / "optimiseur").glob("*.py"))
-    paths += [root / name for name in ("requirements.txt", "surgery_duration.py",
-                                     "duration_features.py", "los_model.py", "bridge_los.py")]
+    paths += sorted((root / "prediction").glob("*.py"))
+    paths += [root / "requirements.txt"]
     for path in paths:
         digest.update(path.relative_to(root).as_posix().encode())
         digest.update(path.read_bytes())

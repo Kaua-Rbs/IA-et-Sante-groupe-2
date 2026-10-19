@@ -29,6 +29,25 @@
   no_log: true
   become: true
 
+- name: Create models directory
+  ansible.builtin.file:
+    path: "{{ kyst_project_dir }}/models"
+    state: directory
+    owner: podman
+    group: podman
+    mode: "0755"
+  become: true
+
+- name: Copy trained models
+  ansible.builtin.copy:
+    src: "{{ kyst_models_src }}/{{ item }}"
+    dest: "{{ kyst_project_dir }}/models/{{ item }}"
+    owner: podman
+    group: podman
+    mode: "0644"
+  loop: "{{ kyst_model_files }}"
+  become: true
+
 ##### Démarrage #####
 - name: Start KYST services
   ansible.builtin.command:

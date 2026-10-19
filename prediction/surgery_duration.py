@@ -1,11 +1,12 @@
 """Comparaison des modeles de prediction de duree de salle."""
 from pathlib import Path
 import argparse
+import sys
 import json
 import time
 import hashlib
 import joblib
-from duration_features import engineer_features, apply_category_mapping, fit_category_mapping
+from prediction.duration_features import engineer_features, apply_category_mapping, fit_category_mapping
 import numpy as np
 import pandas as pd
 from sklearn.base import BaseEstimator, RegressorMixin
@@ -17,6 +18,10 @@ from sklearn.linear_model import LinearRegression, Ridge, ElasticNet
 from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, HistGradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, median_absolute_error, r2_score
 from sklearn.inspection import permutation_importance
+
+# Les artefacts entraines avant le rangement dans prediction/ ont picke les classes
+# MedianBaseline / HistoricalRidge sous le module `surgery_duration` : on garde ce nom.
+sys.modules.setdefault('surgery_duration', sys.modules[__name__])
 
 TARGET = 'target_surgery_duration_min'
 # Meme emplacement que los_model et les experiences hospital_sim.
@@ -543,7 +548,7 @@ if __name__ == '__main__':
     parser.add_argument('--calendar', action='store_true', help='Experimenter avec la date proposee; incompatible avec des durees fixes')
     args = parser.parse_args()
     # Classes picklees sous le nom importable du module, meme avec execution CLI.
-    from surgery_duration import run as run_comparison, run_baselines, run_ccam_ablation
+    from prediction.surgery_duration import run as run_comparison, run_baselines, run_ccam_ablation
     if args.baselines_only:
         run_baselines(args.data, args.out)
     elif args.ccam_ablation:

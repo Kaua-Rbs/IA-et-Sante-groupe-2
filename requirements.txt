@@ -10,7 +10,7 @@ streamlit>=1.50
 jupyterlab>=4.3
 nbformat>=5.11
 
-# Prediction models (los_model.py, surgery_duration.py, bridge_los.py)
+# Prediction models (prediction/)
 scikit-learn>=1.9
 xgboost>=3.4
 catboost>=1.2

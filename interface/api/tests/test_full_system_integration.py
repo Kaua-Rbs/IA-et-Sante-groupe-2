@@ -11,8 +11,8 @@ from api.ai.room_simulation import simulate_room_day
 from api.ai.trained import _raw_features
 from api.ai.ward_simulation import simulate_ward_window
 from api.resources.models import CareType
-from duration_features import engineer_features
-from surgery_duration import FIXED_FEATURES
+from prediction.duration_features import engineer_features
+from prediction.surgery_duration import FIXED_FEATURES
 
 
 DAY = dt.date(2030, 1, 7)
