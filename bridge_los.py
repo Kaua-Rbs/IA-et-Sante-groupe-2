@@ -95,6 +95,7 @@ def build_patients_with_uncertainty(
     print(f"[diag] Row-level match rate: {match_rate:.1%}")
 
     # Fallback for unmatched rows: use the global median
+    merged["matched"] = merged["pred"].notna()
     median_pred = float(np.nanmedian(merged["pred"]))
     if np.isnan(median_pred):
         median_pred = 3.0
@@ -121,6 +122,7 @@ def build_patients_with_uncertainty(
         "duree_sejour_upper": (merged["pred"] + Q90).round().astype(int).values,
         "risk_level": np.where(merged["pred"].values > K_HIGH, "HIGH", "LOW"),
         "los_pred": merged["pred"].values,
+        "matched": merged["matched"].values,
     })
 
     # Vacations (same as the group)
