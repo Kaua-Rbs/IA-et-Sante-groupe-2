@@ -56,6 +56,7 @@
     cmd: podman-compose pull {{ kyst_auto_update_services.keys() | join(' ') }}
     chdir: "{{ kyst_project_dir }}"
   changed_when: false
+  environment: "{{ kyst_podman_env }}"
   become: true
   become_user: podman
 
@@ -64,6 +65,7 @@
     cmd: podman-compose {{ '--profile pgadmin' if kyst_pgadmin_enabled | bool else '' }} up -d --force-recreate
     chdir: "{{ kyst_project_dir }}"
   changed_when: true
+  environment: "{{ kyst_podman_env }}"
   become: true
   become_user: podman
 
@@ -73,6 +75,7 @@
   when: not kyst_pgadmin_enabled | bool
   register: kyst_pgadmin_removed
   changed_when: kyst_pgadmin_removed.stdout | length > 0
+  environment: "{{ kyst_podman_env }}"
   become: true
   become_user: podman
 
@@ -82,6 +85,7 @@
   when: kyst_seed_demo
   register: kyst_seed
   changed_when: "'Demo resources created' in kyst_seed.stdout"
+  environment: "{{ kyst_podman_env }}"
   become: true
   become_user: podman
 
@@ -114,9 +118,7 @@
     enabled: "{{ kyst_auto_update }}"
     daemon_reload: true
     scope: user
-  environment:
-    XDG_RUNTIME_DIR: "/run/user/{{ podman_user.uid }}"
-    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ podman_user.uid }}/bus"
+  environment: "{{ kyst_podman_env }}"
   become: true
   become_user: podman
 

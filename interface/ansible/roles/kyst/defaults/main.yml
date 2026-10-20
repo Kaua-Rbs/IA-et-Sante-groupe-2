@@ -1,6 +1,11 @@
 ---
 # Dossier du projet compose, dans le home de l'utilisateur rootless
 kyst_project_dir: /home/podman/ias
+# Session systemd de l'utilisateur podman pour les commandes podman du rôle. Sans elle, conmon
+# reste dans la session SSH d'Ansible et meurt avec elle (« conmon exited prematurely »).
+kyst_podman_env:
+  XDG_RUNTIME_DIR: "/run/user/{{ podman_user.uid }}"
+  DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ podman_user.uid }}/bus"
 
 # Seule machine autorisée à joindre les services exposés (reverse proxy)
 kyst_allowed_source: 10.12.2.2/32
