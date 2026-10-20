@@ -1,6 +1,6 @@
 \section{Analyser les résultats}
 
-\begin{frame}{Métaheuristiques : le classement à budget de temps égal}
+\begin{frame}{Classement à budget de temps égal}
   \scriptsize
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.50\textwidth}
@@ -29,8 +29,9 @@
       \includegraphics[width=\linewidth,height=0.30\textheight,keepaspectratio]{grande_boxplot.png}
       \credit{Dispersion de la fitness finale, grande échelle.}
       \uncover<2->{\par\vspace{0.12cm}\footnotesize Les méthodes locales
-        dominent ; les hybrides corrigent le génétique et ACO. L'écart est
-        mesuré à la meilleure solution observée.}
+        dominent ; Génétique $\times$ Tabou et Fourmis $\times$ Tabou
+        réduisent fortement l'écart. L'écart est mesuré à la meilleure
+        solution observée.}
     \end{column}
   \end{columns}
   \source{Campagne \texttt{resultats/benchmark} : 300 patients, 80 vacations,

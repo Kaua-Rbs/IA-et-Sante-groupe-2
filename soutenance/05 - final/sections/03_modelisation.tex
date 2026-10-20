@@ -1,6 +1,6 @@
 \section{Modéliser et approcher}
 
-\begin{frame}{Le modèle : une affectation, trois tensions}
+\begin{frame}{Le modèle : affecter chaque patient à une vacation}
   \scriptsize
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.46\textwidth}
@@ -88,7 +88,7 @@
   \source{Notebooks de prétraitement du dépôt.}
 \end{frame}
 
-\begin{frame}{Trois métaheuristiques, trois gestes}
+\begin{frame}{Trois métaheuristiques}
   \footnotesize
   NP-difficile : on cherche une bonne solution en temps borné, avec la même
   interface pour toutes les méthodes.
@@ -97,24 +97,24 @@
   \renewcommand{\arraystretch}{1.18}
   \begin{tabular}{p{2.9cm}p{4.5cm}p{4.5cm}}
     \toprule
-    \textbf{Méthode} & \textbf{Geste} & \textbf{Ce qu'elle apporte} \\
+    \textbf{Méthode} & \textbf{Principe} & \textbf{Effet} \\
     \midrule
     Recuit simulé & Explorer largement, accepter de remonter
-      & Sort des optima locaux \\
+      & Évite les optima locaux \\
     Recherche Tabou & Intensifier le meilleur voisin non tabou
       & Mémoire des mouvements, évite le cyclage \\
     Algorithme génétique & Croiser une population de solutions
-      & Diversité, combine de bonnes briques \\
+      & Diversité ; recombine de bonnes parties \\
     \bottomrule
   \end{tabular}
 
-  \uncover<2->{\par\vspace{0.18cm}\footnotesize Explorer, intensifier,
-    diversifier : les hybrides combinent ces gestes.}
-  \source{Formulation et revue : littérature du projet (planification
-    intégrée, revues de la planification de bloc).}
+  \uncover<2->{\par\vspace{0.18cm}\footnotesize Les hybrides enchaînent une
+    exploration globale et une intensification locale.}
+  \source{Formulation du projet ; revues Amin et al. (2024) et Rachuba et
+    al. (2024).}
 \end{frame}
 
-\begin{frame}{Hybrides : combiner exploration et intensification}
+\begin{frame}{Hybrides : exploration globale, intensification locale}
   \footnotesize
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.54\textwidth}

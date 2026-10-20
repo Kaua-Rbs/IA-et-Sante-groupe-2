@@ -10,14 +10,14 @@ Annonce le sujet : optimiser ensemble le bloc, les lits et l'ambulatoire.
 Le sous-titre situe l'angle : du planning contraint à la décision explicable.
 Auteur : IA & Santé — Groupe 2 ; soutenance 2026.
 
-## 2. Le fil rouge en cinq temps
+## 2. Le fil rouge
 
 Donne la structure en cinq temps : contextualiser, problématiser, modéliser,
 analyser, montrer l'application. Les photos rappellent les trois ressources.
 Overlay : l'objectif apparaît ensuite — décider plus tôt, avec des dates
-justifiées, sans retirer la décision au praticien.
+justifiées, sans décider à la place du praticien.
 
-## 3. Le bloc opératoire, une ressource rare et non stockable
+## 3. Le bloc opératoire, une ressource rare qui ne se stocke pas
 
 Trois chiffres HAS : 64,4 % de chirurgie ambulatoire en 2023, 70 % visés pour
 2022, 80 % de cap affiché. La photo montre le bloc comme un lieu de ressources
@@ -26,7 +26,7 @@ traçabilité ARS, bénéfices de l'ambulatoire.
 
 ## 4. Du flux poussé au flux tiré
 
-Deux organisations opposées. Flux poussé : le chirurgien choisit une date, le
+Deux organisations. Flux poussé : le chirurgien choisit une date, le
 bloc et les lits s'adaptent. Overlay : le diagramme est remplacé par le flux
 tiré — les contraintes calculent des dates A/B, le chirurgien choisit. Message :
 le planning propose, le praticien arbitre ; un lit engage plusieurs jours.
@@ -38,21 +38,21 @@ La maquette illustre Mme D. : 95 min, 2 jours, date A le 12 mars, date B le
 26 mars. Overlay : les étapes 3–4 puis la règle de non-substitution — l'outil
 rend les conséquences visibles, il ne programme pas seul.
 
-## 6. Du terrain au problème scientifique
+## 6. Du terrain au problème
 
 Pose l'instance : 582 patients, 280 vacations sur 40 jours, trois ressources,
 quatre aléas. Overlay : `280^582` affectations, puis le nœud NP-difficile.
 Message : les compatibilités réduisent l'espace sans le rendre traitable ; dix
 méthodes sont comparées avec le même budget de temps.
 
-## 7. Les contraintes qui rendent le problème réel
+## 7. Les contraintes du terrain
 
 Trois contraintes d'exécution : gel du passé, urgences dans leur fenêtre
 clinique, moindre perturbation. À droite, le cadre CE/RGPD : qualification MDR,
 minimisation, audit. Overlay : le gel, la traçabilité et l'explicabilité pèsent
 sur le voisinage, le score et l'interface.
 
-## 8. Le modèle : une affectation, trois tensions
+## 8. Le modèle : affecter chaque patient à une vacation
 
 Formalise l'affectation binaire `x_i,v`, avec une vacation par patient.
 Contraintes dures : capacité de vacation, capacité de lits, fenêtre des
@@ -67,13 +67,14 @@ Montre le pipeline : 14 434 cas, 30 colonnes, 73 exclusions, split temporel
 manquantes, heures nulles, catégories rares, aucune fuite. Overlay : les sorties
 et la propagation de l'incertitude dans les scénarios.
 
-## 10. Trois métaheuristiques, trois gestes
+## 10. Trois métaheuristiques
 
 NP-difficile : on cherche une bonne solution en temps borné. Recuit = explorer
 et accepter de remonter ; Tabou = intensifier avec mémoire ; génétique = croiser
-une population. Overlay : les hybrides combinent ces trois gestes.
+une population. Overlay : les hybrides enchaînent exploration globale et
+intensification locale.
 
-## 11. Hybrides : combiner exploration et intensification
+## 11. Hybrides : exploration globale, intensification locale
 
 Quatre hybrides : Tabou×Recuit, Génétique×Tabou, Génétique×Recuit,
 Fourmis×Tabou. Principe : une méthode globale explore, une méthode locale
@@ -111,11 +112,12 @@ une pénalité aux déplacements et aux changements de jour. Le schéma SMA mont
 trois agents, un tableau noir et un coordinateur. Overlay : couplage par quanta,
 versionnement de la meilleure solution, migration si stagnation.
 
-## 16. Métaheuristiques : le classement à budget de temps égal
+## 16. Classement à budget de temps égal
 
 Classement sur 300 patients, 80 vacations, 20 graines et 3 s par méthode.
 Recuit simulé et Tabou×Recuit dominent ; génétique et ACO décrochent. Overlay :
-les méthodes locales tiennent le haut, les hybrides corrigent les écarts ;
+les méthodes locales tiennent le haut, les hybrides Génétique×Tabou et
+Fourmis×Tabou réduisent l'écart ;
 l'écart est mesuré à la meilleure solution observée, pas à un optimum prouvé.
 
 ## 17. ML : durée, séjour, ambulatoire
@@ -141,7 +143,7 @@ QR code ouvre l'application. Overlay : planning statique initial, puis
 dynamique (dates de repli, replanification réactive), disponible sur PC et
 mobile.
 
-## 20. Architecture : un socle standard, hébergé sur place
+## 20. Architecture : des briques standard, hébergées sur site
 
 Chaîne navigateur → front SvelteKit → API FastAPI → PostgreSQL, avec modules IA.
 Le navigateur ne parle qu'au front ; l'API garde les droits et les données.
@@ -152,7 +154,7 @@ pseudonymisées. Hébergement sur place avec Podman et Ansible.
 
 Montre les quatre étapes : demande, prédiction, dates A/B, confirmation. Le
 calcul contraint entre dans le parcours clinique, pas dans un tableur séparé.
-C'est un parcours fonctionnel, pas une capture live.
+Parcours fonctionnel, pas une capture live.
 
 ## 22. Parcours 2/3 : le bloc bouge
 
@@ -187,9 +189,9 @@ confirme chaque programme ; CE et RGPD restent à instruire.
 
 Liste les sources : HAS IQSS 2026 et HAS 2012, MDR 2017/745, RGPD 2016/679,
 puis les revues et travaux sur la planification de bloc et le
-predict-then-optimize. Sert de caution méthodologique.
+predict-then-optimize. Sources du contexte et des méthodes.
 
 ## 27. Remerciements
 
-Clôture : merci de votre attention, questions. La slide est volontairement
-sobre pour laisser place aux échanges.
+Clôture : merci de votre attention, questions. Peu de texte : la slide laisse
+la place aux échanges.
