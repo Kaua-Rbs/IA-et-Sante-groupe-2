@@ -14,7 +14,7 @@ Une solution affecte chaque intervention en attente à une salle. Le décodeur c
 | :--- | :--- |
 | `domain.py` | Données visibles du planificateur : cas, salles, état, planning, configuration de la journée. Jamais de durée réalisée |
 | `contracts.py` | Interfaces entre le coordinateur et ses adaptateurs (état, planificateur, validateur, prédicteurs) |
-| `coordinator.py` | Coordinateur asynchrone : versions de l'état, rejet des résultats obsolètes, validation, acceptation explicite. Voir [le socle de coordination](../docs/coordination-core.md) |
+| `coordinator.py` | Coordinateur asynchrone : versions de l'état, rejet des résultats obsolètes, validation, acceptation explicite. Voir [le socle de coordination](../docs/coordinateur-simulation.md) |
 | `simulation.py` | Exécution Mesa minute par minute (`run_day`) ; le temps simulé s'arrête pendant la planification |
 | `scheduling.py` | Planificateur de référence (glouton) et validateur des plannings de salles |
 | `room_problem.py` | Décodeur commun et objectif lexicographique, au format attendu par les métaheuristiques de `optimiseur` |

@@ -89,7 +89,7 @@ Les deux boucles de décision représentent la poursuite de la surveillance ambu
 | Hospitalisation | Partielle | Durée de séjour, `GHM Code`, `GHS N°` | La durée suit une convention administrative et ne décrit pas les changements d'unité ou de lit. |
 | Sortie | Oui, à la journée | `Date Sortie` | Aucune heure ni destination de sortie n'est fournie. |
 
-Les intitulés ci-dessus utilisent leur orthographe corrigée pour la lisibilité. Les noms originaux, y compris leurs problèmes d'encodage, sont documentés dans [dictionnaire des données](data-dictionary.md).
+Les intitulés ci-dessus utilisent leur orthographe corrigée pour la lisibilité. Les noms originaux, y compris leurs problèmes d'encodage, sont documentés dans [dictionnaire des données](dictionnaire-donnees.md).
 
 ## Points critiques à étudier
 

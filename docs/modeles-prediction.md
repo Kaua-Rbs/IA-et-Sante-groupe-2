@@ -9,11 +9,11 @@ KYST s'appuie sur deux modèles, entraînés sur le classeur de l'hôpital (2019
 
 Le type d'hébergement n'est pas un troisième modèle : un séjour prédit qui s'arrondit à un jour (moins de 1,5 jour) est classé **ambulatoire** et réserve une seule journée. Le modèle de séjour prédit une moyenne : l'ancien seuil `<= 1` ne classait presque aucun patient en ambulatoire.
 
-Le code est dans [`prediction/`](../prediction/README.md), l'entraînement dans [`experiments/`](../experiments/README.md) ; le branchement dans l'application est décrit dans [l'intégration de l'IA dans KYST](kyst-integration.md).
+Le code est dans [`prediction/`](../prediction/README.md), l'entraînement dans [`experiments/`](../experiments/README.md) ; le branchement dans l'application est décrit dans [l'intégration de l'IA dans KYST](integration-ia-kyst.md).
 
 ## Données et découpage
 
-Les jeux d'entraînement sont produits par les [notebooks de préparation](../notebooks/README.md) à partir du classeur décrit dans le [dictionnaire des données](data-dictionary.md). Le découpage est **chronologique** et **disjoint par patient** : un même patient n'apparaît jamais dans deux partitions.
+Les jeux d'entraînement sont produits par les [notebooks de préparation](../notebooks/README.md) à partir du classeur décrit dans le [dictionnaire des données](dictionnaire-donnees.md). Le découpage est **chronologique** et **disjoint par patient** : un même patient n'apparaît jamais dans deux partitions.
 
 | Tâche | Entraînement (2019–2020) | Sélection (début 2021) | Calibration (fin 2021) | Test (2022) |
 | :--- | ---: | ---: | ---: | ---: |

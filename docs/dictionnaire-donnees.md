@@ -2,7 +2,7 @@
 
 Ce document décrit les 30 colonnes du classeur fourni par l'hôpital (14 649 lignes). Les définitions combinent les informations du détenteur des données et des vérifications faites directement sur le classeur. Les éléments marqués **Incertain** demandent encore un contexte local avant d'être exploités.
 
-Le classeur n'est pas versionné : il se place dans `resources/` (voir le [README](../README.md#confidentialité)). Il est nettoyé et préparé par les [notebooks](../notebooks/README.md) ; les modèles qui en sont issus sont décrits dans [Modèles de prédiction](models.md), et le parcours patient correspondant dans [le parcours type](patient-workflow.md).
+Le classeur n'est pas versionné : il se place dans `resources/` (voir le [README](../README.md#confidentialité)). Il est nettoyé et préparé par les [notebooks](../notebooks/README.md) ; les modèles qui en sont issus sont décrits dans [Modèles de prédiction](modeles-prediction.md), et le parcours patient correspondant dans [le parcours type](parcours-patient.md).
 
 Certains en-têtes ont des problèmes d'encodage, comme `EntrÈe`, `AnnÈe`, `N∞`, `DurÈe` et `Sèjour`, pour `Entrée`, `Année`, `N°`, `Durée` et `Séjour`.
 
@@ -44,9 +44,9 @@ L'en-tête complet de la colonne 23 est : *Heure entrée SSPI avant intervention
 ## Relations entre colonnes
 
 - `No Cas` identifie chaque ligne ; `ID Patient` relie plusieurs séjours d'un même patient.
-- `Date EntrÈe`, `Date Sortie` et `DurÈe Sèjour en jour (1 pour ambu)` décrivent le séjour. La durée suit une convention inclusive : sortie − entrée + 1 jour. C'est la cible du [modèle de séjour](models.md).
+- `Date EntrÈe`, `Date Sortie` et `DurÈe Sèjour en jour (1 pour ambu)` décrivent le séjour. La durée suit une convention inclusive : sortie − entrée + 1 jour. C'est la cible du [modèle de séjour](modeles-prediction.md).
 - `CIM Diag Pr.` et `Cim Assoc 1` à `5` décrivent les diagnostics ; `CCAM 1` à `4` les actes réalisés ; `GHM Code` et `GHS N∞` le classement médico-économique du séjour.
-- Les horodatages du bloc permettent d'estimer l'attente préopératoire, l'occupation de la salle (cible du [modèle de temps de salle](models.md), de l'entrée à la sortie) et le délai entre l'entrée et l'incision, une fois les conventions sur les valeurs nulles clarifiées.
+- Les horodatages du bloc permettent d'estimer l'attente préopératoire, l'occupation de la salle (cible du [modèle de temps de salle](modeles-prediction.md), de l'entrée à la sortie) et le délai entre l'entrée et l'incision, une fois les conventions sur les valeurs nulles clarifiées.
 - `Interv Type` est un regroupement local pratique ; les codes CCAM gardent le détail normalisé des actes.
 
 ## Incertitudes restantes

@@ -1,4 +1,4 @@
-# interface — application KYST
+# Interface — application KYST
 
 KYST (*Keep Your Surgeries Timely*) propose des dates d'intervention compatibles avec le bloc et les lits, à partir des durées prédites par les modèles du projet. Ce dossier contient l'application complète.
 
@@ -23,7 +23,7 @@ Le navigateur ne parle qu'au front ; seul le serveur du front appelle l'API, qui
 | [Modèle de données](docs/BDD.md) | Tables, cycle de vie d'une demande, calcul de la capacité |
 | [Routes de l'API](docs/Routes.md) | Vue d'ensemble des routes et des droits |
 | [Front](docs/Frontend.md) | Organisation du code SvelteKit, pages, session, mise en page |
-| [Intégration de l'IA](../docs/kyst-integration.md) | Modèles, cohorte, simulations Mesa, configuration |
+| [Intégration de l'IA](../docs/integration-ia-kyst.md) | Modèles, cohorte, simulations Mesa, configuration |
 | [Déploiement](ansible/README.md) | Playbooks et rôles Ansible |
 
 ## Démarrage rapide

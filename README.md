@@ -58,9 +58,9 @@ flowchart LR
 | Avoir une vue d'ensemble de la documentation | [docs/README.md](docs/README.md) |
 | Utiliser KYST et connaître ses fonctionnalités | [Fonctionnalités](interface/docs/Features.md) |
 | Développer sur KYST (API, front, déploiement) | [interface/README.md](interface/README.md) |
-| Comprendre les modèles et leur précision | [Modèles de prédiction](docs/models.md) |
-| Comprendre le lien entre l'IA et l'application | [Intégration de l'IA dans KYST](docs/kyst-integration.md) |
-| Connaître les données sources | [Dictionnaire des données](docs/data-dictionary.md) |
+| Comprendre les modèles et leur précision | [Modèles de prédiction](docs/modeles-prediction.md) |
+| Comprendre le lien entre l'IA et l'application | [Intégration de l'IA dans KYST](docs/integration-ia-kyst.md) |
+| Connaître les données sources | [Dictionnaire des données](docs/dictionnaire-donnees.md) |
 | Lancer les tests | [tests/README.md](tests/README.md) |
 | Contribuer (branches, commits, revues) | [CONTRIBUTING.md](CONTRIBUTING.md) |
 
@@ -75,7 +75,7 @@ cd interface/api && just install && just seed && just dev   # API sur http://127
 cd interface/app && pnpm install && pnpm dev                # front sur http://localhost:5173
 ```
 
-En local, l'API utilise par défaut des valeurs de prédiction fixes (`AI_BACKEND=fixtures`) ; les modèles entraînés s'activent avec `AI_BACKEND=trained` (voir [l'intégration](docs/kyst-integration.md#configuration)). Le déploiement est décrit dans le [rôle Ansible `kyst`](interface/ansible/roles/kyst/README.md).
+En local, l'API utilise par défaut des valeurs de prédiction fixes (`AI_BACKEND=fixtures`) ; les modèles entraînés s'activent avec `AI_BACKEND=trained` (voir [l'intégration](docs/integration-ia-kyst.md#configuration)). Le déploiement est décrit dans le [rôle Ansible `kyst`](interface/ansible/roles/kyst/README.md).
 
 ### Données, notebooks et modèles
 
@@ -97,4 +97,4 @@ KYST lui-même ne stocke ni nom ni date de naissance (seulement l'année) ; l'in
 
 ## Limites
 
-KYST est un démonstrateur de recherche, pas un dispositif validé cliniquement. Les modèles ont été évalués rétrospectivement ; leur précision baisse quand des informations manquent à la consultation (anesthésie, praticien), et ils sous-estiment les longues interventions et les longs séjours (voir [les modèles](docs/models.md#limites)). Toute utilisation réelle demanderait une validation prospective, un hébergeur certifié HDS et une analyse réglementaire.
+KYST est un démonstrateur de recherche, pas un dispositif validé cliniquement. Les modèles ont été évalués rétrospectivement ; leur précision baisse quand des informations manquent à la consultation (anesthésie, praticien), et ils sous-estiment les longues interventions et les longs séjours (voir [les modèles](docs/modeles-prediction.md#limites)). Toute utilisation réelle demanderait une validation prospective, un hébergeur certifié HDS et une analyse réglementaire.

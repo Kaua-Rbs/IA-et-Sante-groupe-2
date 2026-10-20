@@ -6,62 +6,30 @@ Termes techniques employés dans l'interface KYST et dans les diapositives de so
 
 | Terme | Définition |
 | --- | --- |
-| **Aléa** | Événement imprévu qui rend le planning inadapté. Le projet en retient quatre : *urgence*, *annulation*, *indisponibilité de lits*, *retard bloc*. |
-| **Ambulatoire** (chirurgie) | Prise en charge où le patient entre et sort le jour même, sans nuit à l'hôpital. Dans KYST, un séjour prédit inférieur à 1,5 jour (arrondi à 1) est classé ambulatoire et n'occupe qu'une journée de place. |
-| **Annulation** | Intervention programmée qui n'a pas lieu. Elle libère un créneau au bloc **et** des lits. La HAS estime qu'environ 10 % des interventions programmées sont annulées. |
 | **ANAP** | Agence nationale de la performance sanitaire et médico-sociale. Elle publie des outils d'analyse du bloc opératoire et vise 85 % d'occupation des salles. |
 | **ARS** | Agence régionale de santé. Elle délivre les autorisations d'activité chirurgicale. |
-| **Bloc opératoire** | Ensemble des salles d'opération d'un établissement, avec leurs équipes. Ressource rare : une salle inutilisée ne se « stocke » pas. |
 | **Cadre de bloc** | Responsable de l'organisation du bloc opératoire (ouverture des vacations, arbitrages). Rôle « Cadre bloc / lits » dans KYST. |
-| **Consultation** | Rendez-vous où le chirurgien pose l'indication opératoire. C'est à ce moment que la demande est saisie dans KYST. |
-| **Fenêtre clinique** | Intervalle de temps dans lequel une intervention doit avoir lieu pour rester pertinente médicalement (surtout pour une *urgence*). |
-| **Fenêtre souhaitée** | Dans KYST, période (date au plus tôt, *date limite souhaitée*) dans laquelle le chirurgien veut opérer. Sans date limite, KYST cherche sur les semaines suivantes. |
 | **Flux poussé** | Organisation actuelle : le chirurgien fixe une date d'après son agenda, puis le bloc, les lits et les équipes s'adaptent. Produit des pics et des creux d'activité. |
 | **Flux tiré** | Organisation proposée par KYST : on part de la capacité du bloc et des lits pour calculer des dates compatibles, puis le chirurgien choisit. |
 | **HAS** | Haute Autorité de santé. Source des chiffres nationaux sur l'ambulatoire et la reprogrammation. |
-| **Hébergement** | Type de place occupée après l'intervention : *ambulatoire* ou *hospitalisation conventionnelle*. |
-| **Hospitalisation conventionnelle** | Séjour d'au moins une nuit dans un lit de service. |
-| **Indisponibilité de lits** | Aléa : capacité en lits réduite sur un intervalle (fermeture, épidémie, manque de personnel). Les séjours qui chevauchent l'intervalle doivent être réaffectés. |
 | **IQSS** | Indicateurs de qualité et de sécurité des soins, publiés par la HAS. |
-| **Lit / place** | Unité de capacité d'hébergement : *lit* en hospitalisation conventionnelle, *place* en unité ambulatoire. |
-| **Remise en état** | Nettoyage et préparation de la salle entre deux patients (15 min dans les simulations). |
-| **Retard bloc** | Aléa : prolongation d'une intervention ou incident qui réduit la capacité utile d'une vacation. |
-| **Salle d'opération** | Lieu où se déroule l'intervention. Une vacation est ouverte dans une salle. |
-| **Séjour** (durée de) | Nombre de jours entre l'admission et la sortie du patient. |
-| **Spécialité** | Discipline chirurgicale (orthopédie, ORL…). Une vacation est attribuée à une spécialité ; un patient ne peut être placé que dans une vacation de la spécialité de son chirurgien. |
-| **Temps en salle** (temps d'occupation de salle) | Durée pendant laquelle le patient occupe la salle, de l'entrée à la sortie, installation et anesthésie comprises. Plus long que le seul geste chirurgical. |
-| **Unité de lits** | Service ou unité regroupant des lits d'un même type (conventionnel ou ambulatoire), avec une capacité. |
-| **Urgence** | Patient non prévu à opérer dans une *fenêtre clinique* imposée. Il doit être inséré dans une vacation compatible. |
 | **Vacation** | Plage horaire d'une salle d'opération attribuée à une spécialité (et souvent à un chirurgien) un jour donné, par exemple 08 h – 12 h. C'est l'unité d'affectation du planning. |
 
 ## Codes et données médicales
 
 | Terme | Définition |
 | --- | --- |
-| **Anonymisation** | Transformation irréversible des données : on ne peut plus retrouver la personne. |
 | **CCAM** | Classification commune des actes médicaux. Code de l'acte chirurgical prévu (KYST accepte 1 à 4 codes par demande). |
 | **CIM-10** | Classification internationale des maladies, 10ᵉ révision. Code du *diagnostic principal* saisi dans la demande. |
 | **Diagnostic principal** | Pathologie qui motive l'intervention, codée en CIM-10. |
 | **EDA** | *Exploratory Data Analysis* : analyse exploratoire des données (volumes, anomalies, distributions) avant modélisation. |
-| **Pseudonymisation** | Remplacement des identifiants directs (nom…) par un identifiant artificiel. Contrairement à l'anonymisation, la réidentification reste possible avec une table de correspondance ; les données restent donc personnelles au sens du RGPD. Les patients de KYST sont pseudonymisés. |
 
 ## Interface KYST
 
 | Terme | Définition |
 | --- | --- |
 | **KYST** | *Keep Your Surgeries Timely* : l'application web du projet, accessible sur `kyst.tech`. |
-| **Aperçu** | Calcul de simulation qui ne réserve rien. Permet de voir l'effet d'un scénario avant de publier des propositions. |
-| **Confirmer** | Action du chirurgien qui retient une date proposée. La vacation et le lit sont alors réservés pour toute la durée de séjour prévue. |
 | **Date A / Date B** | Les deux dates proposées pour chaque demande : la date A est la meilleure trouvée, la date B une alternative de bonne qualité différente de A. Chacune est accompagnée de ses raisons (« Pourquoi cette date »). |
-| **Demande** (d'intervention) | Saisie faite en consultation : patient, spécialité, chirurgien, diagnostic, actes, fenêtre souhaitée. Elle reçoit une prédiction puis des dates proposées. |
-| **Facteur de durée réalisée** / **facteur temps en salle** / **facteur séjour** | Multiplicateurs appliqués aux durées prédites dans une simulation (par exemple 1,2 = interventions 20 % plus longues que prévu), pour tester la robustesse du planning. |
-| **Marge** (marge d'urgence) | Part de chaque vacation jamais programmée (10 %) pour absorber les urgences et les dépassements. Une date qui l'entamerait n'est pas proposée. Elle apparaît hachurée dans la jauge de remplissage. |
-| **Occupation des lits** | Nombre de lits ou places réservés par jour et par unité, d'après les interventions programmées. |
-| **Optimisation de la cohorte** | Recalcul groupé des dates de toutes les demandes en attente sur une période, avec une métaheuristique au choix. Les interventions déjà confirmées gardent leur réservation. |
-| **Prédiction IA** | Estimation faite par les modèles entraînés : temps en salle, durée de séjour et type d'hébergement. |
-| **Précision des prédictions** | Écart moyen (MAE) entre les durées prédites et les durées réelles saisies après l'intervention, affiché sur le tableau de bord. |
-| **Proposition** | Une date proposée pour une demande, liée à une vacation. Statuts : *Proposée*, *Acceptée*, *Écartée*, *Remplacée* (par un nouveau calcul). |
-| **Publier** | Rendre visibles aux chirurgiens des propositions recalculées, après contrôle des capacités. Elles attendent ensuite la confirmation clinique. |
 | **Remplissage** (d'une vacation) | Part des minutes de la vacation déjà occupée par des interventions programmées. |
 | **Replanification** | Recalcul du planning après un aléa ou une modification de capacité. Seules les interventions non commencées peuvent bouger. |
 | **Rôles** | Droits d'un compte : *Chirurgien*, *Secrétariat*, *Cadre bloc / lits*, *Administrateur*, *Lecture*. Un compte créé doit être validé par un administrateur. |

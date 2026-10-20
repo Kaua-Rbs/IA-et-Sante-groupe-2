@@ -13,4 +13,4 @@ lualatex Soutenance_intermediaire
 lualatex Soutenance_intermediaire
 ```
 
-Les chiffres présentés viennent de la documentation du projet : [modèles de prédiction](../docs/models.md) et [intégration dans KYST](../docs/kyst-integration.md). Les termes employés sont définis dans le [glossaire](../docs/glossaire.md).
+Les chiffres présentés viennent de la documentation du projet : [modèles de prédiction](../docs/modeles-prediction.md) et [intégration dans KYST](../docs/integration-ia-kyst.md). Les termes employés sont définis dans le [glossaire](../docs/glossaire.md).

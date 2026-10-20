@@ -175,7 +175,7 @@ api/
 └── tests/
 ```
 
-Les prédictions et l'ordonnancement passent par les protocoles de `ai/contracts.py`. En local, `AI_BACKEND=fixtures` fournit des valeurs fixes ; `AI_BACKEND=trained` charge les modèles entraînés (voir [l'intégration de l'IA](../docs/kyst-integration.md#configuration)). Le modèle de données est décrit dans [docs/BDD.md](docs/BDD.md) et les routes dans [docs/Routes.md](docs/Routes.md).
+Les prédictions et l'ordonnancement passent par les protocoles de `ai/contracts.py`. En local, `AI_BACKEND=fixtures` fournit des valeurs fixes ; `AI_BACKEND=trained` charge les modèles entraînés (voir [l'intégration de l'IA](../docs/integration-ia-kyst.md#configuration)). Le modèle de données est décrit dans [docs/BDD.md](docs/BDD.md) et les routes dans [docs/Routes.md](docs/Routes.md).
 
 ### 4. Gérer les dépendances Python
 
@@ -284,7 +284,7 @@ Points d'attention :
 - **HTTPS** : en production, les cookies de session sont `Secure`. Servez le site en HTTPS derrière un proxy (Caddy, nginx...) qui redirige vers `PORT`. Seul `localhost` fonctionne en HTTP.
 - **`ORIGIN`** sert à la protection CSRF des formulaires. Elle est lue au démarrage du front (`app/server.js`) : la changer impose seulement `just serve`.
 - **L'API écoute sur `API_HOST`** (`127.0.0.1` par défaut) : seul le front, sur la même machine, l'appelle. N'ouvrez que le port du front.
-- **Un seul worker** pour l'API : l'actualisation automatique des propositions tourne dans ce processus (voir [l'intégration de l'IA](../docs/kyst-integration.md#actualisation-des-propositions)).
+- **Un seul worker** pour l'API : l'actualisation automatique des propositions tourne dans ce processus (voir [l'intégration de l'IA](../docs/integration-ia-kyst.md#actualisation-des-propositions)).
 
 ---
 

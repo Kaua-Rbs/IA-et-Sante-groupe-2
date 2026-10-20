@@ -1,6 +1,6 @@
 # Intégration de l'IA dans KYST
 
-Cette page décrit comment les composants de recherche, [modèles de prédiction](models.md), [métaheuristiques](../optimiseur/README.md) et [simulation Mesa](../hospital_sim/README.md), sont branchés dans l'application web, et ce que cette intégration ne garantit pas. Les fonctionnalités vues par l'utilisateur sont décrites dans [Fonctionnalités](../interface/docs/Features.md).
+Cette page décrit comment les composants de recherche, [modèles de prédiction](modeles-prediction.md), [métaheuristiques](../optimiseur/README.md) et [simulation Mesa](../hospital_sim/README.md), sont branchés dans l'application web, et ce que cette intégration ne garantit pas. Les fonctionnalités vues par l'utilisateur sont décrites dans [Fonctionnalités](../interface/docs/Features.md).
 
 ## En résumé
 
@@ -73,7 +73,7 @@ Le formulaire fournit âge, sexe, diagnostic principal, actes CCAM et type d'int
 
 ## Limites
 
-- **Précision** : les modèles sous-estiment les longues interventions et les longs séjours, et le modèle de séjour ne bat pas la médiane par type d'intervention (voir [les modèles](models.md#limites)). Les bornes P80/P95 du temps de salle ne sont pas affichées.
+- **Précision** : les modèles sous-estiment les longues interventions et les longs séjours, et le modèle de séjour ne bat pas la médiane par type d'intervention (voir [les modèles](modeles-prediction.md#limites)). Les bornes P80/P95 du temps de salle ne sont pas affichées.
 - **Optimisation** : l'optimiseur de vacations a une fonction de coût souple et des lits agrégés. L'adaptateur impose ensuite fenêtres, chirurgiens, unités de lits et capacités : il peut laisser des demandes non placées. Intégrer ces contraintes à la recherche elle-même reste à faire.
 - **Simulation** : durées hypothétiques, salles interchangeables, politique d'admission simple. Elle lit les réservations existantes sans reproduire leur ordre de passage. Les urgences peropératoires, retards en salle et sorties tardives exigeraient des observations en direct.
 - **Concurrence** : les verrous de confirmation s'appliquent à PostgreSQL ; SQLite ne sert qu'au développement local.

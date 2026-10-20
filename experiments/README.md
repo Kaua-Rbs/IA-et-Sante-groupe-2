@@ -1,6 +1,6 @@
 # experiments
 
-Entraînement des modèles « consultation » déployés dans KYST. Les modèles, leurs résultats et leurs limites sont présentés dans [Modèles de prédiction](../docs/models.md).
+Entraînement des modèles « consultation » déployés dans KYST. Les modèles, leurs résultats et leurs limites sont présentés dans [Modèles de prédiction](../docs/modeles-prediction.md).
 
 | Fichier | Rôle |
 | :--- | :--- |
@@ -32,4 +32,4 @@ Le dossier `--artifacts` reçoit six fichiers : les modèles retenus (`*_consult
 
 ## Déployer les modèles
 
-Le rôle Ansible [`kyst`](../interface/ansible/roles/kyst/README.md) copie les deux modèles retenus de `artifacts/ml-models/final-2026-10-20-v3/` vers le serveur. Pour un essai local, voir [la configuration de l'intégration](../docs/kyst-integration.md#configuration).
+Le rôle Ansible [`kyst`](../interface/ansible/roles/kyst/README.md) copie les deux modèles retenus de `artifacts/ml-models/final-2026-10-20-v3/` vers le serveur. Pour un essai local, voir [la configuration de l'intégration](../docs/integration-ia-kyst.md#configuration).

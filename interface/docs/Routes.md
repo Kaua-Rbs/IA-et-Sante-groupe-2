@@ -77,7 +77,7 @@ suivants et remis à zéro lorsque les données cliniques changent.
 
 Les aperçus de cohorte et de simulation ne créent ni proposition ni réservation.
 La publication de cohorte crée des propositions ; chaque réservation attend la confirmation clinique.
-Leurs hypothèses et limites sont détaillées dans [l'intégration de l'IA](../../docs/kyst-integration.md#limites).
+Leurs hypothèses et limites sont détaillées dans [l'intégration de l'IA](../../docs/integration-ia-kyst.md#limites).
 
 ## Indicateurs — `/analytics`
 

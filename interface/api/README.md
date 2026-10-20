@@ -28,4 +28,4 @@ Depuis ce dossier :
 
 L'image Docker (`Dockerfile`) se construit depuis la racine du dépôt : elle embarque `prediction/`, `optimiseur/` et `hospital_sim/`, jamais de données ni de modèle.
 
-Pour aller plus loin : [modèle de données](../docs/BDD.md), [routes](../docs/Routes.md), [intégration de l'IA](../../docs/kyst-integration.md), [guide de contribution](../CONTRIBUTING.md#backend-fastapi-api).
+Pour aller plus loin : [modèle de données](../docs/BDD.md), [routes](../docs/Routes.md), [intégration de l'IA](../../docs/integration-ia-kyst.md), [guide de contribution](../CONTRIBUTING.md#backend-fastapi-api).

@@ -1,6 +1,6 @@
 # prediction
 
-Modèles de durée utilisés par KYST : temps d'occupation de la salle et durée de séjour. Leur entraînement, leurs résultats et leurs limites sont décrits dans [Modèles de prédiction](../docs/models.md).
+Modèles de durée utilisés par KYST : temps d'occupation de la salle et durée de séjour. Leur entraînement, leurs résultats et leurs limites sont décrits dans [Modèles de prédiction](../docs/modeles-prediction.md).
 
 | Module | Rôle |
 | :--- | :--- |

@@ -1,6 +1,6 @@
 # notebooks
 
-Analyse exploratoire du classeur de l'hôpital et préparation des jeux qui servent à [entraîner les modèles](../experiments/README.md). Les colonnes du classeur sont décrites dans le [dictionnaire des données](../docs/data-dictionary.md).
+Analyse exploratoire du classeur de l'hôpital et préparation des jeux qui servent à [entraîner les modèles](../experiments/README.md). Les colonnes du classeur sont décrites dans le [dictionnaire des données](../docs/dictionnaire-donnees.md).
 
 | Ordre | Notebook | Lit | Produit (dans `resources/`, non versionné) |
 | ---: | :--- | :--- | :--- |

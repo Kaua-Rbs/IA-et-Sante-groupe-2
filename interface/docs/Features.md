@@ -7,10 +7,10 @@ Ce document décrit ce que fait l'application, pour qui, et où en est chaque fo
 | Statut | Signification |
 | :--- | :--- |
 | **Disponible** | Implémenté dans l'API et l'interface, testé |
-| **Expérimental** | Fonctionne de bout en bout, avec des hypothèses simplificatrices décrites dans [l'intégration de l'IA](../../docs/kyst-integration.md#limites) |
+| **Expérimental** | Fonctionne de bout en bout, avec des hypothèses simplificatrices décrites dans [l'intégration de l'IA](../../docs/integration-ia-kyst.md#limites) |
 | **Prévu** | Pas encore implémenté |
 
-Les détails techniques sont dans [BDD.md](BDD.md) (modèle de données), [Routes.md](Routes.md) (API) et [Frontend.md](Frontend.md) (interface). Les modèles d'IA sont décrits dans [Modèles de prédiction](../../docs/models.md), et les termes employés dans le [glossaire](../../docs/glossaire.md).
+Les détails techniques sont dans [BDD.md](BDD.md) (modèle de données), [Routes.md](Routes.md) (API) et [Frontend.md](Frontend.md) (interface). Les modèles d'IA sont décrits dans [Modèles de prédiction](../../docs/modeles-prediction.md), et les termes employés dans le [glossaire](../../docs/glossaire.md).
 
 ---
 
@@ -77,9 +77,9 @@ flowchart LR
 | Durée de séjour | Disponible | Jours calendaires inclusifs (ambulatoire = 1), avec un intervalle à 90 %. |
 | Type d'hébergement | Disponible | Ambulatoire si le séjour prédit s'arrondit à un jour (moins de 1,5 jour), sinon hospitalisation conventionnelle. |
 | Traçabilité | Disponible | Chaque prédiction garde la version du modèle (empreinte du fichier) et sa source. |
-| Modèles entraînés | Disponible | Modèles « consultation » entraînés sur les seuls champs du formulaire : erreur moyenne de 16,6 min (salle) et 0,51 jour (séjour) sur 2022. Ils sous-estiment les longues interventions et les longs séjours ; voir [les modèles](../../docs/models.md). |
+| Modèles entraînés | Disponible | Modèles « consultation » entraînés sur les seuls champs du formulaire : erreur moyenne de 16,6 min (salle) et 0,51 jour (séjour) sur 2022. Ils sous-estiment les longues interventions et les longs séjours ; voir [les modèles](../../docs/modeles-prediction.md). |
 
-En production, les prédictions viennent toujours des modèles entraînés (`AI_BACKEND=trained`), dont les fichiers ne sont ni dans le dépôt ni dans l'image. En développement local, `AI_BACKEND=fixtures` fournit des valeurs fixes (`api/ai/fixtures.json`) qui dépendent de la spécialité, du type d'intervention et de l'âge, **ni ajustées ni calibrées**. Voir [l'intégration de l'IA](../../docs/kyst-integration.md#configuration).
+En production, les prédictions viennent toujours des modèles entraînés (`AI_BACKEND=trained`), dont les fichiers ne sont ni dans le dépôt ni dans l'image. En développement local, `AI_BACKEND=fixtures` fournit des valeurs fixes (`api/ai/fixtures.json`) qui dépendent de la spécialité, du type d'intervention et de l'âge, **ni ajustées ni calibrées**. Voir [l'intégration de l'IA](../../docs/integration-ia-kyst.md#configuration).
 
 ### 3. Planning du bloc (vacations)
 

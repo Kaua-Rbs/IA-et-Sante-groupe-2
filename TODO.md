@@ -12,9 +12,9 @@
 - Versions compatibles : scikit-learn 1.9.1, xgboost 3.4.1, pandas 3.0.6, joblib 1.6.0 identiques entre `experiments/final_model_requirements.txt` et `interface/api/uv.lock` (entraînement sous Python 3.14 / Windows, image API en 3.13 : à confirmer au chargement)
 - Tester en local dans l'interface : `AI_BACKEND=trained` dans `kyst.local.env`, avec `ROOM_MODEL_PATH` / `LOS_MODEL_PATH` pointant vers les fichiers v3, créer une demande, vérifier temps de salle / séjour / propositions
 - Ambulatoire : séjour prédit arrondi à 1 jour (< 1,5) et réservation d'une seule journée ; le modèle prédit une moyenne, l'ancien seuil `<= 1` ne classait presque rien en ambulatoire. À mentionner dans le rapport
-- Précision dégradée en consultation (anesthésie et praticien absents) : voir `docs/models.md`, à mentionner dans le rapport
+- Précision dégradée en consultation (anesthésie et praticien absents) : voir `docs/modeles-prediction.md`, à mentionner dans le rapport
 - Les bornes P80/P95 du temps de salle ne sont pas exposées (pas d'intervalle affiché pour le bloc en mode `trained`)
-- Chiffres pour le rapport : `docs/models.md` (MAE salle 16,6 min, séjour 0,51 j ; couverture faible pour les séjours ≥ 7 j)
+- Chiffres pour le rapport : `docs/modeles-prediction.md` (MAE salle 16,6 min, séjour 0,51 j ; couverture faible pour les séjours ≥ 7 j)
 
 ### Instance de démo
 
@@ -70,7 +70,7 @@ Objectif : une instance qui ressemble à la vraie vie d'un service, avec l'IA br
   - Lien vers l'instance (`kyst.tech`) à vérifier le jour J
   - Captures d'écran de l'interface avec l'IA branchée
 - Rapport
-  - Chapitre sur l'intégration IA ↔ web : modèles, précision, limites (champs manquants en consultation) ; sources : `docs/models.md`, `docs/kyst-integration.md`
+  - Chapitre sur l'intégration IA ↔ web : modèles, précision, limites (champs manquants en consultation) ; sources : `docs/modeles-prediction.md`, `docs/integration-ia-kyst.md`
   - Résultats des modèles (MAE temps de salle, séjour) et des métaheuristiques
 - Merge tout dans final_deployment
   - Branches avec des commits absents de `final_deployment` :
@@ -89,7 +89,7 @@ Objectif : une instance qui ressemble à la vraie vie d'un service, avec l'IA br
   - Adaptateurs de démo et instances de référence de `hospital_sim` déplacés dans `tests/` (fixtures)
   - Restes du gabarit Ansible retirés (recette `playbook-update`, Vault, pysnmp)
 - Documentation en français, reliée depuis `README.md` et `docs/README.md` ; un README par dossier ; règles Git dans `CONTRIBUTING.md`
-- Racine rangée : rapports dans `docs/` (`models.md`, `data-dictionary.md`), plan de tests dans `tests/README.md`
+- Racine rangée : rapports dans `docs/` (`models.md`, `dictionnaire-donnees.md`), plan de tests dans `tests/README.md`
 
 ### Reste à faire
 

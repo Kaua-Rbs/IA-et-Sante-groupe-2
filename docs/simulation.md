@@ -1,6 +1,6 @@
 # Socle de coordination
 
-Le coordinateur (`hospital_sim/coordinator.py`) est l'infrastructure asynchrone qui fait le lien entre les événements d'une journée, un planificateur et un validateur. Il est utilisé par la [simulation Mesa des salles](../hospital_sim/README.md), donc par les aperçus de simulation de KYST. Ce n'est pas un optimiseur multi-agents complet, et il n'est pas branché sur les réservations réelles de KYST : l'actualisation des propositions de l'application passe par une file persistante en base (voir [l'intégration](kyst-integration.md#actualisation-des-propositions)).
+Le coordinateur (`hospital_sim/coordinator.py`) est l'infrastructure asynchrone qui fait le lien entre les événements d'une journée, un planificateur et un validateur. Il est utilisé par la [simulation Mesa des salles](../hospital_sim/README.md), donc par les aperçus de simulation de KYST. Ce n'est pas un optimiseur multi-agents complet, et il n'est pas branché sur les réservations réelles de KYST : l'actualisation des propositions de l'application passe par une file persistante en base (voir [l'intégration](integration-ia-kyst.md#actualisation-des-propositions)).
 
 ## Interfaces
 

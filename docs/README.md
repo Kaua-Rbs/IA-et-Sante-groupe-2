@@ -6,18 +6,18 @@ Point d'entrée de la documentation du projet. Pour la présentation générale 
 
 | Document | Contenu |
 | :--- | :--- |
-| [Parcours type d'un patient](patient-workflow.md) | Diagramme du parcours chirurgical, de la consultation à la sortie, et ce que les données en observent |
-| [Dictionnaire des données](data-dictionary.md) | Les 30 colonnes du classeur de l'hôpital, leurs relations et leurs incertitudes |
-| [Guide d'entretien médical](doctor-discussion-guide.md) | Questions préparées pour valider les hypothèses métier (urgences, responsabilités, durées) |
+| [Parcours type d'un patient](parcours-patient.md) | Diagramme du parcours chirurgical, de la consultation à la sortie, et ce que les données en observent |
+| [Dictionnaire des données](dictionnaire-donnees.md) | Les 30 colonnes du classeur de l'hôpital, leurs relations et leurs incertitudes |
+| [Guide d'entretien médical](guide-entretien-medical.md) | Questions préparées pour valider les hypothèses métier (urgences, responsabilités, durées) |
 | [Glossaire](glossaire.md) | Termes hospitaliers, médicaux, techniques et réglementaires employés dans le projet |
 
 ## L'IA du projet
 
 | Document | Contenu |
 | :--- | :--- |
-| [Modèles de prédiction](models.md) | Temps de salle et durée de séjour : variables, découpage, résultats, limites |
-| [Intégration de l'IA dans KYST](kyst-integration.md) | Comment modèles, métaheuristiques et simulation sont branchés dans l'application ; configuration |
-| [Socle de coordination](coordination-core.md) | Le coordinateur asynchrone de la simulation : interfaces, cycle de vie, échecs |
+| [Modèles de prédiction](modeles-prediction.md) | Temps de salle et durée de séjour : variables, découpage, résultats, limites |
+| [Intégration de l'IA dans KYST](integration-ia-kyst.md) | Comment modèles, métaheuristiques et simulation sont branchés dans l'application ; configuration |
+| [Socle de coordination](coordinateur-simulation.md) | Le coordinateur asynchrone de la simulation : interfaces, cycle de vie, échecs |
 | [optimiseur/](../optimiseur/README.md) | Les dix métaheuristiques d'affectation aux vacations |
 | [hospital_sim/](../hospital_sim/README.md) | La simulation Mesa des salles |
 
