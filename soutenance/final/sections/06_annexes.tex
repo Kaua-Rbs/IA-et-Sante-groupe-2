@@ -1,0 +1,405 @@
+\appendix
+\section*{Annexes}
+
+\begin{frame}{Annexe --- Architecture détaillée}
+  \scriptsize
+  \centering
+  \begin{tikzpicture}[
+      card/.style={draw=McmTerracotta,rounded corners=2pt,fill=white,
+                   minimum height=1.10cm,text width=1.85cm,align=center,
+                   inner sep=3pt,font=\scriptsize},
+      ext/.style={card,draw=McmMuted,dashed},
+      flow/.style={{Latex[length=2mm]}-{Latex[length=2mm]},thick,
+                   draw=McmTerracotta},
+      lab/.style={font=\tiny,text=McmMuted,inner sep=1pt}]
+    \node[ext]  (user)  at (0,0)    {\textbf{Navigateur}\\PC ou mobile};
+    \node[card] (front) at (3.2,0)  {\textbf{Front}\\SvelteKit};
+    \node[card] (api)   at (6.4,0)  {\textbf{API}\\FastAPI};
+    \node[card] (db)    at (9.6,0)  {\textbf{Base}\\PostgreSQL};
+    \node[ext]  (ai)    at (6.4,-1.75) {\textbf{Modules IA}\\prédiction,\\ordonnanceur};
+    \draw[flow] (user)  -- node[lab,above=2pt] {HTTPS} (front);
+    \draw[flow] (front) -- node[lab,above=2pt] {interne} (api);
+    \draw[flow] (api)   -- node[lab,above=2pt] {SQL} (db);
+    \draw[flow] (api)   -- node[lab,right=2pt] {contrats Python} (ai);
+    \begin{scope}[on background layer]
+      \node[draw=McmSage,dashed,rounded corners=3pt,inner sep=4pt,
+            fit=(front)(api)(db)(ai)] (srv) {};
+    \end{scope}
+    \node[font=\tiny,text=McmSage,anchor=south east]
+      at ([shift={(0,1pt)}]srv.north east) {Podman rootless, Ansible};
+  \end{tikzpicture}
+
+  \vspace{0.12cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \footnotesize Le navigateur ne parle qu'au front ; l'API garde les
+      droits et les données.
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \footnotesize Argon2, cookies HttpOnly/Secure, TLS, conteneurs
+      rootless, données pseudonymisées.
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Annexe --- Variables, contraintes et objectif}
+  \scriptsize
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \begin{block}{Décision}
+        \begin{tabular}{@{}ll@{}}
+          $P=\{1,\dots,n\}$ & patients \\
+          $V=\{1,\dots,m\}$ & vacations \\
+          $x_{i,v}\in\{0,1\}$ & patient $i$ dans la vacation $v$ \\
+        \end{tabular}
+        \[
+          \sum_{v\in V} x_{i,v}=1 \quad \forall i\in P
+        \]
+      \end{block}
+    \end{column}
+
+    \begin{column}{0.49\textwidth}
+      \begin{block}{Contraintes dures}
+        \begin{itemize}
+          \item capacité : $\sum_i d_i x_{i,v}\le C_v$ ;
+          \item lits : $\sum_i S_i x_{i,v}\le L_j$ pour chaque jour $j$ ;
+          \item fenêtre d'urgence : $x_{i,v}=0$ hors de la fenêtre ;
+          \item spécialité : vacation compatible avec le patient.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.12cm}
+  \begin{alertblock}{Objectif réellement implémenté}
+    \[
+      \text{coût}=5\cdot\text{dépassement}_{vac}
+      +3\cdot\text{dépassement}_{lits}
+      +0{,}05\cdot\text{écart-type}_{vac}
+    \]
+    La \textbf{fitness} vaut $-\text{coût}$ : on maximise, $0$ correspond à un
+    planning faisable et équilibré.
+  \end{alertblock}
+  \source{Durées $d_i$ et séjours $S_i$ estimés par les modèles ; capacité
+    de vacation typique : 240 min.}
+\end{frame}
+
+\begin{frame}{Annexe --- Les dix méthodes}
+  \scriptsize
+  \renewcommand{\arraystretch}{1.10}
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{5.4cm}>{\raggedright\arraybackslash}p{4.2cm}@{}}
+    \toprule
+    \textbf{Méthode} & \textbf{Principe} & \textbf{Rôle} \\
+    \midrule
+    Recuit simulé & accepte une dégradation avec une probabilité décroissante
+      & exploration large \\
+    Tabou & meilleur voisin non tabou, mémoire des mouvements
+      & intensification locale \\
+    Génétique & population, sélection, croisement, mutation
+      & diversité des solutions \\
+    Tabou $\times$ Recuit & voisinage tabou et acceptation type recuit
+      & hybride local \\
+    Fourmis (ACO) & construction par phéromones
+      & exploration par construction \\
+    Génétique $\times$ Tabou & tabou sur le meilleur individu de chaque
+      génération & hybride \\
+    Génétique $\times$ Recuit & recuit court sur le meilleur individu
+      & hybride \\
+    Fourmis $\times$ Tabou & chaque fourmi est intensifiée par tabou
+      & hybridation \\
+    SMA & agents simples, tableau noir, coordinateur
+      & coordination \\
+    SMA $\times$ Méta & agents recuit, tabou, génétique, fourmis
+      & coordination métaheuristique \\
+    \bottomrule
+  \end{tabular}
+  \source{Chaque méthode partage la même interface et le même budget temps.}
+\end{frame}
+
+\begin{frame}{Annexe --- Benchmark 300 patients, 80 vacations}
+  \scriptsize
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.56\textwidth}
+      \renewcommand{\arraystretch}{1.02}
+      \begin{tabular}{@{}lrrr@{}}
+        \toprule
+        Méthode & Écart & Rang & IQR \\
+        \midrule
+        Recuit simulé & \textbf{0,015} & \textbf{1,25} & 0,008 \\
+        Tabou $\times$ Recuit & \textbf{0,018} & 1,75 & 0,013 \\
+        Tabou & 0,240 & 3,55 & 0,070 \\
+        Génétique $\times$ Tabou & 0,261 & 3,75 & 0,106 \\
+        SMA & 1,078 & 5,05 & 0,194 \\
+        SMA $\times$ Méta & 1,196 & 6,15 & 0,154 \\
+        Génétique $\times$ Recuit & 2,031 & 6,50 & 0,323 \\
+        Fourmis $\times$ Tabou & 1\,006,0 & 8,00 & 180,9 \\
+        Fourmis (ACO) & 2\,031,2 & 9,00 & 256,1 \\
+        Génétique & 2\,836,2 & 10,00 & 380,1 \\
+        \bottomrule
+      \end{tabular}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \centering
+      \includegraphics[width=\linewidth,height=0.34\textheight,keepaspectratio]{grande_convergence.png}\\[2pt]
+      {\tiny Convergence médiane, 20 graines, 3 s.}\\[4pt]
+      \footnotesize Recuit et Tabou $\times$ Recuit restent sous un écart de
+      0,02 pour une référence de $-38\,847\,195$.
+    \end{column}
+  \end{columns}
+  \source{20 graines, budget 3 s, référence à la meilleure solution observée.}
+\end{frame}
+
+\begin{frame}{Annexe --- Échelle réelle : 582 patients, 280 vacations}
+  \scriptsize
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.50\textwidth}
+      \renewcommand{\arraystretch}{1.12}
+      \begin{tabular}{@{}lrr@{}}
+        \toprule
+        Méthode & Médiane & Rang moyen \\
+        \midrule
+        Recuit simulé & $-16{,}3$ & 1,85 \\
+        Tabou $\times$ Recuit & $-14{,}9$ & 2,05 \\
+        Tabou & $-16{,}4$ & 2,65 \\
+        Génétique $\times$ Tabou & $-23{,}9$ & 3,50 \\
+        SMA & $-91{,}8$ & 5,85 \\
+        Fourmis (ACO) & $-3\,438{,}8$ & 9,70 \\
+        \bottomrule
+      \end{tabular}\\[4pt]
+      {\tiny 20 graines ; référence $-8\,783$.}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \centering
+      \includegraphics[width=\linewidth,height=0.33\textheight,keepaspectratio]{reelle_convergence.png}\\[2pt]
+      \footnotesize Le couloir faisable est étroit : la meilleure solution
+      occupe 42 lits sur 42.
+    \end{column}
+  \end{columns}
+  \source{Parquet EDA prétraité, 40 jours, capacité 600 min par vacation,
+    4 s par méthode et par graine.}
+\end{frame}
+
+\begin{frame}{Annexe --- Quatre aléas et quatre profils de repli}
+  \scriptsize
+  \renewcommand{\arraystretch}{1.08}
+  \renewcommand{\arraystretch}{1.18}
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{2.6cm}>{\raggedright\arraybackslash}p{5.4cm}>{\raggedright\arraybackslash}p{4.6cm}@{}}
+    \toprule
+    \textbf{Aléa} & \textbf{Description} & \textbf{Impact} \\
+    \midrule
+    Urgence & patient imprévu, fenêtre imposée
+      & insertion dans une vacation compatible \\
+    Annulation & patient programmé qui annule
+      & libère un créneau et des lits \\
+    Indisponibilité lits & capacité réduite sur un intervalle
+      & réaffecter les séjours chevauchants \\
+    Retard bloc & prolongation ou incident
+      & capacité utile réduite \\
+    \bottomrule
+  \end{tabular}
+
+  \vspace{0.15cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \begin{block}{Profils proactifs}
+        \begin{itemize}
+          \item nominal : 100\,\% de la capacité ;
+          \item robuste : 15\,\% de marge bloc et lits ;
+          \item sécurité lits : lissage strict ;
+          \item Date B : bonne qualité, différente du nominal.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \begin{exampleblock}{Double proposition}
+        \footnotesize Pour chaque patient, l'outil produit une Date A
+        optimale et une Date B alternative, avec la raison de l'écart.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Annexe --- Adaptation réactive et arbitrage}
+  \scriptsize
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.52\textwidth}
+      \begin{block}{Score}
+        \[
+          \begin{aligned}
+            \text{Score} = \text{Fitness}
+            &- w_p \cdot \text{déplacements}\\
+            &- w_j \cdot \text{changements de jour}
+          \end{aligned}
+        \]
+        Le passé est gelé ; les urgences entrent dans leur fenêtre ; les
+        patients futurs bougent le moins possible.
+      \end{block}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \begin{exampleblock}{Rapport d'arbitrage}
+        \footnotesize Pour chaque déplacement : patient, ancienne date,
+        nouvelle date, motif. Pour chaque urgence : vacation retenue et
+        patients décalés.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.15cm}
+  \centering
+  \renewcommand{\arraystretch}{1.18}
+  \begin{tabular}{llrr}
+    \toprule
+    Situation & Politique & Terminées / 279 & Dépassement (min) \\
+    \midrule
+    Sans fermeture & Figée ou réactive & 262 & 2\,954 \\
+    Avec fermeture & Figée & \textbf{255} & 2\,911 \\
+    Avec fermeture & Réactive & 251 & \textbf{2\,716} \\
+    \bottomrule
+  \end{tabular}
+  \source{42 lits, 2 salles, 3--31 janvier 2022, graine 0. La replanification
+    réduit le dépassement de 195 min mais termine 4 interventions de moins.}
+\end{frame}
+
+\begin{frame}{Annexe --- Simulations dynamiques}
+  \scriptsize
+  \centering
+  \begin{tikzpicture}[x=1.0cm,y=1cm,>=Latex]
+    \draw[very thick,draw=McmInk] (0,0) -- (10.3,0);
+    \draw[line width=4pt,draw=McmAmber] (2.3,0) -- (5.5,0);
+    \foreach \x/\lab in {0/08h,2.3/10h,5.5/12h,10.3/17h} {
+      \draw[draw=McmInk] (\x,-0.12) -- (\x,0.12);
+      \node[below=5pt,font=\scriptsize] at (\x,0) {\lab};
+    }
+    \node[above=8pt,text=McmAmber,font=\small\bfseries] at (3.9,0)
+      {Salle 1 : aucune nouvelle entrée};
+  \end{tikzpicture}
+
+  \vspace{0.25cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \begin{block}{Plan figé}
+        \footnotesize Les affectations et l'ordre initial sont conservés.
+        Les cas suivants attendent la réouverture.
+      \end{block}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \begin{exampleblock}{Plan réactif}
+        \footnotesize À 10h et à 12h, le coordinateur soumet un nouveau
+        planning pour les cas en attente.
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.10cm}
+  \centering\footnotesize Un acte commencé se termine. Une proposition
+  invalide est rejetée : l'ancien plan reste actif.
+  \source{Mesa 3.5 ; urgences, annulations et fermetures de lits restent à
+    exécuter dans ce simulateur.}
+\end{frame}
+
+\begin{frame}{Annexe --- Données EDA et nettoyage}
+  \scriptsize
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.31\textwidth}
+      \begin{exampleblock}{Volume}
+        \centering {\Large\bfseries 14\,649}\\ cas hospitaliers
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{block}{Patients}
+        \centering {\Large\bfseries 11\,108}\\ identifiants distincts
+      \end{block}
+    \end{column}
+    \begin{column}{0.31\textwidth}
+      \begin{alertblock}{Variables}
+        \centering {\Large\bfseries 30}\\ administratives, cliniques, bloc
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+
+  \vspace{0.15cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \begin{block}{Anomalies}
+        \begin{itemize}
+          \item 2\,560 incohérences de durée de séjour, soit 17,5\,\% ;
+          \item 1\,884 séjours notés « 1 jour » malgré une nuit ;
+          \item 552 incisions à zéro ; 42 incisions avant l'entrée.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \begin{exampleblock}{Nettoyage}
+        \begin{itemize}
+          \item 142 lignes sans type d'intervention ou praticien ;
+          \item 14\,507 lignes conservées ;
+          \item 2\,488 durées corrigées, durée source gardée.
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
+  \source{La granularité est le séjour, pas le patient ; 2\,546 patients
+    apparaissent dans plusieurs cas.}
+\end{frame}
+
+\begin{frame}{Annexe --- KYST : sécurité et confidentialité}
+  \scriptsize
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.32\textwidth}
+      \begin{block}{Comptes et sessions}
+        \begin{itemize}
+          \item rôles vérifiés par l'API ;
+          \item mots de passe hachés avec Argon2 ;
+          \item cookies HttpOnly et Secure ;
+          \item formulaires protégés contre le CSRF.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{exampleblock}{Données patient}
+        \begin{itemize}
+          \item pseudonymisées ;
+          \item tableaux de bord agrégés ;
+          \item auteur et date de chaque décision ;
+          \item aucune donnée réelle dans le dépôt.
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.32\textwidth}
+      \begin{alertblock}{Infrastructure}
+        \begin{itemize}
+          \item API et base non exposées ;
+          \item seul le serveur web sécurisé joint le front ;
+          \item conteneurs sans privilèges ;
+          \item secrets hors du dépôt.
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+  \source{Prévu : journal d'audit complet et droits limités aux demandes de
+    chaque chirurgien.}
+\end{frame}
+
+\begin{frame}{Annexe --- Chiffres et sources}
+  \scriptsize
+  \renewcommand{\arraystretch}{1.12}
+  \begin{tabular}{@{}>{\raggedright\arraybackslash}p{1.4cm}>{\raggedright\arraybackslash}p{7.9cm}>{\raggedright\arraybackslash}p{2.7cm}@{}}
+    \toprule
+    \textbf{Chiffre} & \textbf{Lecture} & \textbf{Source} \\
+    \midrule
+    64,4\,\% & chirurgie ambulatoire en France en 2023 & HAS, IQSS 2026 \\
+    70\,\% & objectif national fixé pour 2022 & HAS, IQSS 2026 \\
+    80\,\% & cap affiché pour la suite & HAS, IQSS 2026 \\
+    85\,\% & cible d'occupation des salles & ANAP \\
+    $\sim$10\,\% & interventions programmées annulées, souvent reprogrammées
+      & HAS, Flash 2026 \\
+    90\,\% & établissements avec un bloc commun & HAS, IQSS 2026 \\
+    86\,\% & personnel partagé avec l'hospitalisation & HAS, IQSS 2026 \\
+    35\,\% & anticipation de la douleur & HAS, IQSS 2026 \\
+    75\,\% & contact patient entre J1 et J3 & HAS, IQSS 2026 \\
+    \bottomrule
+  \end{tabular}
+  \source{HAS, \emph{Organisation en unité de chirurgie ambulatoire et IQSS},
+    avril 2026 ; HAS, \emph{Reprogrammation au bloc opératoire}, Flash
+    Sécurité Patient, 2026 ; ANAP, \emph{Outil d'analyse bloc opératoire}.}
+\end{frame}

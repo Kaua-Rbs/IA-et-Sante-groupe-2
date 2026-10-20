@@ -1,0 +1,210 @@
+\section{Montrer l'application}
+
+\begin{frame}{KYST : le flux tiré jusqu'à la réservation}
+  \small
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.58\textwidth}
+      {\Large\bfseries\color{mcmPrimary} kyst.tech}\\[0.15cm]
+      \textbf{Keep Your Surgeries Timelies} : l'application web qui applique le
+      flux tiré en consultation, du planning statique à l'adaptation dynamique.
+
+      \vspace{0.12cm}
+      \begin{exampleblock}{Trois éléments à remplir}
+        \begin{itemize}
+          \item saisir une demande en consultation ;
+          \item obtenir deux dates, justifiées ;
+          \item confirmer : vacation et lit sont réservés.
+        \end{itemize}
+      \end{exampleblock}
+
+      \uncover<2->{\par\vspace{0.12cm}\footnotesize Planning statique initial,
+        puis dynamique : dates de repli et replanification dynamique. Disponible
+        sur PC et mobile.}
+    \end{column}
+
+    \begin{column}{0.39\textwidth}
+      \centering
+      \includegraphics[height=4.5cm]{qr_kyst.png}\\[0.25cm]
+      {\footnotesize\bfseries Ouvrez KYST}\\[0.1cm]
+      {\tiny données anonymisées}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Architecture : des briques standard, hébergées sur site}
+  \small
+  \centering
+  \begin{tikzpicture}[
+      card/.style={draw=McmTerracotta,rounded corners=2pt,fill=white,
+                   minimum height=1.15cm,text width=3.4cm,align=center,
+                   inner sep=4pt,font=\footnotesize},
+      ext/.style={card,draw=McmMuted,dashed,text width=2.0cm},
+      flow/.style={{Latex[length=2mm]}-{Latex[length=2mm]},thick,
+                   draw=McmTerracotta},
+      lab/.style={font=\tiny,text=McmMuted,inner sep=1pt}]
+    \node[ext]  (user) at (0,0)   {\textbf{Navigateur}\\PC ou mobile};
+    \node[card] (app)  at (4.6,0) {\textbf{Application web}};
+    \node[card] (ai)   at (4.6,-2.0) {\textbf{Modules IA}\\prédiction,
+      ordonnanceur};
+    \draw[flow] (user) -- node[lab,above=2pt] {HTTPS} (app);
+    \draw[flow] (app)  -- node[lab,right=2pt] {Python} (ai);
+    \begin{scope}[on background layer]
+      \node[draw=McmSage,dashed,rounded corners=3pt,inner sep=6pt,
+            fit=(app)(ai)] (srv) {};
+    \end{scope}
+    \node[font=\tiny,text=McmSage,anchor=south east] at (srv.north east)
+      {serveur de l'établissement};
+  \end{tikzpicture}
+
+  \vspace{0.20cm}
+  \begin{itemize}
+    \item Le navigateur ne parle qu'à l'application ; l'application garde les
+      droits et les données.
+    \item Les modèles et le solveur se branchent derrière l'application, sans
+      changer l'interface.
+  \end{itemize}
+  \source{Détails de sécurité et de déploiement en annexe.}
+\end{frame}
+
+\begin{frame}{Parcours 1/3 : le planning se construit}
+  \small
+  \centering
+  \begin{tikzpicture}[
+      c/.style={draw=McmTerracotta,rounded corners=3pt,fill=white,
+                text width=2.55cm,minimum height=1.55cm,align=center,
+                font=\scriptsize,inner sep=3pt},
+      f/.style={-{Latex[length=2.2mm]},thick,draw=McmTerracotta}]
+    \node[c] (a) at (0,0) {\textbf{1. Demande}\\patient, spécialité,\\durée estimée};
+    \node[c] (b) at (3.25,0) {\textbf{2. Prédiction}\\salle, séjour,\\ambulatoire};
+    \node[c] (c) at (6.50,0) {\textbf{3. Dates A/B}\\bloc, lits,\\raisons};
+    \node[c] (d) at (9.75,0) {\textbf{4. Confirmation}\\vacation + lit\\réservés};
+    \foreach \x/\y in {a/b,b/c,c/d} \draw[f] (\x) -- (\y);
+  \end{tikzpicture}
+
+  \par\vspace{0.25cm}\footnotesize Le calcul contraint entre dans le
+  parcours clinique, pas dans un tableur séparé.
+\end{frame}
+
+\begin{frame}{Parcours 2/3 : le bloc bouge}
+  \small
+  \renewcommand{\arraystretch}{1.45}
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabular}{@{}p{3.3cm}p{5.1cm}p{4.9cm}@{}}
+    \toprule
+    \textbf{Aléa} & \textbf{Ce que fait l'outil} & \textbf{Ce que voit l'équipe} \\
+    \midrule
+    Salle 1 fermée 10h--12h & replanifie les cas en attente ; les actes
+      commencés finissent & le planning avant/après, les cas déplacés \\
+    Patient à déplacer & cherche le meilleur créneau compatible & les
+      autres patients bougent le moins possible \\
+    Chirurgien absent & déplace les actes non commencés & les créneaux
+      libérés sont réutilisables \\
+    \bottomrule
+  \end{tabular}
+
+  \uncover<2->{\par\vspace{0.15cm}\footnotesize Le passé est gelé ; une
+    proposition invalide est rejetée et l'ancien plan reste actif.}
+\end{frame}
+
+\begin{frame}{Parcours 3/3 : l'urgence arrive}
+  \small
+  \centering
+  \begin{tikzpicture}[x=1.0cm,y=1cm,>=Latex]
+    \draw[very thick,draw=McmInk] (0,0) -- (11.0,0);
+    \draw[line width=7pt,draw=McmAmber] (3.8,0) -- (5.4,0);
+    \foreach \x/\lab in {0/08h,2.2/10h,4.4/12h,7.0/14h,11.0/17h} {
+      \draw[draw=McmInk] (\x,-0.12) -- (\x,0.12);
+      \node[below=5pt,font=\scriptsize] at (\x,0) {\lab};
+    }
+    \node[above=16pt,text=McmAmber,font=\scriptsize\bfseries] at (4.6,0)
+      {Urgence : fenêtre clinique};
+    \draw[line width=3pt,draw=McmSage] (4.0,0.28) -- (5.2,0.28);
+    \node[text=McmSage,font=\tiny,anchor=west] at (7.8,0.45)
+      {vert : créneau retenu};
+  \end{tikzpicture}
+
+  \vspace{0.25cm}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \begin{block}{Ce que fait l'outil}
+        \begin{itemize}
+          \item insère l'urgence dans sa fenêtre ;
+          \item décale le minimum de patients futurs ;
+          \item recalcule, valide, puis propose.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \uncover<2->{\begin{alertblock} \footnotesize L'outil ne décide pas seul de décaler un
+        patient : la proposition est soumise au praticien, avec son motif.\end{alertblock}}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Déploiement : sur le serveur de l'établissement}
+  \footnotesize
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Ce qui s'installe}
+        \begin{itemize}
+          \item application web : PC, tablette, téléphone ;
+          \item SvelteKit, FastAPI, PostgreSQL ;
+          \item conteneurs rootless, déploiement Ansible.
+        \end{itemize}
+      \end{block}
+    \end{column}
+
+    \begin{column}{0.50\textwidth}
+      \uncover<2->{\begin{alertblock}{\textbf{Tout reste chez l'établissement.}}
+      \par\vspace{0.12cm}Hébergement de données de santé,
+      	journal d'audit, sauvegardes et droits par rôle.
+      \end{alertblock}} 
+    \end{column}
+  \end{columns}
+  \source{Version actuelle ; ouverture : qualification CE et RGPD.}
+\end{frame}
+
+\begin{frame}{Conformité : CE, RGPD et non-substitution}
+  \scriptsize
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Marquage CE / MDR}
+        \begin{itemize}
+          \item Logiciel d'aide à la décision : qualification au titre du
+            règlement (UE) 2017/745.
+          \item Avant mise sur le marché : marquage CE, dossier technique,
+            gestion des risques.
+          \item Après mise sur le marché : matériovigilance et mise à jour.
+        \end{itemize}
+      \end{block}
+    \end{column}
+
+    \begin{column}{0.50\textwidth}
+      \begin{alertblock}{RGPD et données de santé}
+        \begin{itemize}
+          \item Minimisation : uniquement les données nécessaires.
+          \item Pseudonymisation, hébergement de données de santé (HDS),
+            accès par rôle.
+          \item Base légale, droits des personnes, journal d'audit.
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+
+  \only<1>{%
+    \vspace{0.12cm}
+    \begin{columns}[T,onlytextwidth]
+      \begin{column}{0.48\textwidth}
+        \textbf{Couvert} : dates A/B, réservation, prédictions,
+        replanification.
+      \end{column}
+      \begin{column}{0.50\textwidth}
+        \textbf{À compléter} : audit exhaustif personnalisé pour chaque
+        établissement de santé.
+      \end{column}
+    \end{columns}}
+\vspace{1cm}
+ \textbf{La qualification RGPD et CE doivent être validé en passant par exemple par une entreprise
+ 	existante}
+  \source{Règlement (UE) 2017/745 ; RGPD (UE) 2016/679.}
+\end{frame}
