@@ -43,15 +43,11 @@
           \item $\sigma_{\text{vac}}$ : écart-type de charge des vacations.
         \end{itemize}
       \end{alertblock}
-
-      \uncover<2->{\par\vspace{0.12cm}\footnotesize On maximise la fitness.
-        Les contraintes dures restent vérifiées :\par
-        \texttt{violations(solution) = (0, 0)}.}
     \end{column}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Pipeline ML : trois cibles, aucune fuite}
+\begin{frame}{Pipeline ML}
   \scriptsize
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.47\textwidth}
@@ -76,13 +72,12 @@
         \begin{itemize}
           \item valeurs manquantes explicites, sans imputation inventée ;
           \item heures nulles exclues, pas imputées ;
-          \item catégories rares apprises sur le train ;
           \item aucune fuite : dates, durées et identifiants exclus.
         \end{itemize}
       \end{alertblock}
 
-      \uncover<2->{\par\vspace{0.12cm}\footnotesize Sorties : durée en salle,
-        durée de séjour, ambulatoire. L'incertitude alimente les scénarios.}
+      \uncover<2->{\par\vspace{0.12cm}\footnotesize \textbf{Sorties :} durée en salle,
+        durée de séjour, ambulatoire}
     \end{column}
   \end{columns}
   \source{Notebooks de prétraitement du dépôt.}
@@ -114,7 +109,7 @@
     al. (2024).}
 \end{frame}
 
-\begin{frame}{Hybrides : exploration globale, intensification locale}
+\begin{frame}{Solution proposé : Hybrides}
   \footnotesize
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.54\textwidth}
@@ -149,47 +144,47 @@
   \small
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.48\textwidth}
-      \begin{exampleblock}{Instance jouet}
-        \footnotesize Instance jouet : 7 patients, 4 vacations,
-        $4^7=16\,384$ combinaisons. Les 10 méthodes atteignent l'optimum sur
-        20 graines.
+      \begin{exampleblock}{Petite instance}
+        \footnotesize 7 patients, 4 vacations, $4^7=16\,384$ combinaisons.
+        Les 10 méthodes atteignent l'optimum sur 20 graines.
       \end{exampleblock}
       \centering
-      \includegraphics[width=0.95\linewidth,height=0.26\textheight,keepaspectratio]{petite_taux_optimum.png}
+      \includegraphics[width=0.95\linewidth,height=0.38\textheight,keepaspectratio]{petite_taux_optimum.png}
       \credit{10/10 méthodes à l'optimum exact.}
     \end{column}
 
     \begin{column}{0.50\textwidth}
       \centering
-      \includegraphics[width=\linewidth,height=0.28\textheight,keepaspectratio]{grande_convergence.png}
+      \includegraphics[width=\linewidth,height=0.44\textheight,keepaspectratio]{grande_convergence.png}
       \credit{Convergence médiane, 300 patients, 3 s, 20 graines.}
       \uncover<2->{\par\vspace{0.12cm}\footnotesize Le planning est optimal
-        pour les durées prévues. Une urgence, une annulation ou une salle
-        fermée suffit à le rendre inadapté.}
+        pour les durées prévues. Une urgence,\textbf{ une annulation ou une salle
+        fermée suffit à le rendre inadapté.}}
     \end{column}
   \end{columns}
 \end{frame}
 
-\begin{frame}{Aléas : du planning statique à l'approche dynamique}
-  \only<1>{%
-  \footnotesize
-  \renewcommand{\arraystretch}{1.22}
-  \begin{tabular}{p{2.9cm}p{5.1cm}p{4.4cm}}
-    \toprule
-    \textbf{Aléa} & \textbf{Description} & \textbf{Impact} \\
-    \midrule
-    Urgence & patient imprévu, fenêtre temporelle imposée
-      & à insérer dans une vacation compatible \\
-    Annulation & patient programmé qui annule
-      & libère un créneau \textbf{et} des lits \\
-    Indisponibilité lits & capacité réduite sur un intervalle
-      & réaffecter les séjours chevauchants \\
-    Retard bloc & prolongation ou incident sur une vacation
-      & ampute la capacité utile \\
-    \bottomrule
-  \end{tabular}}
+\begin{frame}{Aléas : les quatre cas principaux}
+  \scriptsize
+  \begin{block}{Quatre aléas principaux}
+    \begin{itemize}
+      \item \textbf{Urgence} : patient imprévu, fenêtre temporelle imposée ;
+        à insérer dans une vacation compatible.
+      \item \textbf{Annulation} : patient programmé qui annule ; libère un
+        créneau \textbf{et} des lits.
+      \item \textbf{Indisponibilité de lits} : capacité réduite sur un
+        intervalle ; réaffecter les séjours chevauchants.
+      \item \textbf{Retard bloc} : prolongation ou incident sur une
+        vacation ; capacité utile réduite.
+    \end{itemize}
+  \end{block}
 
-  \only<2->{%
+  \par\vspace{0.04cm}
+  {\footnotesize \textbf{HAS 2026} : environ 10\,\% des interventions
+    programmées sont annulées, la plupart reprogrammées.}
+
+  \uncover<2->{%
+  \par\vspace{0.10cm}
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.46\textwidth}
       \begin{block}{Statique}
@@ -203,16 +198,12 @@
         proactives, puis replanification réactive.
       \end{exampleblock}
     \end{column}
-  \end{columns}
-
-  \vspace{0.25cm}
-  \centering\footnotesize L'application fait les deux : elle part du planning
-  statique et le maintient en dynamique.}
+  \end{columns}}
   \source{Chaque aléa a sa classe et son simulateur reproductible
     (\texttt{generer\_scenario\_aleas}).}
 \end{frame}
 
-\begin{frame}{Dynamique / proactif : préparer des dates de repli}
+\begin{frame}{Dynamique : préparer des dates de substitution}
   \scriptsize
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.46\textwidth}
@@ -270,9 +261,11 @@
       \uncover<2->{%
       \begin{alertblock}{Score d'adaptation}
         \[
-          \text{Score}=\text{Fitness}
-          -w_p\sum\text{déplacements}
-          -w_j\sum\text{changements de jour}
+          \begin{aligned}
+            \text{Score} = \text{Fitness}
+            &- w_p \cdot \text{déplacements}\\
+            &- w_j \cdot \text{changements de jour}
+          \end{aligned}
         \]
         Le planning reste proche de celui annoncé aux patients.
       \end{alertblock}}
@@ -301,10 +294,13 @@
         \draw[f] (a3.east) -- (bb.west|-a3);
         \draw[f,draw=McmAmber] (co) -- (bb);
       \end{tikzpicture}
-      \uncover<2->{\par\vspace{0.10cm}\footnotesize Agents par quanta,
-        versionnement de la meilleure solution, migration si stagnation.}
+      \uncover<2->{\par\vspace{0.10cm}\footnotesize Agents par cycles
+        courts, versionnement de la meilleure solution, migration si
+        stagnation.}
     \end{column}
   \end{columns}
   \source{Implémentation Mesa 3.5 : agents simples et agents
     métaheuristiques coopérant par tableau noir.}
 \end{frame}
+
+\againframe<3>{recap}

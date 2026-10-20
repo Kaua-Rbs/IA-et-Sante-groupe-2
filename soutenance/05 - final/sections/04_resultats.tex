@@ -4,7 +4,7 @@
   \scriptsize
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.50\textwidth}
-      \renewcommand{\arraystretch}{1.12}
+      \renewcommand{\arraystretch}{1.05}
       \setlength{\tabcolsep}{3pt}
       \begin{tabular}{@{}lrr@{}}
         \toprule
@@ -26,7 +26,7 @@
 
     \begin{column}{0.48\textwidth}
       \centering
-      \includegraphics[width=\linewidth,height=0.30\textheight,keepaspectratio]{grande_boxplot.png}
+      \includegraphics[width=\linewidth,height=0.44\textheight,keepaspectratio]{grande_boxplot.png}
       \credit{Dispersion de la fitness finale, grande échelle.}
       \uncover<2->{\par\vspace{0.12cm}\footnotesize Les méthodes locales
         dominent ; Génétique $\times$ Tabou et Fourmis $\times$ Tabou
@@ -46,7 +46,7 @@
       \centering
       \begin{tabular}{@{}lrrr@{}}
         \toprule
-        Capacité & Médianes & Modèle & Oracle \\
+        Capacité & Médianes & Modèle & Réel \\
         \midrule
         42 lits & 246 & \textbf{251} & 260 \\
         10 lits & \textbf{111} & 108 & 115 \\
@@ -64,12 +64,12 @@
       Le gain dépend des ressources.
 
       \uncover<2->{\par\vspace{0.12cm}À 42 lits, le modèle termine 5
-        interventions de plus que les médianes, 9 de moins que l'oracle. À
+        interventions de plus que les médianes, 9 de moins que le réel. À
         10 lits, la capacité sature : la prédiction ne crée pas de place.}
     \end{column}
   \end{columns}
   \source{Cas terminés sur 279, politique réactive, fermeture 10h--12h,
-    2 salles, graine 0. Oracle = durées futures révélées, pas optimum
+    2 salles, graine 0. Réel = durées futures révélées, pas optimum
     garanti. Métriques ML : campagne interne de l'équipe.}
 \end{frame}
 
@@ -103,3 +103,5 @@
   \source{279 interventions, 42 lits, 2 salles, salle 1 fermée 10h--12h,
     graine 0. Dépassement : occupation et remise en état après 17h.}
 \end{frame}
+
+\againframe<4>{recap}

@@ -11,7 +11,7 @@
     \begin{column}{0.55\textwidth}
       \begin{columns}[T,onlytextwidth]
         \begin{column}{0.32\textwidth}\centering
-          \bigstat{64,4\,\%}{taux national d'ambulatoire en 2023}
+          \bigstat{64,4\,\%}{taux national de chirurgie ambulatoire en 2023}
         \end{column}
         \begin{column}{0.32\textwidth}\centering
           \bigstat{70\,\%}{objectif national fixé pour 2022}
@@ -26,13 +26,15 @@
       \begin{block}{Enjeux}
         \footnotesize
         Une salle, une équipe et un lit mobilisés sans patient coûtent sans
-        soigner. L'objectif national et l'autorisation ARS imposent de tracer
-        les décisions ; l'ambulatoire réduit le risque infectieux et les
-        délais.
+        soigner. L'ANAP vise 85\,\% d'occupation des salles ; 90\,\% des
+        établissements font tourner l'ambulatoire dans un bloc commun.
+        L'objectif national et l'autorisation ARS imposent de tracer les
+        décisions.
       \end{block}}
     \end{column}
   \end{columns}
-  \source{Sources : HAS, IQSS (avril 2026) ; HAS, 12 questions (2012).}
+  \source{Sources : HAS, IQSS (avril 2026) ; ANAP, Outil d'analyse bloc
+    opératoire.}
 \end{frame}
 
 \begin{frame}{Du flux poussé au flux tiré}
@@ -104,33 +106,24 @@
 
     \begin{column}{0.42\textwidth}
       \centering
-      \begin{tikzpicture}[font=\scriptsize]
+      \begin{tikzpicture}
         \draw[rounded corners=9pt,fill=white,draw=McmTerracotta,thick]
           (0,0) rectangle (4.15,6.05);
-        \draw[fill=McmTerracotta!10,rounded corners=4pt]
-          (0.18,5.35) rectangle (3.97,5.90);
-        \node[font=\footnotesize\bfseries,text=McmTerracotta] at (2.08,5.62)
-          {Demande};
-        \node[align=left,anchor=west] at (0.28,4.95)
-          {\textbf{Mme D., 58 ans}\\Chirurgie digestive};
-        \draw[draw=McmMuted!35] (0.25,4.55) -- (3.90,4.55);
-        \node[align=left,anchor=west] at (0.28,4.25)
-          {Durée prédite : \textbf{95 min}\\Séjour : \textbf{2 jours}};
-        \draw[fill=McmSage!12,rounded corners=3pt]
-          (0.25,2.75) rectangle (3.90,3.95);
-        \node[align=left,anchor=west] at (0.35,3.55)
-          {\textbf{Date A} --- 12 mars\\{\color{McmSage}bloc et lit disponibles}};
-        \draw[fill=McmAmber!12,rounded corners=3pt]
-          (0.25,1.45) rectangle (3.90,2.60);
-        \node[align=left,anchor=west] at (0.35,2.25)
-          {\textbf{Date B} --- 26 mars\\{\color{McmAmber}lits plus tendus le 19}};
-        \draw[fill=McmTerracotta,rounded corners=3pt]
-          (0.55,0.45) rectangle (3.60,1.05);
-        \node[text=white,font=\scriptsize\bfseries] at (2.08,0.75)
-          {Confirmer une date};
+        \node at (2.08,3.02)
+          {\includegraphics[height=5.65cm,keepaspectratio]{maquette_decision_placeholder.png}};
       \end{tikzpicture}
     \end{column}
   \end{columns}
-  \source{Maquette de l'écran de décision. Le parcours complet est en
-    partie 5.}
+  \source{Image de remplacement : capture de l'écran de décision à venir.
+    Le parcours complet est en partie 5.}
+\end{frame}
+
+\begin{frame}<1>[noframenumbering,label=recap]{Où nous en sommes}
+  \centering
+  \vspace*{1.2cm}
+  \only<1>{\progressrecap{1}}
+  \only<2>{\progressrecap{2}}
+  \only<3>{\progressrecap{3}}
+  \only<4>{\progressrecap{4}}
+  \only<5>{\progressrecap{5}}
 \end{frame}

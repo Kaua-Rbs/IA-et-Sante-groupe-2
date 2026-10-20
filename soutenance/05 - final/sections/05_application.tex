@@ -5,11 +5,11 @@
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.58\textwidth}
       {\Large\bfseries\color{mcmPrimary} kyst.tech}\\[0.15cm]
-      \textbf{Keep Your Surgeries Timely} : l'application web qui applique le
+      \textbf{Keep Your Surgeries Timelies} : l'application web qui applique le
       flux tiré en consultation, du planning statique à l'adaptation dynamique.
 
       \vspace{0.12cm}
-      \begin{exampleblock}{Trois gestes}
+      \begin{exampleblock}{Trois éléments à remplir}
         \begin{itemize}
           \item saisir une demande en consultation ;
           \item obtenir deux dates, justifiées ;
@@ -18,7 +18,7 @@
       \end{exampleblock}
 
       \uncover<2->{\par\vspace{0.12cm}\footnotesize Planning statique initial,
-        puis dynamique : dates de repli et replanification réactive. Disponible
+        puis dynamique : dates de repli et replanification dynamique. Disponible
         sur PC et mobile.}
     \end{column}
 
@@ -26,49 +26,44 @@
       \centering
       \includegraphics[height=4.5cm]{qr_kyst.png}\\[0.25cm]
       {\footnotesize\bfseries Ouvrez KYST}\\[0.1cm]
-      {\tiny Données synthétiques, aucune donnée réelle.}
+      {\tiny données anonymisées}
     \end{column}
   \end{columns}
 \end{frame}
 
 \begin{frame}{Architecture : des briques standard, hébergées sur site}
-  \scriptsize
+  \small
   \centering
   \begin{tikzpicture}[
       card/.style={draw=McmTerracotta,rounded corners=2pt,fill=white,
-                   minimum height=1.10cm,text width=1.85cm,align=center,
-                   inner sep=3pt,font=\scriptsize},
-      ext/.style={card,draw=McmMuted,dashed},
-      flow/.style={{Latex[length=2mm]}-{Latex[length=2mm]},thick,draw=McmTerracotta},
+                   minimum height=1.15cm,text width=3.4cm,align=center,
+                   inner sep=4pt,font=\footnotesize},
+      ext/.style={card,draw=McmMuted,dashed,text width=2.0cm},
+      flow/.style={{Latex[length=2mm]}-{Latex[length=2mm]},thick,
+                   draw=McmTerracotta},
       lab/.style={font=\tiny,text=McmMuted,inner sep=1pt}]
-    \node[ext]  (user)  at (0,0)    {\textbf{Navigateur}\\PC ou mobile};
-    \node[card] (front) at (3.2,0)  {\textbf{Front}\\SvelteKit};
-    \node[card] (api)   at (6.4,0)  {\textbf{API}\\FastAPI};
-    \node[card] (db)    at (9.6,0)  {\textbf{Base}\\PostgreSQL};
-    \node[ext]  (ai)    at (6.4,-1.75) {\textbf{Modules IA}\\prédiction,\\ordonnanceur};
-    \draw[flow] (user)  -- node[lab,above=2pt] {HTTPS} (front);
-    \draw[flow] (front) -- node[lab,above=2pt] {interne} (api);
-    \draw[flow] (api)   -- node[lab,above=2pt] {SQL} (db);
-    \draw[flow] (api)   -- node[lab,right=2pt] {contrats Python} (ai);
+    \node[ext]  (user) at (0,0)   {\textbf{Navigateur}\\PC ou mobile};
+    \node[card] (app)  at (4.6,0) {\textbf{Application web}};
+    \node[card] (ai)   at (4.6,-2.0) {\textbf{Modules IA}\\prédiction,
+      ordonnanceur};
+    \draw[flow] (user) -- node[lab,above=2pt] {HTTPS} (app);
+    \draw[flow] (app)  -- node[lab,right=2pt] {Python} (ai);
     \begin{scope}[on background layer]
-      \node[draw=McmSage,dashed,rounded corners=3pt,inner sep=4pt,
-            fit=(front)(api)(db)(ai)] (srv) {};
+      \node[draw=McmSage,dashed,rounded corners=3pt,inner sep=6pt,
+            fit=(app)(ai)] (srv) {};
     \end{scope}
-    \node[font=\tiny,text=McmSage,anchor=south east] at ([shift={(0,1pt)}]srv.north east)
-      {Podman rootless, Ansible};
+    \node[font=\tiny,text=McmSage,anchor=south east] at (srv.north east)
+      {serveur de l'établissement};
   \end{tikzpicture}
 
-  \vspace{0.12cm}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.49\textwidth}
-      \footnotesize Le navigateur ne parle qu'au front ; l'API garde les
+  \vspace{0.20cm}
+  \begin{itemize}
+    \item Le navigateur ne parle qu'à l'application ; l'application garde les
       droits et les données.
-    \end{column}
-    \begin{column}{0.49\textwidth}
-      \footnotesize Argon2, cookies HttpOnly/Secure, TLS, conteneurs
-      rootless, données pseudonymisées.
-    \end{column}
-  \end{columns}
+    \item Les modèles et le solveur se branchent derrière l'application, sans
+      changer l'interface.
+  \end{itemize}
+  \source{Détails de sécurité et de déploiement en annexe.}
 \end{frame}
 
 \begin{frame}{Parcours 1/3 : le planning se construit}
@@ -140,8 +135,8 @@
       \end{block}
     \end{column}
     \begin{column}{0.49\textwidth}
-      \uncover<2->{\footnotesize L'outil ne décide pas seul de décaler un
-        patient : la proposition est soumise au praticien, avec son motif.}
+      \uncover<2->{\begin{alertblock} \footnotesize L'outil ne décide pas seul de décaler un
+        patient : la proposition est soumise au praticien, avec son motif.\end{alertblock}}
     \end{column}
   \end{columns}
 \end{frame}
@@ -160,18 +155,17 @@
     \end{column}
 
     \begin{column}{0.50\textwidth}
-      \footnotesize
-      Tout reste chez l'établissement.
-
-      \uncover<2->{\par\vspace{0.12cm}Hébergement de données de santé,
-        journal d'audit, sauvegardes et droits par rôle.}
+      \uncover<2->{\begin{alertblock}{\textbf{Tout reste chez l'établissement.}}
+      \par\vspace{0.12cm}Hébergement de données de santé,
+      	journal d'audit, sauvegardes et droits par rôle.
+      \end{alertblock}} 
     \end{column}
   \end{columns}
   \source{Version actuelle ; ouverture : qualification CE et RGPD.}
 \end{frame}
 
 \begin{frame}{Conformité : CE, RGPD et non-substitution}
-  \footnotesize
+  \scriptsize
   \begin{columns}[T,onlytextwidth]
     \begin{column}{0.48\textwidth}
       \begin{block}{Marquage CE / MDR}
@@ -197,17 +191,20 @@
     \end{column}
   \end{columns}
 
-  \vspace{0.12cm}
-  \begin{columns}[T,onlytextwidth]
-    \begin{column}{0.48\textwidth}
-      \textbf{Couvert} : dates A/B, réservation, prédictions, replanification.
-    \end{column}
-    \begin{column}{0.50\textwidth}
-      \textbf{À compléter} : audit exhaustif, lissage week-ends et vacances.
-    \end{column}
-  \end{columns}
-
-  \uncover<2->{\par\vspace{0.18cm}\centering Le praticien confirme chaque
-    programme ; la qualification CE et la conformité RGPD restent à instruire.}
+  \only<1>{%
+    \vspace{0.12cm}
+    \begin{columns}[T,onlytextwidth]
+      \begin{column}{0.48\textwidth}
+        \textbf{Couvert} : dates A/B, réservation, prédictions,
+        replanification.
+      \end{column}
+      \begin{column}{0.50\textwidth}
+        \textbf{À compléter} : audit exhaustif personnalisé pour chaque
+        établissement de santé.
+      \end{column}
+    \end{columns}}
+\vspace{1cm}
+ \textbf{La qualification RGPD et CE doivent être validé en passant par exemple par une entreprise
+ 	existante}
   \source{Règlement (UE) 2017/745 ; RGPD (UE) 2016/679.}
 \end{frame}

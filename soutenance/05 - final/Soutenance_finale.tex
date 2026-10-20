@@ -3,13 +3,12 @@
 % Fil rouge : bloc opératoire, lits d'hospitalisation et ambulatoire.
 %
 % Découpage : Contextualiser (3) — Problématique (2) — Modélisation (8)
-%             — Résultats (3) — Application (7)
+%             — Résultats (3) — Application (8)
 %
-% Compilation depuis soutenance/final/ :
-%   lualatex Soutenance_finale.tex
-%   biber    Soutenance_finale
+% Compilation depuis soutenance/05 - final/ :
 %   lualatex Soutenance_finale.tex
 %   lualatex Soutenance_finale.tex
+%   (pas de bibliographie biber : les références sont saisies à la main)
 % =============================================================================
 \documentclass[aspectratio=169,11pt]{beamer}
 \usepackage{../beamerthememidcenturymodern}
@@ -26,10 +25,11 @@
 \usepackage[french]{babel}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
+\usepackage{array}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,calc,babel,backgrounds,fit,shapes.geometric}
 \usepackage{graphicx}
-\graphicspath{{photos/}{../figures/}}
+\graphicspath{{photos/}{../figures/}{../../rapport_jupyter_notebook_LIRE_ALEA/figures/}}
 
 \newcommand{\source}[1]{\par\vspace{4pt}{\color{mcmBlack!60}\tiny #1}}
 \newcommand{\credit}[1]{\par\vspace{2pt}{\color{mcmBlack!55}\tiny #1}}
@@ -40,6 +40,29 @@
     {\scriptsize\color{mcmBlack!75}#2}\par
   \end{minipage}}
 \newcommand{\partnum}[1]{{\color{mcmPrimary}\bfseries #1}}
+
+\newcommand{\progressrecap}[1]{%
+  \begin{tikzpicture}[
+    recapstep/.style={rounded corners=3pt,minimum height=0.72cm,
+                 text width=2.15cm,align=center,font=\scriptsize,
+                 inner sep=2pt}]
+    \foreach \i/\lab in {1/Contexte,2/Problème,3/Modèle,
+                         4/Résultats,5/Application} {
+      \ifnum\i=#1
+        \node[recapstep,fill=McmTerracotta,text=white,font=\scriptsize\bfseries]
+          at ({(\i-1)*2.5},0) {\i. \lab};
+      \else
+        \ifnum\i<#1
+          \node[recapstep,fill=McmSage!20,text=McmSage!70!black]
+            at ({(\i-1)*2.5},0) {\i. \lab};
+        \else
+          \node[recapstep,fill=McmMuted!10,text=McmMuted]
+            at ({(\i-1)*2.5},0) {\i. \lab};
+        \fi
+      \fi
+    }
+  \end{tikzpicture}%
+}
 
 \title[Bloc, lits \& ambulatoire]{Optimiser ensemble le bloc, les lits et l'ambulatoire}
 \subtitle{Du planning contraint à la décision explicable}
@@ -61,21 +84,37 @@
 
 \begin{frame}{Références}
   \scriptsize
-  \begin{itemize}
-    \item HAS, \emph{Organisation en unité de chirurgie ambulatoire et IQSS},
-      rapport d'analyse, avril 2026.
-    \item HAS, \emph{La chirurgie ambulatoire en 12 questions}, avril 2012.
-    \item Règlement (UE) 2017/745 relatif aux dispositifs médicaux.
-    \item Règlement (UE) 2016/679 (RGPD).
-    \item Amin, Baldacci, Kayvanfar, \emph{A comprehensive review of operating
-      room planning and scheduling problems}, 2024.
-    \item Rachuba, Reuter-Oppermann, Thielen, \emph{Integrated planning in
-      hospitals: a review}, 2024.
-    \item Lex et al., \emph{Using machine learning to predict-then-optimize
-      elective surgery scheduling}, 2025.
-    \item Salezze Vieira, Machado Silva, Chaves, \emph{Random-key algorithms
-      for integrated operating room scheduling}, 2025.
-  \end{itemize}
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \begin{exampleblock}{Sources institutionnelles}
+        \begin{itemize}
+          \item HAS, \emph{Organisation en unité de chirurgie ambulatoire et
+            IQSS}, rapport d'analyse, avril 2026.
+          \item HAS, \emph{Reprogrammation au bloc opératoire. Reporter sans
+            jamais improviser}, Flash Sécurité Patient, 2026.
+          \item HAS, \emph{La chirurgie ambulatoire en 12 questions}, 2012.
+          \item ANAP, \emph{Outil d'analyse bloc opératoire}, guide
+            d'utilisation.
+          \item Règlement (UE) 2017/745 relatif aux dispositifs médicaux.
+          \item Règlement (UE) 2016/679 (RGPD).
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \begin{exampleblock}{Travaux scientifiques}
+        \begin{itemize}
+          \item Amin, Baldacci, Kayvanfar, \emph{A comprehensive review of
+            operating room planning and scheduling problems}, 2024.
+          \item Rachuba, Reuter-Oppermann, Thielen, \emph{Integrated planning
+            in hospitals: a review}, 2024.
+          \item Lex et al., \emph{Using machine learning to
+            predict-then-optimize elective surgery scheduling}, 2025.
+          \item Salezze Vieira, Machado Silva, Chaves, \emph{Random-key
+            algorithms for integrated operating room scheduling}, 2025.
+        \end{itemize}
+      \end{exampleblock}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 {\setbeamercolor{normal text}{fg=mcmPrimaryFg,bg=mcmPrimary!70}
@@ -87,5 +126,7 @@
   \end{center}
 \end{frame}
 }
+
+\input{sections/06_annexes}
 
 \end{document}
