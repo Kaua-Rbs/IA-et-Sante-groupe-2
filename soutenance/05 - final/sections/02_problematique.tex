@@ -1,0 +1,78 @@
+\section{Problématique}
+
+\begin{frame}{Du terrain au problème scientifique}
+  \footnotesize
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.50\textwidth}
+      \begin{block}{Le terrain}
+        \begin{itemize}
+          \item 582 patients, 280 vacations sur 40 jours.
+          \item Trois ressources couplées : bloc, lits, ambulatoire.
+          \item Quatre aléas : urgence, annulation, fermeture, retard.
+        \end{itemize}
+      \end{block}
+
+      \uncover<2->{%
+      \begin{alertblock}{Le nombre d'affectations}
+        \[
+          \underbrace{280^{582}}_{\text{affectations possibles}}
+        \]
+        \footnotesize Les compatibilités réduisent l'espace, sans le rendre
+        traitable.
+      \end{alertblock}}
+    \end{column}
+
+    \begin{column}{0.48\textwidth}
+      \centering
+      \begin{tikzpicture}[
+        c/.style={draw=McmTerracotta,rounded corners=3pt,fill=white,
+                  text width=4.5cm,minimum height=1.10cm,align=center,
+                  font=\footnotesize,inner sep=3pt},
+        f/.style={-{Latex[length=2.5mm]},thick,draw=McmTerracotta}]
+        \node[c] (a) at (0,0) {\textbf{Terrain}\\3 ressources, 4 aléas};
+        \node[c] (b) at (0,-1.7) {\textbf{Modèle}\\affectation sous contraintes};
+        \node<2->[c,draw=McmAmber,fill=McmAmber!8] (c) at (0,-3.3)
+          {\textbf{Problème NP-difficile}\\qualité en temps borné};
+        \draw[f] (a) -- (b);
+        \draw<2->[f,draw=McmAmber] (b) -- (c);
+      \end{tikzpicture}
+      \uncover<3->{\par\vspace{0.15cm}\footnotesize Dix méthodes, un même
+        budget de temps.}
+    \end{column}
+  \end{columns}
+  \source{Charges et protocoles : RAPPORT.md.}
+\end{frame}
+
+\begin{frame}{Les contraintes qui rendent le problème réel}
+  \scriptsize
+  \begin{columns}[T,onlytextwidth]
+    \begin{column}{0.49\textwidth}
+      \begin{block}{À l'exécution}
+        \begin{itemize}
+          \item \textbf{Gel du passé} : un acte commencé ou programmé avant le
+            jour courant n'est jamais déplacé.
+          \item \textbf{Urgences} : insertion dans la fenêtre clinique, pas dès
+            qu'une place reste.
+          \item \textbf{Moindre perturbation} : déplacer le moins possible les
+            patients déjà prévenus.
+        \end{itemize}
+      \end{block}
+    \end{column}
+
+    \begin{column}{0.49\textwidth}
+      \begin{alertblock}{CE et RGPD}
+        \begin{itemize}
+          \item \textbf{CE} : logiciel d'aide à la décision à qualifier au
+            titre du règlement (UE) 2017/745.
+          \item \textbf{RGPD} : minimisation, pseudonymisation, base légale,
+            hébergement de données de santé.
+          \item \textbf{Audit} : qui a décidé quoi, quand et pourquoi.
+        \end{itemize}
+      \end{alertblock}
+    \end{column}
+  \end{columns}
+
+  \uncover<2->{\par\vspace{0.12cm}\footnotesize Le gel, la traçabilité et
+    l'explicabilité contraignent le voisinage, le score et l'interface.}
+  \source{Sources : règlement (UE) 2017/745 ; RGPD (UE) 2016/679.}
+\end{frame}
