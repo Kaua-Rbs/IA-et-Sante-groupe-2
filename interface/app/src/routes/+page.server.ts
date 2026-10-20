@@ -19,5 +19,5 @@ export const load: PageServerLoad = async ({ locals }) => {
 		user.isStaff ? api.get<PredictionAccuracy>('/analytics/predictions') : Promise.resolve(null),
 		api.get<Health>('/health')
 	]);
-	return { dashboard: { occupancy, fills, pending, accuracy, health } };
+	return { dashboard: { occupancy, fills, pending, accuracy, margin: health.emergency_margin } };
 };

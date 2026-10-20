@@ -1,6 +1,4 @@
 import datetime as dt
-import asyncio
-from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException
@@ -9,19 +7,13 @@ from sqlmodel import select
 
 from api.accounts.security import ClinicalUser, PlannerUser, StaffUser
 from api.ai.providers import PredictorsDep, SchedulerDep
-from api.ai.room_simulation import simulate_room_day
-from api.ai.ward_simulation import simulate_ward_window
 from api.clinical.models import RequestStatus, SurgicalRequest
 from api.config import settings
 from api.crud import get_or_404, save
 from api.db import SessionDep, utcnow
 from api.planning import service
 from api.planning import replanning
-from api.planning.capacity import ACTIVE_STATUSES
 from api.planning.commitments import confirmed_conflicts
-from optimiseur.optimizer import TOUTES_METHODES
-from hospital_sim.metaheuristics import METHODS as ROOM_METHODS
-from api.resources.models import OperatingRoom, Vacation
 from api.planning.models import (
     CaseOutcome, CaseStatus, PlannedCase, PlannedCasePublic, Proposal, ProposalPublic,
     ProposalStatus,
@@ -58,14 +50,8 @@ def run_replanning(session: SessionDep, current_user: PlannerUser):
 class CohortPreviewRequest(BaseModel):
     start: dt.date
     end: dt.date
-    method: str = "Tabou x Recuit"
     seed: int = 0
     budget_seconds: float = Field(default=1.0, gt=0, le=5)
-
-
-@router.get("/planning/methods", response_model=list[str])
-def planning_methods(current_user: PlannerUser):
-    return list(TOUTES_METHODES)
 
 
 @router.post("/planning/cohort-preview")
@@ -76,7 +62,7 @@ def cohort_preview(
     """Read-only multi-request optimization; a clinician still confirms dates."""
     try:
         return service.preview_cohort(session, body.start, body.end, predictors,
-                                      method=body.method, seed=body.seed,
+                                      seed=body.seed,
                                       budget_seconds=body.budget_seconds)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
@@ -90,7 +76,7 @@ def publish_cohort_proposals(
     """Recompute the cohort and publish feasible dates for clinical confirmation."""
     try:
         return service.publish_cohort_proposals(
-            session, body.start, body.end, predictors, method=body.method,
+            session, body.start, body.end, predictors,
             seed=body.seed, budget_seconds=body.budget_seconds,
         )
     except service.CohortConflict as exc:
@@ -100,78 +86,6 @@ def publish_cohort_proposals(
         session.rollback()
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
-
-class RoomSimulationRequest(BaseModel):
-    date: dt.date
-    method: str = "baseline"
-    policy: Literal["static", "reactive"] = "reactive"
-    realized_factor: float = Field(default=1.2, ge=1, le=2)
-    outage: bool = True
-
-
-class WardSimulationRequest(BaseModel):
-    start: dt.date
-    end: dt.date
-    method: str = "baseline"
-    policy: Literal["static", "reactive"] = "reactive"
-    realized_factor: float = Field(default=1.2, ge=1, le=2)
-    los_factor: float = Field(default=1.0, ge=1, le=2)
-    outage: bool = True
-
-
-@router.post("/planning/ward-simulation-preview")
-def ward_simulation_preview(
-    body: WardSimulationRequest, session: SessionDep, current_user: PlannerUser,
-    predictors: PredictorsDep,
-):
-    """Hypothetical Mesa replay with existing bookings and bed units."""
-    try:
-        cases, vacations, bed_units = service.cohort_snapshot(
-            session, body.start, body.end, predictors,
-            occupancy_extension=body.los_factor,
-        )
-        return asyncio.run(simulate_ward_window(
-            cases, vacations, bed_units, start=body.start, end=body.end,
-            emergency_margin=settings.EMERGENCY_MARGIN, method=body.method,
-            policy=body.policy, realized_factor=body.realized_factor,
-            los_factor=body.los_factor, outage=body.outage,
-        ))
-    except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
-
-
-@router.get("/planning/room-simulation-methods", response_model=list[str])
-def room_simulation_methods(current_user: PlannerUser):
-    return list(ROOM_METHODS)
-
-
-@router.post("/planning/room-simulation-preview")
-def room_simulation_preview(
-    body: RoomSimulationRequest, session: SessionDep, current_user: PlannerUser,
-    predictors: PredictorsDep,
-):
-    """Hypothetical room-only Mesa replay; never changes clinical bookings.
-
-    Bookings already planned in active rooms that day keep their room time."""
-    try:
-        cases, _, _ = service.cohort_snapshot(session, body.date, body.date, predictors)
-        rooms = session.exec(select(OperatingRoom).where(OperatingRoom.active == True)).all()  # noqa: E712
-        booked = session.exec(
-            select(PlannedCase.planned_minutes)
-            .join(Vacation, Vacation.id == PlannedCase.vacation_id)
-            .join(OperatingRoom, OperatingRoom.id == Vacation.room_id)
-            .where(Vacation.date == body.date, OperatingRoom.active == True,  # noqa: E712
-                   PlannedCase.status.in_(ACTIVE_STATUSES))
-            .order_by(PlannedCase.id)
-        ).all()
-        return asyncio.run(simulate_room_day(
-            cases, day=body.date, rooms=len(rooms), booked_minutes=tuple(booked),
-            method=body.method,
-            policy=body.policy, realized_factor=body.realized_factor,
-            outage=body.outage,
-        ))
-    except ValueError as exc:
-        raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 # --- Proposals ---
 

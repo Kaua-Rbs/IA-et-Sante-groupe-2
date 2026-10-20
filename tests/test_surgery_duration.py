@@ -5,12 +5,12 @@ import numpy as np
 import pandas as pd
 import tempfile
 from pathlib import Path
-from duration_features import engineer_features, fit_category_mapping, apply_category_mapping
+from prediction.duration_features import engineer_features, fit_category_mapping, apply_category_mapping
 ML_AVAILABLE = all(importlib.util.find_spec(name) for name in ['sklearn', 'xgboost', 'catboost', 'joblib'])
 if ML_AVAILABLE:
     import joblib
-    from surgery_duration import MedianBaseline, validate_split
-    from surgery_duration import (predict_schedule, apply_predicted_durations, calibration_split,
+    from prediction.surgery_duration import MedianBaseline, validate_split
+    from prediction.surgery_duration import (predict_schedule, apply_predicted_durations, calibration_split,
                                  conformal_offset, tail_metrics, FIXED_FEATURES)
 
 

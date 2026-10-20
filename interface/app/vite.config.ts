@@ -10,14 +10,9 @@ for (const file of ['../kyst.local.env', '../kyst.env']) {
 	if (existsSync(file)) process.loadEnvFile(file);
 }
 
-export default defineConfig(({ command }) => ({
+export default defineConfig({
 	plugins: [
 		sveltekit({
-			// Origine publique, figée au build de production (protection CSRF des formulaires).
-			// Sans elle, adapter-node la déduit de l'en-tête Host en supposant https.
-			// Jamais en développement : le serveur Vite a sa propre origine (localhost:5173).
-			paths: { origin: command === 'build' ? process.env.ORIGIN || undefined : undefined },
-
 			compilerOptions: {
 				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.
 				runes: ({ filename }) =>
@@ -30,4 +25,4 @@ export default defineConfig(({ command }) => ({
 			adapter: adapter()
 		})
 	]
-}));
+});

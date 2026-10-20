@@ -3,7 +3,7 @@
 	import FormErrors from '#lib/components/FormErrors.svelte';
 	import StatusBadge from '#lib/components/StatusBadge.svelte';
 	import {
-		formatDateTime, formatDay, formatLongDay, formatMinutes, formatSlot, plural
+		formatDateTime, formatDay, formatLongDay, formatMinutes, formatPercent, formatSlot, plural
 	} from '#lib/format.ts';
 	import { nameOf, patientLabel, sexLabel } from '#lib/names.ts';
 	import {
@@ -99,6 +99,8 @@
 									<dd>{nameOf(data.bedUnits, proposal.bed_unit_id)}</dd>
 									<dt>Sortie prévue</dt>
 									<dd>{formatLongDay(proposal.discharge_date)}</dd>
+									<dt>Urgences</dt>
+									<dd class="emergency">{formatPercent(data.health.emergency_margin)} de la vacation gardés libres</dd>
 								</dl>
 								<div class="reasons">
 									<p class="label">Pourquoi cette date</p>
@@ -216,7 +218,7 @@
 
 	<aside class="stack">
 		<section class="card">
-			<h2>Prédiction</h2>
+			<h2>Prédiction IA</h2>
 			{#if pred}
 				<div class="figures">
 					<div>
@@ -236,11 +238,10 @@
 				</div>
 				<p>{CARE_TYPE_LABELS[pred.care_type]}</p>
 				<p class="muted small">Modèle {pred.model_version} · {formatDateTime(pred.created_at)}</p>
-				{#if pred.source === 'fixtures'}
-					<p class="alert alert--info small">
-						Valeurs de démonstration : les modèles entraînés ne sont pas encore branchés.
-					</p>
-				{/if}
+				<p class="muted small">
+					Estimée par les modèles entraînés sur l'historique du bloc, à partir du diagnostic, des
+					actes, du type d'intervention, de l'âge et du sexe.
+				</p>
 			{:else}
 				<p class="muted">Pas encore de prédiction : elle est faite en proposant des dates.</p>
 			{/if}
@@ -271,6 +272,11 @@
 </div>
 
 <style>
+	.emergency {
+		color: var(--emergency);
+		font-weight: 500;
+	}
+
 	.layout {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr) clamp(260px, 24%, 460px);

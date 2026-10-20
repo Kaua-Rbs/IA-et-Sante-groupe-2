@@ -1,0 +1,10 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Mise à jour automatique des images KYST
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory={{ kyst_project_dir }}
+ExecStart={{ kyst_project_dir }}/auto-update.sh

@@ -13,7 +13,7 @@
 			label: 'Consultation',
 			title: 'Deux dates proposées en consultation',
 			lede:
-				"En consultation, le chirurgien saisit la demande. KYST estime le temps en salle et la durée du séjour, puis propose deux dates où une vacation de la spécialité et un lit sont libres. Le chirurgien choisit.",
+				"En consultation, le chirurgien saisit la demande. Ses modèles prédisent le temps en salle et la durée du séjour, puis KYST propose deux dates où une vacation de la spécialité et un lit sont libres. Le chirurgien choisit.",
 			pose: 'stand'
 		},
 		{
@@ -517,7 +517,7 @@
 			<div class="footer__bottom">
 				<p>
 					Projet étudiant. Outil d'aide à la décision : il ne remplace pas le jugement clinique.
-					Les prédictions actuelles sont des valeurs de démonstration.
+					Les durées sont prédites par des modèles entraînés sur l'historique du bloc.
 				</p>
 				<p class="footer__copy">© {new Date().getFullYear()} KYST</p>
 			</div>

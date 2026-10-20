@@ -16,14 +16,14 @@ Autres commandes : `pnpm check` (types et composants), `pnpm build` puis `pnpm s
 
 ## Variables d'environnement
 
-Le front lit les mêmes fichiers que l'API, décrits dans [`interface/kyst.env`](../kyst.env). Par ordre de priorité, on trouve l'environnement du processus, puis `kyst.local.env`, puis `kyst.env`. En développement, `vite.config.ts` charge ces fichiers ; en production, `pnpm start` les passe à Node avec `--env-file`. Dans l'image Docker, les variables viennent de l'environnement du conteneur.
+Le front lit les mêmes fichiers que l'API, décrits dans [`interface/kyst.env`](../kyst.env). Par ordre de priorité, on trouve l'environnement du processus, puis `kyst.local.env`, puis `kyst.env`. En développement, `vite.config.ts` charge ces fichiers ; en production, `pnpm start` les passe à Node avec `--env-file` et lance `server.js`. Dans l'image Docker, les variables viennent de l'environnement du conteneur.
 
 | Variable | Rôle |
 | :--- | :--- |
 | `KYST_API_URL` | Adresse de l'API, appelée uniquement par le serveur SvelteKit |
 | `ACCESS_TOKEN_EXPIRE_MINUTES`, `REFRESH_TOKEN_EXPIRE_DAYS` | Partagées avec l'API : durée de vie des cookies de session |
 | `HOST`, `PORT` | Adresse et port du serveur Node de production (adapter-node) |
-| `ORIGIN` | URL publique du site, **figée au build** (`paths.origin` dans `vite.config.ts`) pour la protection CSRF des formulaires. Vide : origine déduite de l'en-tête Host, en supposant HTTPS |
+| `ORIGIN` | URL publique du site, pour la protection CSRF des formulaires. Lue au démarrage par `server.js`, le point d'entrée de production ; ignorée par `pnpm dev`. Vide : origine déduite de l'en-tête Host, en supposant HTTPS |
 
 Les variables lues par le code sont déclarées et validées dans `src/env.ts`, puis importées depuis `$app/env/private`.
 

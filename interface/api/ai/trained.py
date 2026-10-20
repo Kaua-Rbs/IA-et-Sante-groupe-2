@@ -12,8 +12,8 @@ import pandas as pd
 
 from api.ai.contracts import DurationPrediction, PredictionInput
 from api.resources.models import CareType
-from los_model import predict_los_loaded
-from surgery_duration import predict_schedule_loaded
+from prediction.los_model import predict_los_loaded
+from prediction.surgery_duration import predict_schedule_loaded
 
 
 def _raw_features(inputs: PredictionInput) -> pd.DataFrame:
@@ -72,12 +72,16 @@ class TrainedLOSPredictor:
 
 
 class PredictedStayCareTypeClassifier:
-    """A one-day inclusive stay uses an ambulatory place."""
+    """A stay that rounds to one inclusive day uses an ambulatory place.
+
+    The LOS model predicts a mean, floored at one day, so `<= 1` would almost never
+    match: a prediction of 1.4 days is closer to a same-day discharge than to two days.
+    """
 
     def __init__(self, los: TrainedLOSPredictor):
         self.los = los
         self.model_version = f"care-from-{los.model_version}"
 
     def predict(self, inputs: PredictionInput) -> CareType:
-        return (CareType.ambulatory if self.los.predict(inputs).value <= 1
+        return (CareType.ambulatory if self.los.predict(inputs).value < 1.5
                 else CareType.conventional)

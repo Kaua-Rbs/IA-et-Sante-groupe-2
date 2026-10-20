@@ -13,6 +13,7 @@ from uuid import UUID
 
 from sqlmodel import Session, func, select
 
+from api.ai.cohort import METHOD
 from api.ai.providers import get_predictors
 from api.config import settings
 from api.db import engine, utcnow
@@ -52,7 +53,7 @@ def queue_status(session: Session) -> dict:
     ).limit(10)).all()
     return {
         "automatic": settings.AUTO_REPLAN_ENABLED,
-        "method": settings.REPLAN_METHOD,
+        "method": METHOD,
         "horizon_days": settings.REPLAN_HORIZON_DAYS,
         "pending_changes": pending,
         "runs": runs,
@@ -75,7 +76,7 @@ def process_pending_changes() -> dict | None:
                 return None
             start = dt.date.today()
             run = ReplanRun(
-                method=settings.REPLAN_METHOD, start=start,
+                method=METHOD, start=start,
                 end=start + dt.timedelta(days=settings.REPLAN_HORIZON_DAYS - 1),
                 event_count=len(events),
             )
@@ -93,7 +94,6 @@ def process_pending_changes() -> dict | None:
             with Session(engine) as session:
                 proposals = publish_cohort_proposals(
                     session, start, run.end, get_predictors(),
-                    method=settings.REPLAN_METHOD,
                     budget_seconds=settings.REPLAN_BUDGET_SECONDS,
                     max_cases=settings.REPLAN_MAX_CASES,
                 )

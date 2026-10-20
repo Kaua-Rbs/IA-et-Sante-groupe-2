@@ -7,10 +7,9 @@ Ce document décrit ce que fait l'application, pour qui, et où en est chaque fo
 | Statut | Signification |
 | :--- | :--- |
 | **Disponible** | Implémenté dans l'API et l'interface, testé |
-| **Démonstration** | Fonctionne de bout en bout, mais avec des valeurs fixes (*fixtures*) en attendant les modèles et le solveur des autres équipes |
-| **Prévu** | Pas encore implémenté (voir [`docs/todo.md`](../../docs/todo.md)) |
+| **Prévu** | Pas encore implémenté |
 
-Les détails techniques sont dans [BDD.md](BDD.md) (modèle de données), [Routes.md](Routes.md) (API) et [Frontend.md](Frontend.md) (interface).
+Les détails techniques sont dans [BDD.md](BDD.md) (modèle de données), [Routes.md](Routes.md) (API) et [Frontend.md](Frontend.md) (interface). Les modèles d'IA sont décrits dans [Modèles de prédiction](../../docs/modeles-prediction.md), et les termes employés dans le [glossaire](../../docs/glossaire.md).
 
 ---
 
@@ -58,8 +57,8 @@ flowchart LR
 | Fonctionnalité | Statut | Détail |
 | :--- | :--- | :--- |
 | Saisie d'une demande en consultation | Disponible | Patient nouveau ou existant, chirurgien (sa spécialité détermine les vacations possibles), diagnostic CIM-10, 1 à 4 actes CCAM, type d'intervention, fenêtre « pas avant le » / « avant le ». Un chirurgien lié à un compte est présélectionné. |
-| Dates proposées dès la création | Démonstration | Juste après la saisie, KYST calcule une prédiction et propose des dates. Le nombre de dates est réglable (`PROPOSAL_COUNT`, 2 par défaut). |
-| Explication de chaque date | Démonstration | Remplissage de la vacation après ajout, pic d'occupation des lits pendant le séjour, marge d'urgence préservée. |
+| Dates proposées dès la création | Disponible | Juste après la saisie, KYST calcule une prédiction et propose des dates. Le nombre de dates est réglable (`PROPOSAL_COUNT`, 2 par défaut). |
+| Explication de chaque date | Disponible | Remplissage de la vacation après ajout, pic d'occupation des lits pendant le séjour, marge d'urgence préservée. |
 | Dates distinctes | Disponible | KYST propose des jours différents avant de proposer un second créneau le même jour. |
 | Confirmer ou écarter une date | Disponible | La confirmation revérifie la capacité. Si le créneau n'est plus libre, KYST le dit et invite à recalculer. Les autres propositions sont alors remplacées. |
 | Recalculer les propositions | Disponible | « Proposer de nouvelles dates » relance la prédiction et l'ordonnanceur sur l'état actuel du planning. |
@@ -73,14 +72,13 @@ flowchart LR
 
 | Fonctionnalité | Statut | Détail |
 | :--- | :--- | :--- |
-| Temps en salle | Démonstration | Minutes de l'entrée à la sortie de salle, hors remise en état, avec un intervalle. |
-| Durée de séjour | Démonstration | Jours calendaires inclusifs (ambulatoire = 1), avec un intervalle. |
-| Type d'hébergement | Démonstration | Ambulatoire si le séjour prédit tient en une journée, sinon hospitalisation conventionnelle. |
-| Traçabilité | Disponible | Chaque prédiction garde la version du modèle et sa source. L'interface signale clairement les valeurs de démonstration. |
-| Modèles entraînés | Démonstration | Mode `AI_BACKEND=trained` avec artefacts locaux non versionnés. Le contrôle sur le test 2022 montre une perte de précision avec les champs manquants ; voir `docs/web-full-system-integration.md`. |
+| Temps en salle | Disponible | Minutes de l'entrée à la sortie de salle, hors remise en état. Les bornes P80/P95 du modèle ne sont pas encore affichées. |
+| Durée de séjour | Disponible | Jours calendaires inclusifs (ambulatoire = 1), avec un intervalle à 90 %. |
+| Type d'hébergement | Disponible | Ambulatoire si le séjour prédit s'arrondit à un jour (moins de 1,5 jour), sinon hospitalisation conventionnelle. |
+| Traçabilité | Disponible | Chaque prédiction garde la version du modèle (empreinte du fichier) et sa source. |
+| Modèles entraînés | Disponible | Modèles « consultation » entraînés sur les seuls champs du formulaire : erreur moyenne de 16,6 min (salle) et 0,51 jour (séjour) sur 2022. Ils sous-estiment les longues interventions et les longs séjours ; voir [les modèles](../../docs/modeles-prediction.md). |
 
-Les valeurs de démonstration (`api/ai/fixtures.json`) dépendent de la spécialité, du type d'intervention et de l'âge. Elles sont plausibles mais **ni ajustées ni calibrées** sur les données de l'hôpital.
-Le mode entraîné utilise les modèles de durée de salle et de séjour, sans intégrer leurs fichiers dans le dépôt ou l'image. Voir [l'état de l'intégration](../../docs/web-full-system-integration.md).
+Les prédictions viennent toujours des modèles entraînés, en production comme en développement local ; leurs fichiers ne sont ni dans le dépôt ni dans l'image. Voir [l'intégration de l'IA](../../docs/integration-ia-kyst.md#configuration).
 
 ### 3. Planning du bloc (vacations)
 
@@ -89,15 +87,13 @@ Une **vacation** est un créneau d'une salle attribué à une spécialité, et �
 | Fonctionnalité | Statut | Détail |
 | :--- | :--- | :--- |
 | Vue hebdomadaire | Disponible | Salles en lignes, jours en colonnes. Chaque vacation affiche son horaire, sa spécialité, son chirurgien, une jauge de remplissage et le nombre d'interventions. Le week-end n'apparaît que s'il porte des vacations. |
-| Marge pour les urgences | Disponible | Une part de chaque vacation (`EMERGENCY_MARGIN`, 10 % par défaut) reste libre ; elle est hachurée sur la jauge et l'ordonnanceur n'y place personne. |
+| Marge pour les urgences | Disponible | Une part de chaque vacation (`EMERGENCY_MARGIN`, 10 % par défaut) reste libre ; elle est hachurée en orange sur la jauge et l'ordonnanceur n'y place personne. Un encart de la page Bloc, un indicateur du tableau de bord et chaque date proposée rappellent la réserve et signalent les vacations qui l'entament. |
 | Indicateurs de la semaine | Disponible | Nombre de vacations, remplissage moyen, temps encore disponible à partir d'aujourd'hui (hors marge). |
 | Ouvrir ou supprimer une vacation | Disponible | Réservé au cadre et à l'administrateur. Deux vacations d'une même salle ne peuvent pas se chevaucher. |
 | Modèles hebdomadaires | Prévu | Générer la répartition des vacations par spécialité à partir de l'historique, et justifier chaque aménagement. |
 | Planning du jour et ordre de passage | Prévu | Liste des patients par salle, actes, ordre et remise en état entre deux interventions. |
-| Optimisation de cohorte et publication | Démonstration | Jusqu'à 50 demandes en attente, 10 méthodes. Le cadre peut publier les affectations comme propositions après recalcul et contrôle ; chaque chirurgien confirme ensuite sa demande. |
-| Aperçu Mesa d'une journée | Démonstration | Durées réalisées hypothétiques, réservations existantes du jour, fermeture optionnelle et replanification ; salles uniquement. |
-| Aperçu Mesa multi-jours | Démonstration | Salles et lits par unité, réservations existantes, attente reportée et conflits de lits agrégés ; sans écriture dans le planning. |
-| Actualisation sur changement | Démonstration | File persistante, historique des calculs, reprise après interruption ; traitement manuel ou automatique des propositions, avec réservations confirmées conservées. |
+| Optimisation de cohorte et publication | Disponible | Page Bloc, « Optimiser toutes les demandes en attente » : place ensemble jusqu'à 50 demandes en attente d'une période (recuit simulé). Aperçu sans réservation, puis publication des dates comme propositions après recalcul et contrôle ; chaque chirurgien confirme ensuite sa demande. |
+| Actualisation sur changement | Disponible | Page Bloc, « Actualiser les propositions après un changement » : chaque changement (vacation, salle, annulation, date écartée) est noté ; le recalcul remplace les dates proposées aux demandes en attente, sans toucher aux réservations confirmées. Manuel ou automatique, historique des calculs, reprise après interruption. |
 
 ### 4. Lits et places
 
@@ -116,7 +112,7 @@ Une **vacation** est un créneau d'une salle attribué à une spécialité, et �
 | Chiffres du jour | Disponible | Lits conventionnels et places ambulatoires occupés, remplissage du bloc sur 7 jours, demandes à programmer. |
 | Occupation à 14 jours | Disponible | Un graphique par unité de lits. |
 | Précision des prédictions | Disponible | Écart moyen entre prédit et réel (temps en salle, séjour), nombre de sous- et surestimations, calculés sur les interventions réalisées. |
-| Bandeaux d'information | Disponible | Mode démonstration actif, compte sans rôle. |
+| Bandeaux d'information | Disponible | Compte sans rôle. |
 
 ### 6. Ressources de l'établissement
 
@@ -126,7 +122,7 @@ Une **vacation** est un créneau d'une salle attribué à une spécialité, et �
 | Salles d'opération | Disponible | Spécialité habituelle, activation. Une salle désactivée ne reçoit plus de proposition. |
 | Chirurgiens | Disponible | Nom affiché, spécialité, lien avec un compte utilisateur (administrateur). |
 | Spécialités | Disponible | Ajout et suppression. |
-| Données de démonstration | Disponible | `just seed` crée 4 spécialités, 4 salles, 45 lits conventionnels, 21 places ambulatoires, 8 chirurgiens et 4 semaines de vacations, toutes synthétiques. |
+| Données de démonstration | Disponible | `just seed` crée un service synthétique : 4 spécialités, 4 salles, 45 lits conventionnels, 21 places ambulatoires, 8 chirurgiens, 8 semaines de vacations, environ 580 patients pseudonymes, 3 semaines d'interventions réalisées avec durées réelles, un planning à venir et des demandes en attente. |
 
 ### 7. Comptes et sécurité
 
@@ -137,7 +133,7 @@ Une **vacation** est un créneau d'une salle attribué à une spécialité, et �
 | Profil | Disponible | Nom affiché et changement de mot de passe ; ce changement ferme toutes les sessions. |
 | Sessions | Disponible | Les jetons sont gardés dans des cookies HttpOnly et renouvelés automatiquement. Le navigateur n'appelle jamais l'API directement. |
 | Protection de la connexion | Disponible | Mots de passe hachés (Argon2), nombre de tentatives limité, réponses en temps constant contre l'énumération des comptes. |
-| Journal d'audit | Prévu | Traçabilité des décisions et des accès aux données patient. |
+| Journal d'audit | Disponible | Une ligne par appel à l'API (utilisateur, adresse, route, statut) et par connexion, conservée un an dans un journal scellé ; voir le [rôle `journald`](../ansible/roles/journald/README.md). |
 
 ### 8. Données et confidentialité
 
@@ -158,7 +154,8 @@ Une **vacation** est un créneau d'une salle attribué à une spécialité, et �
 | Admission | le jour de l'intervention (la règle d'admission la veille est prévue) |
 | Occupation d'un lit | de l'admission à la sortie prévue, bornes incluses |
 | Fenêtre de recherche | de « pas avant le » (au plus tôt aujourd'hui) à « avant le », ou 60 jours sans date limite (`SCHEDULING_HORIZON_DAYS`) |
-| Choix entre les créneaux (démonstration) | Score qui favorise une vacation bien remplie, une unité de lits peu chargée et une date proche du souhait ; il sera remplacé par le solveur d'optimisation |
+| Choix entre les créneaux (une demande) | Score glouton qui favorise une vacation bien remplie, une unité de lits peu chargée et une date proche du souhait |
+| Choix entre les créneaux (cohorte et actualisation) | Recuit simulé, meilleure des dix métaheuristiques de l'[optimiseur](../../optimiseur/README.md) à temps de calcul égal |
 
 Tous ces réglages se trouvent dans [`interface/kyst.env`](../kyst.env).
 
@@ -168,9 +165,9 @@ Tous ces réglages se trouvent dans [`interface/kyst.env`](../kyst.env).
 
 | Fonction attendue (consignes) | Dans KYST |
 | :--- | :--- |
-| Outil web et smartphone pour donner une date au patient en consultation | Saisie de la demande et dates A/B, interface utilisable sur mobile. **Disponible** (dates en **démonstration**) |
-| Prédire la durée de séjour, le temps opératoire et le type de capacité | Artefacts entraînés raccordés en mode optionnel ; sensibilité aux champs manquants mesurée, réentraînement et validation prospective requis. **Démonstration** |
-| Proposer une ou deux dates optimales selon les lits et le bloc | Deux dates vérifiées sur la vacation et les lits, et justifiées. **Démonstration** (ordonnanceur glouton) |
+| Outil web et smartphone pour donner une date au patient en consultation | Saisie de la demande et dates A/B, interface utilisable sur mobile. **Disponible** |
+| Prédire la durée de séjour, le temps opératoire et le type de capacité | Modèles entraînés sur les champs connus en consultation ; validation prospective requise avant un usage clinique. **Disponible** |
+| Proposer une ou deux dates optimales selon les lits et le bloc | Deux dates vérifiées sur la vacation et les lits, et justifiées (ordonnanceur glouton) ; optimisation de cohorte par recuit simulé. **Disponible** |
 | Liste des patients par vacation, durée totale, respect de la spécialité de la salle | Remplissage et nombre d'interventions par vacation, spécialité imposée. **Disponible** ; liste nominative et ordre de passage **prévus** |
 | Distribution hebdomadaire des vacations par spécialité, aménagements justifiés | Vacations ouvertes une à une. Modèles hebdomadaires déduits de l'historique **prévus** |
 | Gestion du remplissage des lits et places, week-ends et vacances | Occupation prévue par unité, jours tendus signalés. **Disponible** ; lissage week-ends et vacances **prévu** |

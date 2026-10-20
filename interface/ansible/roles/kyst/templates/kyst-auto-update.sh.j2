@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# {{ ansible_managed }}
+# Mise à jour automatique de KYST, à la manière de Watchtower : télécharge le tag suivi par
+# chaque service et ne recrée que les conteneurs dont l'image a changé.
+# Lancé par kyst-auto-update.timer ; journal : journalctl --user -u kyst-auto-update
+set -uo pipefail
+
+cd {{ kyst_project_dir | quote }}
+
+# service compose -> conteneur
+declare -A containers=(
+{% for service, container in kyst_auto_update_services.items() %}
+  [{{ service }}]={{ container }}
+{% endfor %}
+)
+
+{% raw %}
+changed=()
+status=0
+for service in "${!containers[@]}"; do
+  container=${containers[$service]}
+  if ! image=$(podman container inspect --format '{{.ImageName}}' "$container" 2>/dev/null); then
+    echo "$service : conteneur $container absent, il sera recréé"
+    changed+=("$service")
+    continue
+  fi
+  current=$(podman container inspect --format '{{.Image}}' "$container")
+  if ! podman pull --quiet "$image" >/dev/null; then
+    echo "$service : échec du téléchargement de $image" >&2
+    status=1
+    continue
+  fi
+  latest=$(podman image inspect --format '{{.Id}}' "$image")
+  if [[ "$current" != "$latest" ]]; then
+    echo "$service : nouvelle image $image (${latest:0:12})"
+    changed+=("$service")
+  fi
+done
+
+if (( ${#changed[@]} == 0 )); then
+  echo "Aucune mise à jour"
+  exit "$status"
+fi
+
+podman-compose up -d --force-recreate --no-deps "${changed[@]}" || status=1
+exit "$status"
+{% endraw %}

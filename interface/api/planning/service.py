@@ -8,7 +8,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from api.accounts.models import User
-from api.ai.contracts import BedUnitLoad, SchedulingInput, Scheduler, VacationSlot
+from api.ai.contracts import (
+    BedUnitLoad, SchedulingInput, Scheduler, VacationSlot, reserved_stay_days,
+)
 from api.ai.providers import Predictors
 from api.ai.cohort import CohortCase, CohortPreview, optimize_cohort
 from api.clinical import service as clinical
@@ -80,13 +82,11 @@ def scheduling_input(
 
 def cohort_snapshot(
     session: Session, start: dt.date, end: dt.date, predictors: Predictors,
-    *, occupancy_extension: float = 1.0, max_cases: int = 50,
+    *, max_cases: int = 50,
 ) -> tuple[tuple[CohortCase, ...], tuple[VacationSlot, ...], tuple[BedUnitLoad, ...]]:
     """Read pending requests and current resources without creating predictions."""
     if end < start or (end - start).days > 60 or start < dt.date.today():
         raise ValueError("Choose a future planning window of at most 60 days")
-    if not 1 <= occupancy_extension <= 2:
-        raise ValueError("Occupancy extension must be between 1 and 2")
     if not 1 <= max_cases <= 500:
         raise ValueError("Unsupported cohort size limit")
     requests = session.exec(select(SurgicalRequest).where(
@@ -105,12 +105,13 @@ def cohort_snapshot(
         los = predictors.los.predict(features)
         if room.unit != "minutes" or los.unit != "inclusive_calendar_days":
             raise ValueError("Prediction units do not match the scheduling contract")
-        days = ceil(los.value)
+        care_type = predictors.care_type.predict(features)
+        days = reserved_stay_days(los, care_type)
         if days > 365:
             raise ValueError("Predicted stay exceeds the supported planning horizon")
         cases.append(CohortCase(
             request.id, request.specialty_id, request.surgeon_id, room.value, days,
-            predictors.care_type.predict(features), max(start, request.earliest_date),
+            care_type, max(start, request.earliest_date),
             min(end, request.latest_date or end),
             tuple(sorted(excluded.get(request.id, ()))),
         ))
@@ -124,7 +125,7 @@ def cohort_snapshot(
         vacation.id, vacation.date, room.name, vacation.specialty_id,
         vacation.surgeon_id, vacation.duration_min, used.get(vacation.id, 0),
     ) for vacation, room in rows)
-    max_stay = ceil(max((case.los_days for case in cases), default=1) * occupancy_extension)
+    max_stay = max((case.los_days for case in cases), default=1)
     occupancy = bed_occupancy(session, start, end + dt.timedelta(days=max_stay - 1))
     units = session.exec(select(BedUnit).where(BedUnit.active == True)).all()  # noqa: E712
     bed_units = tuple(BedUnitLoad(unit.id, unit.name, unit.care_type, unit.capacity,
@@ -134,12 +135,12 @@ def cohort_snapshot(
 
 def preview_cohort(
     session: Session, start: dt.date, end: dt.date, predictors: Predictors,
-    *, method: str, seed: int = 0, budget_seconds: float = 1.0, max_cases: int = 50,
+    *, seed: int = 0, budget_seconds: float = 1.0, max_cases: int = 50,
 ) -> CohortPreview:
     """Optimize pending requests together without changing proposals or bookings."""
     cases, vacations, bed_units = cohort_snapshot(
         session, start, end, predictors, max_cases=max_cases)
-    return optimize_cohort(cases, vacations, bed_units, method=method,
+    return optimize_cohort(cases, vacations, bed_units,
                            emergency_margin=settings.EMERGENCY_MARGIN,
                            seed=seed, budget_seconds=budget_seconds)
 
@@ -150,15 +151,14 @@ class CohortConflict(ValueError):
 
 def publish_cohort_proposals(
     session: Session, start: dt.date, end: dt.date, predictors: Predictors,
-    *, method: str, seed: int = 0, budget_seconds: float = 1.0, max_cases: int = 50,
+    *, seed: int = 0, budget_seconds: float = 1.0, max_cases: int = 50,
 ) -> list[Proposal]:
     """Recompute and publish one proposal per feasible cohort assignment.
 
     Publication does not reserve capacity. Clinicians confirm each proposal
     through the usual endpoint, which locks and checks resources again.
     """
-    preview = preview_cohort(session, start, end, predictors, method=method,
-                             seed=seed, budget_seconds=budget_seconds, max_cases=max_cases)
+    preview = preview_cohort(session, start, end, predictors, seed=seed, budget_seconds=budget_seconds, max_cases=max_cases)
     if not preview.evaluated_cases:
         return []
     request_ids = sorted(
@@ -243,9 +243,10 @@ def publish_cohort_proposals(
             vacation_id=row.vacation_id, bed_unit_id=row.bed_unit_id,
             admission_date=row.admission_date, discharge_date=row.discharge_date,
             planned_minutes=row.planned_minutes, score=0.0,
-            reasons=[f"Proposition de cohorte : {method}.",
+            reasons=["Date choisie en plaçant ensemble toutes les demandes en attente "
+                     "(optimisation de cohorte, recuit simulé).",
                      "Capacités revérifiées à la publication ; elles seront revérifiées à la confirmation."],
-            scheduler=f"cohort:{method}",
+            scheduler=f"cohort:{preview.method}",
         ))
     try:
         session.add_all(proposals)

@@ -1,39 +1,43 @@
-# Ansible playbooks
+# Déploiement Ansible
 
-## Prerequisites
+Playbooks et rôles qui installent KYST sur un serveur Linux à base Debian (paquets `apt`) : conteneurs Podman sans droits root, pare-feu, journalisation. L'instance de démonstration [kyst.tech](https://kyst.tech) est déployée ainsi.
 
-On the computer running the playbooks:
-  - A Python virtualenv with the [requirements](./requirements.txt) installed
-  - `lolcat` installed (Ruby or C version), to color the MOTD banner (the ASCII art comes from `pyfiglet`, installed in the virtualenv)
+## Rôles
 
-On the managed servers:
-  - An `ansible` user account with passwordless sudo (run the
-    [`create-ansible-user`](./playbooks/create-ansible-user.yml) playbook for this)
+Le playbook [`deploy-server.yml`](playbooks/deploy-server.yml) applique, dans l'ordre :
 
-To develop on your computer:
-  - A Python virtualenv with the [requirements](./requirements.txt) installed
-  - Recommended: the [`just`][just-manual] command runner, to simplify running commands
-  - Recommended: Visual Studio Code with the [`Ansible` extension][ansible-vscode-extension] (you should be prompted to install it when opening the project)
+| Rôle | Rôle sur le serveur |
+| :--- | :--- |
+| `common` | Paquets de base, bannière de connexion (MOTD) |
+| [`journald`](roles/journald/README.md) | Journal persistant, rétention d'un an, scellement : traçabilité RGPD |
+| `firewall` | Règles `iptables` assemblées à partir de fragments, politique `INPUT DROP` |
+| [`podman`](roles/podman/README.md) | Podman sans droits root pour l'utilisateur `podman` |
+| [`kyst`](roles/kyst/README.md) | API, front et PostgreSQL ; images, modèles, mises à jour automatiques, données de démonstration |
 
-## Usage
+Le playbook [`create-ansible-user.yml`](playbooks/create-ansible-user.yml) prépare un nouveau serveur.
 
-A `justfile` is provided, to help you run the most common commands. Once you have [installed just][just-installation], you can run the following:
-  - `just` (with no arguments): list all recipes/commands available
-  - `just playbook-deploy-infra`: run the playbook (you can add any argument and they will be passed to the underlying `ansible-playbook` command)
-  - `just lint`: run [ansible-lint][ansible-lint] to check the playbooks and roles for errors and bad practices
-  - `just todo`: search all files for `# TODO` and `# noqa` comments (they silence linter errors)
-  - `just venv`: create a local virtualenv using the currently available Python (in [`.venv`](./venv)) and install dependencies using `pip`
+## Prérequis
 
-## Helpful links
+Sur la machine qui lance les playbooks :
 
-  - [Ansible docs][ansible-docs]
-  - [List of all Ansible modules][ansible-list-of-modules]
-  - [Ansible-lint][ansible-lint]
+- Python 3.13 et [`uv`](https://docs.astral.sh/uv/) : les dépendances sont déclarées dans [`pyproject.toml`](pyproject.toml) et verrouillées dans `uv.lock` ;
+- [`just`](https://just.systems/man/en/), pour les recettes ci-dessous ;
+- `lolcat` (version Ruby ou C), pour colorer la bannière (le texte vient de `pyfiglet`, installé dans l'environnement) ;
+- les modèles entraînés dans `artifacts/ml-models/` à la racine du dépôt (voir le [rôle `kyst`](roles/kyst/README.md#déployer)).
 
-[ansible-docs]: https://docs.ansible.com/ansible/latest/index.html
-[ansible-list-of-modules]: https://docs.ansible.com/ansible/latest/collections/all_plugins.html
-[ansible-cmdb]: https://github.com/fboender/ansible-cmdb
-[ansible-lint]: https://ansible.readthedocs.io/projects/lint/
-[ansible-vscode-extension]: https://marketplace.visualstudio.com/items?itemName=redhat.ansible
-[just-installation]: https://just.systems/man/en/packages.html
-[just-manual]: https://just.systems/man/en/
+Sur les serveurs gérés : un compte `ansible` avec `sudo` sans mot de passe, créé par `just playbook-create-ansible-user`. L'inventaire est dans [`hosts`](hosts) (modèle : [`hosts.example`](hosts.example)).
+
+Les secrets générés au premier déploiement sont gardés sur la machine de contrôle, dans `credentials/<hôte>/` (ignoré par Git).
+
+## Utilisation
+
+| Recette | Rôle |
+| :--- | :--- |
+| `just` | Liste les recettes |
+| `just playbook-deploy-infra` | Lance le playbook principal ; les arguments sont transmis à `ansible-playbook` (ex. `-e kyst_version=1.2.0`) |
+| `just playbook-create-ansible-user` | Crée le compte `ansible` sur un nouveau serveur |
+| `just lint` | Vérifie les playbooks et rôles avec `ruff` et [ansible-lint](https://ansible.readthedocs.io/projects/lint/) |
+| `just todo` | Cherche les commentaires `TODO` et `noqa` |
+| `just venv` | Crée l'environnement `.venv` et installe les dépendances |
+
+L'extension VS Code [Ansible](https://marketplace.visualstudio.com/items?itemName=redhat.ansible) est recommandée. Documentation : [Ansible](https://docs.ansible.com/ansible/latest/index.html), [liste des modules](https://docs.ansible.com/ansible/latest/collections/all_plugins.html).

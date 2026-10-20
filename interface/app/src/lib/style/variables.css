@@ -43,6 +43,9 @@
     --success-soft: #e2f1e7;
     --warning: #8a6a1f;
     --warning-soft: #fbf3e2;
+    /* Réserve gardée pour les urgences : couleur propre, distincte des alertes */
+    --emergency: #c2410c;
+    --emergency-soft: #fdeee6;
 
     /* ── Données (jaune-lime, distinct du vert de marque) ───────────────── */
     --chart-bar: #c6f24e;

@@ -10,6 +10,7 @@ from api import __version__
 from api.accounts.router import router as accounts_router
 from api.ai.providers import get_predictors
 from api.analytics.router import router as analytics_router
+from api.audit import access_log, audit, configure_logging
 from api.bootstrap import init_db
 from api.clinical.router import router as clinical_router
 from api.config import limiter, settings
@@ -17,12 +18,18 @@ from api.planning.router import router as planning_router
 from api.planning.replanning import change_worker
 from api.resources.router import router as resources_router
 
+configure_logging()
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if settings.AI_BACKEND == "trained":
-        # Fail at startup if either local artifact is unavailable or unreadable.
-        get_predictors()
+    # Fail at startup if a trained artifact is unavailable or unreadable
+    predictors = get_predictors()
+    # Which models produced the predictions from now on (also stored with each prediction)
+    audit("api.started", version=__version__, ai_backend=predictors.source,
+          room_model=predictors.room_duration.model_version,
+          los_model=predictors.los.model_version,
+          care_type_model=predictors.care_type.model_version)
     init_db()
     async with change_worker():
         yield
@@ -40,6 +47,8 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 app.add_middleware(SlowAPIMiddleware)
+# Outside the rate limiter: rate-limited and failed requests are logged too
+app.middleware("http")(access_log)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
@@ -61,7 +70,6 @@ def health():
         "status": "ok",
         "name": "KYST",
         "version": __version__,
-        "ai_backend": settings.AI_BACKEND,
         "emergency_margin": settings.EMERGENCY_MARGIN,
         "proposal_count": settings.PROPOSAL_COUNT,
     }

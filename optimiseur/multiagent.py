@@ -14,8 +14,8 @@ agents-chercheurs) :
 
 Le coordinateur gere la migration du meilleur planning vers les agents les
 moins performants et declenche des redemarrages partiels en cas de
-stagnation. La sortie est un ``RunResult`` compatible avec le reste du
-package (plotting, benchmark, GUI).
+stagnation. La sortie est un ``RunResult``, comme pour les metaheuristiques
+de ``optimizer``.
 
 Determinisme : chaque agent possede son propre ``random.Random`` seme depuis
 la graine du modele ; l'ordre d'activation est l'ordre de creation. Mesa

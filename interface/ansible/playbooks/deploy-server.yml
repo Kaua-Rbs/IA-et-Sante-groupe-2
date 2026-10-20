@@ -3,6 +3,7 @@
   hosts: all
   roles:
     - common
+    - journald
     - firewall
     - podman
     - kyst

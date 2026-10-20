@@ -246,41 +246,7 @@ class ValidatorTests(unittest.TestCase):
         self.assertTrue(RoomValidator().validate(snapshot, Proposal(self.valid, 0)).feasible)
 
 
-class ExperimentTests(unittest.IsolatedAsyncioTestCase):
-    async def test_cli_outputs_and_no_overwrite(self):
-        import csv
-        import json
-        from types import SimpleNamespace
-        from hospital_sim.experiment import execute, parser
-        inputs = scenario((10, 15))
-        data = SimpleNamespace(
-            dates=(date(2022, 1, 3),), fingerprint="test-fingerprint",
-            quality={"usable_rows": 2, "excluded_rows": 0},
-            scenario=lambda day: inputs,
-        )
-        with tempfile.TemporaryDirectory() as tmp:
-            output = Path(tmp) / "results"
-            args = parser().parse_args([
-                "--date-range", "2022-01-03", "2022-01-04",
-                "--opening", "08:00", "--closing", "08:30", "--turnover", "0",
-                "--scenarios", "no_outage", "--output", str(output),
-            ])
-            with patch("hospital_sim.experiment.load_historical", return_value=data):
-                await execute(args)
-                with self.assertRaisesRegex(ValueError, "empty"):
-                    await execute(args)
-            manifest = json.loads((output / "manifest.json").read_text())
-            self.assertEqual(manifest["dataset_sha256"], "test-fingerprint")
-            self.assertEqual(manifest["dates"], ["2022-01-03"])
-            with (output / "summary.csv").open() as handle:
-                rows = list(csv.DictReader(handle))
-            self.assertEqual(len(rows), 2)
-            self.assertEqual({r["policy"] for r in rows}, {"static", "reactive"})
-            for path in output.glob("*.json"):
-                content = path.read_text()
-                for forbidden in ("no_cas", "id_patient", "nom_chir", "praticien", "date_naissance"):
-                    self.assertNotIn(forbidden, content)
-
+class OpeningHoursTests(unittest.IsolatedAsyncioTestCase):
     async def test_midnight_opening_is_supported(self):
         result = await run_day(scenario((2,), (5,)),
                                SimulationConfig(rooms=1, opening=0, closing=3, turnover=0))

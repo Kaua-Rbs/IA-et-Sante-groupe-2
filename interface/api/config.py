@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 
+from fastapi import Request
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from slowapi import Limiter
@@ -36,8 +37,7 @@ class Settings(BaseSettings):
     # Optional first administrator, created at startup if no user has this email yet
     FIRST_ADMIN_EMAIL: str | None = None
     FIRST_ADMIN_PASSWORD: str | None = None
-    # "trained" loads local, untracked model artifacts. Fixtures remain the demo default.
-    AI_BACKEND: str = "fixtures"
+    # Trained model artifacts: local and untracked, required at startup
     ROOM_MODEL_PATH: Path = REPOSITORY_DIR / "artifacts/ml-models/surgery_duration_model.joblib"
     LOS_MODEL_PATH: Path = REPOSITORY_DIR / "artifacts/ml-models/los_regressor.joblib"
     # Scheduling: share of each vacation kept free for emergencies, proposals per request,
@@ -46,7 +46,6 @@ class Settings(BaseSettings):
     PROPOSAL_COUNT: int = 2
     SCHEDULING_HORIZON_DAYS: int = 60
     AUTO_REPLAN_ENABLED: bool = False
-    REPLAN_METHOD: str = "SMA x Metaheuristiques"
     REPLAN_HORIZON_DAYS: int = Field(default=14, ge=1, le=60)
     REPLAN_BUDGET_SECONDS: float = Field(default=1.0, gt=0, le=5)
     REPLAN_MAX_CASES: int = Field(default=200, ge=1, le=500)
@@ -60,5 +59,16 @@ if settings.SECRET_KEY == PLACEHOLDER_SECRET:
         "or in the environment before any shared deployment"
     )
 
-# Rate limiter (shared across routers)
-limiter = Limiter(key_func=get_remote_address, enabled=settings.RATE_LIMIT_ENABLED)
+
+def client_address(request: Request) -> str:
+    """Browser address forwarded by the front, which is the only client of the API.
+
+    The API publishes no port: only the front reaches it, and it sets X-Forwarded-For to
+    the address of the browser. Without the header (direct call), the socket address.
+    """
+    forwarded = request.headers.get("x-forwarded-for", "").split(",")[-1].strip()
+    return forwarded or get_remote_address(request)
+
+
+# Rate limiter (shared across routers), per browser rather than per front server
+limiter = Limiter(key_func=client_address, enabled=settings.RATE_LIMIT_ENABLED)

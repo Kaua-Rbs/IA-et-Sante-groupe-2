@@ -1,0 +1,185 @@
+{
+  "room": {
+    "kind": "room",
+    "splits": {
+      "train": 7079,
+      "selection": 1678,
+      "calibration": 1400,
+      "test": 3043
+    },
+    "selection_mae": {
+      "global_median": 28.433849821215734,
+      "intervention_median": 18.970798569725865,
+      "procedure_median": 20.563766388557806,
+      "consult_HGB_log": 17.271201597043365,
+      "consult_HGB_absolute": 17.309661182437704
+    },
+    "selected_model": "consult_HGB_log",
+    "selected_baseline": "intervention_median",
+    "artifact": {
+      "selected": {
+        "filename": "room_consultation_selected_2026-10-20_v1.joblib",
+        "sha256": "712577b71d7eccdc983774412df7fcb6e321d9b2d65598e77b60896d0481fdcd",
+        "name": "consult_HGB_log"
+      },
+      "baseline": {
+        "filename": "room_consultation_baseline_2026-10-20_v1.joblib",
+        "sha256": "cc8f560835000d79dfdb0ad1dae0e0eba777d7722c6f1748f149fedae97715de",
+        "name": "intervention_median"
+      }
+    },
+    "test_coverage_selected": {
+      "p80": 0.7982254354255669,
+      "p95": 0.9569503779165297
+    },
+    "features": [
+      "age_years",
+      "sexe",
+      "interv_type",
+      "cim_diag_pr",
+      "cim_diag_family",
+      "ccam_1",
+      "ccam_1_family"
+    ],
+    "fit_patient_disjointness_checked": true
+  },
+  "los": {
+    "kind": "los",
+    "splits": {
+      "train": 7124,
+      "selection": 1684,
+      "calibration": 1402,
+      "test": 3059
+    },
+    "selection_mae": {
+      "global_median": 0.9661520190023754,
+      "intervention_median": 0.43022565320665085,
+      "procedure_median": 0.5394893111638955,
+      "consult_XGB_log": 0.45902258709887145
+    },
+    "selected_model": "consult_XGB_log",
+    "selected_baseline": "intervention_median",
+    "artifact": {
+      "selected": {
+        "filename": "los_consultation_selected_2026-10-20_v1.joblib",
+        "sha256": "2aae6fd5ba20361ed97d2d83f4afaf258a588f7e1b5794c2ad4b3c2ad6f4e5de",
+        "name": "consult_XGB_log"
+      },
+      "baseline": {
+        "filename": "los_consultation_baseline_2026-10-20_v1.joblib",
+        "sha256": "05bee4be5ad8e5fda0f330eb8b34943cde88558313aed95908b2e14ee96a089a",
+        "name": "intervention_median"
+      }
+    },
+    "test_coverage_selected": {
+      "interval_90": 0.8924485125858124
+    },
+    "features": [
+      "age_years",
+      "sexe",
+      "interv_type",
+      "cim_diag_pr",
+      "cim_diag_family",
+      "ccam_1",
+      "ccam_1_family"
+    ],
+    "fit_patient_disjointness_checked": true
+  },
+  "los_full_reproduction": {
+    "train_rows": 7124,
+    "calibration_rows": 3197,
+    "test_rows": 3059,
+    "test_mae_days": 0.4504529669145308,
+    "test_rmse_days": 0.7583379245986211,
+    "test_r2": 0.7839205258695525,
+    "interval_coverage_test": 0.8934292252370055,
+    "interval_half_width_days": 1.1196246147155762,
+    "dataset_sha256": "71acfbae0f1b2b0af8c765d9325e1667786b6d4cf03251fc30853b650b189292",
+    "features": [
+      "age_years",
+      "num_secondary_diagnoses",
+      "num_ccam_codes",
+      "anesth_type_missing",
+      "anesth_loco_reg_missing",
+      "sexe",
+      "interv_type",
+      "anesth_type",
+      "anesth_loco_reg",
+      "praticien",
+      "nom_chir",
+      "cim_diag_pr",
+      "cim_diag_family",
+      "ccam_1",
+      "ccam_1_family"
+    ],
+    "protocol": "2019-2020 train; 2021 absolute-residual conformal calibration; 2022 test"
+  },
+  "existing_full_features": {
+    "n": 3043,
+    "mae": 14.33306278256485,
+    "rmse": 21.27026303150116,
+    "bias": -2.374886268921949,
+    "underprediction_rate": 0.49096286559316465,
+    "absolute_error_p95": 40.126685872080415,
+    "long_threshold": 120,
+    "long_n": 397,
+    "long_mae": 30.170720201654056,
+    "long_bias": -25.523447727377246,
+    "long_underprediction_rate": 0.8261964735516373,
+    "p95_coverage": 0.9411764705882353
+  },
+  "existing_web_masked": {
+    "n": 3043,
+    "mae": 17.900456919971848,
+    "rmse": 26.108719159603158,
+    "bias": -6.592391204300833,
+    "underprediction_rate": 0.573447255997371,
+    "absolute_error_p95": 50.85574946206927,
+    "long_threshold": 120,
+    "long_n": 397,
+    "long_mae": 43.8596805296826,
+    "long_bias": -43.319618378398985,
+    "long_underprediction_rate": 0.9798488664987406,
+    "p95_coverage": 0.6020374630299047
+  },
+  "los_full_web_masked": {
+    "n": 3059,
+    "mae": 0.6526406948454982,
+    "rmse": 1.1497165903151476,
+    "bias": -0.4382290905618558,
+    "underprediction_rate": 0.42399476953252696,
+    "absolute_error_p95": 2.6300555944442747,
+    "long_threshold": 7,
+    "long_n": 67,
+    "long_mae": 4.088067328751976,
+    "long_bias": -4.088067328751976,
+    "long_underprediction_rate": 1.0,
+    "interval_coverage": 0.8185681595292579
+  },
+  "room_consultation_no_intervention_type": {
+    "n": 3043,
+    "mae": 20.749267907033094,
+    "rmse": 30.150360018278494,
+    "bias": -11.890996465386017,
+    "underprediction_rate": 0.6201117318435754,
+    "absolute_error_p95": 62.22078487749246,
+    "long_threshold": 120,
+    "long_n": 397,
+    "long_mae": 60.59128527353731,
+    "long_bias": -60.4659142465258,
+    "long_underprediction_rate": 0.9924433249370277
+  },
+  "los_consultation_no_intervention_type": {
+    "n": 3059,
+    "mae": 0.636100139131574,
+    "rmse": 0.9675908230033239,
+    "bias": -0.029492619225463666,
+    "underprediction_rate": 0.35403726708074534,
+    "absolute_error_p95": 1.9833341598510732,
+    "long_threshold": 7,
+    "long_n": 67,
+    "long_mae": 3.6429277960933857,
+    "long_bias": -3.6429277960933857,
+    "long_underprediction_rate": 1.0
+  }
+}

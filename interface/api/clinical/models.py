@@ -117,7 +117,7 @@ class PredictionBase(SQLModel):
     los_days_high: float | None = None
     care_type: CareType
     model_version: str
-    source: str = Field(description="Implementation that produced it, e.g. 'fixtures'")
+    source: str = Field(description="Implementation that produced it, e.g. 'trained'")
 
 
 class Prediction(PredictionBase, table=True):

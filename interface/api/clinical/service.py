@@ -1,13 +1,11 @@
-from math import ceil
 from collections.abc import Iterable
 from uuid import UUID
 
 from sqlmodel import Session, select
 
-from api.ai.contracts import PredictionInput
+from api.ai.contracts import PredictionInput, reserved_stay_days
 from api.ai.providers import Predictors
 from api.clinical.models import Patient, Prediction, SurgicalRequest
-from api.config import settings
 from api.resources.models import Specialty
 
 
@@ -45,20 +43,21 @@ def build_prediction(session: Session, request: SurgicalRequest, predictors: Pre
     los = predictors.los.predict(inputs)
     if room.unit != "minutes" or los.unit != "inclusive_calendar_days":
         raise ValueError("Predictor returned an unexpected unit")
+    care_type = predictors.care_type.predict(inputs)
     prediction = Prediction(
         request_id=request.id,
         room_minutes=room.value,
         room_minutes_low=room.interval[0] if room.interval else None,
         room_minutes_high=room.interval[1] if room.interval else None,
-        los_days=ceil(los.value),
+        los_days=reserved_stay_days(los, care_type),
         los_days_low=los.interval[0] if los.interval else None,
         los_days_high=los.interval[1] if los.interval else None,
-        care_type=predictors.care_type.predict(inputs),
+        care_type=care_type,
         model_version=" / ".join(sorted({
             predictors.room_duration.model_version, predictors.los.model_version,
             predictors.care_type.model_version,
         })),
-        source=settings.AI_BACKEND,
+        source=predictors.source,
     )
     return prediction
 

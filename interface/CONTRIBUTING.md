@@ -147,7 +147,7 @@ L'API est alors accessible sur :
 - **Documentation interactive Swagger UI :** `http://127.0.0.1:8000/docs`
 - **Documentation alternative ReDoc :** `http://127.0.0.1:8000/redoc`
 
-Au démarrage, l'API crée les tables, les rôles et le premier administrateur (`FIRST_ADMIN_EMAIL` / `FIRST_ADMIN_PASSWORD` de `kyst.env`). Pour obtenir des ressources de démonstration synthétiques (spécialités, salles, lits, vacations sur 4 semaines) :
+Au démarrage, l'API crée les tables, les rôles et le premier administrateur (`FIRST_ADMIN_EMAIL` / `FIRST_ADMIN_PASSWORD` de `kyst.env`). Pour obtenir un service de démonstration synthétique (ressources, vacations, interventions passées et à venir, demandes en attente ; détail dans [Features.md](docs/Features.md#6-ressources-de-létablissement)) :
 ```bash
 just seed           # ou : PYTHONPATH=.. uv run python -m api.seed
 ```
@@ -171,11 +171,11 @@ api/
 ├── clinical/         # Patients pseudonymisés, demandes d'intervention, prédictions
 ├── planning/         # Propositions de dates, interventions programmées, capacité
 ├── analytics/        # Indicateurs agrégés
-├── ai/               # Protocoles des modèles et du solveur ; fixtures en attendant
+├── ai/               # Prédictions (modèles entraînés), recherche de dates, cohorte
 └── tests/
 ```
 
-Les prédictions et l'ordonnancement passent par les protocoles de `ai/contracts.py`, implémentés pour l'instant par des fixtures (`AI_BACKEND=fixtures`). Le modèle de données est décrit dans [docs/BDD.md](docs/BDD.md), les routes dans [docs/Routes.md](docs/Routes.md), et le travail restant dans [docs/todo.md](../docs/todo.md).
+Les prédictions et l'ordonnancement passent par les protocoles de `ai/contracts.py`. L'API charge les modèles entraînés au démarrage, y compris en local : indiquez leurs chemins dans `kyst.local.env` (voir [l'intégration de l'IA](../docs/integration-ia-kyst.md#configuration)). Les tests utilisent des prédicteurs de substitution. Le modèle de données est décrit dans [docs/BDD.md](docs/BDD.md) et les routes dans [docs/Routes.md](docs/Routes.md).
 
 ### 4. Gérer les dépendances Python
 
@@ -277,14 +277,14 @@ Recettes utiles :
 | `just prod` | Vérifie, installe, construit et lance tout |
 | `just serve` | Relance l'API et le front déjà construits (après un redémarrage, sans rebuild) |
 | `just preflight` | Vérifie seulement la configuration |
-| `just build` | Reconstruit le front, à refaire après tout changement de code ou d'`ORIGIN` |
+| `just build` | Reconstruit le front, à refaire après tout changement de code |
 | `just check` | Tests de l'API et vérification du front |
 
 Points d'attention :
 - **HTTPS** : en production, les cookies de session sont `Secure`. Servez le site en HTTPS derrière un proxy (Caddy, nginx...) qui redirige vers `PORT`. Seul `localhost` fonctionne en HTTP.
-- **`ORIGIN`** est figée au build, car elle sert à la protection CSRF des formulaires. Changer `ORIGIN` impose donc `just build`.
+- **`ORIGIN`** sert à la protection CSRF des formulaires. Elle est lue au démarrage du front (`app/server.js`) : la changer impose seulement `just serve`.
 - **L'API écoute sur `API_HOST`** (`127.0.0.1` par défaut) : seul le front, sur la même machine, l'appelle. N'ouvrez que le port du front.
-- **Un seul worker** pour l'API : l'état de coordination du planning vivra dans ce processus (voir [docs/todo.md](../docs/todo.md)).
+- **Un seul worker** pour l'API : l'actualisation automatique des propositions tourne dans ce processus (voir [l'intégration de l'IA](../docs/integration-ia-kyst.md#actualisation-des-propositions)).
 
 ---
 
@@ -314,7 +314,7 @@ Recettes principales :
 - `just playbook-create-ansible-user` : initialise le compte utilisateur `ansible` sur l'hôte cible.
 - `just playbook-deploy-infra` : exécute le playbook principal de déploiement de l'infrastructure.
 
-Pour plus de détails sur la procédure complète de déploiement, consultez [docs/Deploiement.md](./docs/Deploiement.md).
+La procédure complète de déploiement est décrite dans le [rôle `kyst`](ansible/roles/kyst/README.md).
 
 ---
 
@@ -340,19 +340,8 @@ Pour une expérience de développement optimale avec Visual Studio Code ou Curso
 
 ## Workflow Git & Bonnes pratiques
 
-1. **Créer une branche dédiée pour chaque fonctionnalité ou correctif :**
-   ```bash
-   git checkout -b feat/nom-de-la-fonctionnalite
-   # ou
-   git checkout -b fix/nom-du-bug
-   ```
+Les règles de branches, de commits et de revue sont communes à tout le projet : voir le [guide de contribution du dépôt](../CONTRIBUTING.md). Avant d'ouvrir une pull request sur KYST :
 
-2. **Vérifier le code localement :**
-   - Assurez-vous que l'API démarre et que ses tests passent (`just dev`, `just test` dans `api/`).
-   - Assurez-vous que le frontend compile et passe les vérifications sans erreur (`pnpm check` et `pnpm build`).
-   - Si vous touchez à Ansible, vérifiez avec `just lint`.
-
-3. **Rédiger des messages de commit clairs :**
-   - Utilisez de préférence le format *Conventional Commits* (ex. `feat: ajout de l'endpoint items`, `fix: correction du style d'en-tête`, `docs: mise à jour du guide de contribution`).
-
-4. **Pousser votre branche et ouvrir une Pull Request** sur le dépôt distant.
+- l'API démarre et ses tests passent (`just dev`, `just test` dans `api/`) ;
+- le front compile et passe ses vérifications (`pnpm check` et `pnpm build`) ;
+- si vous touchez à Ansible, `just lint` passe.

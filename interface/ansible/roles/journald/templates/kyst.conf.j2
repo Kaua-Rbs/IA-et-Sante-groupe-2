@@ -1,0 +1,10 @@
+# {{ ansible_managed }}
+# Journal persistant (survit aux redémarrages), qui reçoit aussi les logs des conteneurs
+# (log_driver journald du rôle podman).
+[Journal]
+Storage=persistent
+Compress=yes
+Seal={{ 'yes' if journald_seal | bool else 'no' }}
+SystemMaxUse={{ journald_max_use }}
+SystemKeepFree={{ journald_keep_free }}
+MaxRetentionSec={{ journald_retention }}

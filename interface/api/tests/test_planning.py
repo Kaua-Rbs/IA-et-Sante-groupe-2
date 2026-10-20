@@ -63,7 +63,7 @@ def test_proposals_offer_distinct_dates_with_reasons(setup):
     assert [p["rank"] for p in proposals] == [1, 2]
     assert proposals[0]["admission_date"] != proposals[1]["admission_date"]
     assert all(p["reasons"] for p in proposals)
-    assert proposals[0]["scheduler"] == "greedy-fixture"
+    assert proposals[0]["scheduler"] == "greedy-capacity"
 
 
 def test_accepting_books_the_slot_and_closes_the_alternatives(setup):
@@ -253,21 +253,6 @@ def test_care_type_change_flags_confirmed_stay_without_moving_it(setup):
     assert [row["case_id"] for row in conflicts] == [case["id"]]
     assert any("hébergement" in reason for reason in conflicts[0]["reasons"])
     assert s["client"].get("/cases", headers=s["doctor"]).json() == [case]
-
-
-def test_room_preview_counts_confirmed_bookings_of_the_day(setup):
-    s = setup
-    first = propose(s, s["new_request"]())[0]
-    s["client"].post(f"/proposals/{first['id']}/accept", headers=s["doctor"])
-    s["new_request"]()
-    preview = s["client"].post("/planning/room-simulation-preview", headers=s["planner"], json={
-        "date": first["admission_date"], "method": "baseline", "policy": "reactive",
-        "realized_factor": 1.0, "outage": False,
-    })
-    assert preview.status_code == 200, preview.text
-    assert preview.json()["cases"] == 1
-    assert preview.json()["booked_cases"] == 1
-    assert s["client"].get("/cases", headers=s["doctor"]).json()[0]["id"]
 
 
 def test_cancelling_a_case_frees_capacity(setup):

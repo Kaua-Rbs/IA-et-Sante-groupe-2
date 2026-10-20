@@ -1,6 +1,6 @@
 <script lang="ts">
-	// Jauge de remplissage d'une vacation. La zone hachurée en fin de piste est la marge
-	// gardée pour les urgences ; l'ordonnanceur n'y place pas de patient.
+	// Jauge de remplissage d'une vacation. La zone hachurée orange en fin de piste est la
+	// réserve gardée pour les urgences ; l'ordonnanceur n'y place pas de patient.
 	import { formatMinutes, formatPercent } from '#lib/format.ts';
 
 	interface Props {
@@ -16,21 +16,24 @@
 	let overMargin = $derived(rate > usable + 1e-9);
 </script>
 
-<div class="meter" title="{formatMinutes(planned)} prévues sur {formatMinutes(duration)}">
+<div
+	class="meter"
+	title="{formatMinutes(planned)} prévues sur {formatMinutes(duration)}, dont {formatMinutes(duration * margin)} réservées aux urgences"
+>
 	<div
 		class="meter__track"
 		role="meter"
 		aria-valuemin={0}
 		aria-valuemax={duration}
 		aria-valuenow={planned}
-		aria-label="Remplissage de la vacation"
+		aria-label="Remplissage de la vacation, {formatPercent(margin)} réservés aux urgences"
 	>
 		<span class="meter__margin" style="left: {usable * 100}%"></span>
 		<span class="meter__fill" class:meter__fill--over={overMargin} style="width: {Math.min(rate, 1) * 100}%"></span>
 	</div>
 	<span class="meter__value">
 		{formatPercent(rate)}
-		{#if overMargin}<span class="meter__flag">▲ marge entamée</span>{/if}
+		{#if overMargin}<span class="meter__flag">▲ réserve urgences entamée</span>{/if}
 	</span>
 </div>
 
@@ -56,15 +59,17 @@
 		top: 0;
 		bottom: 0;
 		right: 0;
+		border-left: 1px solid var(--emergency);
 		background: repeating-linear-gradient(
 			135deg,
-			transparent 0 3px,
-			rgba(6, 51, 31, 0.18) 3px 4px
+			var(--emergency-soft) 0 3px,
+			var(--emergency) 3px 5px
 		);
 	}
 
 	.meter__fill {
 		position: absolute;
+		z-index: 1;
 		top: 0;
 		bottom: 0;
 		left: 0;
@@ -72,8 +77,9 @@
 		background: var(--green);
 	}
 
+	/* Le remplissage passe en orange quand il déborde sur la réserve */
 	.meter__fill--over {
-		background: #fab219;
+		background: var(--emergency);
 	}
 
 	.meter__value {
@@ -86,6 +92,7 @@
 
 	.meter__flag {
 		margin-left: 0.25rem;
-		color: var(--warning);
+		font-weight: 600;
+		color: var(--emergency);
 	}
 </style>

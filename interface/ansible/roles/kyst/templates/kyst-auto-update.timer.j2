@@ -1,0 +1,11 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Vérifie régulièrement les nouvelles images KYST
+
+[Timer]
+OnCalendar={{ kyst_auto_update_schedule }}
+RandomizedDelaySec={{ kyst_auto_update_random_delay }}
+Persistent=true
+
+[Install]
+WantedBy=timers.target
