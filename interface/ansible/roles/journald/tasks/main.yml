@@ -1,0 +1,53 @@
+---
+- name: Create the journald drop-in directory
+  ansible.builtin.file:
+    path: /etc/systemd/journald.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+- name: Configure a persistent journal with a retention period
+  ansible.builtin.template:
+    src: kyst.conf.j2
+    dest: /etc/systemd/journald.conf.d/kyst.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart journald
+  become: true
+
+# Le dossier persistant doit exister avant de générer les clés de scellement
+- name: Apply the journal configuration now
+  ansible.builtin.meta: flush_handlers
+
+- name: Generate the sealing keys
+  ansible.builtin.command:
+    cmd: journalctl --setup-keys --interval={{ journald_seal_interval }}
+    creates: "/var/log/journal/{{ ansible_facts['machine_id'] }}/fss"
+  when: journald_seal | bool
+  register: journald_keys
+  no_log: true
+  notify: Restart journald
+  become: true
+
+- name: Create the credentials directory on the control machine
+  ansible.builtin.file:
+    path: "{{ journald_credentials_dir }}"
+    state: directory
+    mode: "0700"
+  when: journald_keys is changed
+  delegate_to: localhost
+  become: false
+
+# Sans terminal, journalctl n'écrit sur stdout que la clé de vérification
+- name: Keep the verification key on the control machine only
+  ansible.builtin.copy:
+    content: "{{ journald_keys.stdout }}\n"
+    dest: "{{ journald_credentials_dir }}/verification_key"
+    mode: "0600"
+  when: journald_keys is changed
+  no_log: true
+  delegate_to: localhost
+  become: false

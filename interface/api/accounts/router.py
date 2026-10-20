@@ -15,6 +15,7 @@ from api.accounts.security import (
     AdminUser, CurrentUser, authenticate_user, create_access_token, create_refresh_token,
     get_password_hash, revoke_user_refresh_tokens, verify_password, verify_refresh_token,
 )
+from api.audit import audit
 from api.config import limiter, settings
 from api.db import SessionDep
 
@@ -56,6 +57,10 @@ async def login(
 ) -> Token:
     """OAuth2 password flow; `username` accepts the username or the email."""
     user = authenticate_user(session, form_data.username, form_data.password)
+    if not user or user.disabled or not user.validated:
+        reason = ("bad_credentials" if not user else "disabled" if user.disabled
+                  else "pending_validation")
+        audit("auth.login_failed", request, login=form_data.username, reason=reason)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -66,6 +71,7 @@ async def login(
         raise HTTPException(status_code=400, detail="Inactive user")
     if not user.validated:
         raise HTTPException(status_code=403, detail="Account pending validation")
+    audit("auth.login", request, user=user.username)
     return _issue_tokens(session, user)
 
 

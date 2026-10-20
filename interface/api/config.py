@@ -1,6 +1,7 @@
 import logging
 from pathlib import Path
 
+from fastapi import Request
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from slowapi import Limiter
@@ -60,5 +61,16 @@ if settings.SECRET_KEY == PLACEHOLDER_SECRET:
         "or in the environment before any shared deployment"
     )
 
-# Rate limiter (shared across routers)
-limiter = Limiter(key_func=get_remote_address, enabled=settings.RATE_LIMIT_ENABLED)
+
+def client_address(request: Request) -> str:
+    """Browser address forwarded by the front, which is the only client of the API.
+
+    The API publishes no port: only the front reaches it, and it sets X-Forwarded-For to
+    the address of the browser. Without the header (direct call), the socket address.
+    """
+    forwarded = request.headers.get("x-forwarded-for", "").split(",")[-1].strip()
+    return forwarded or get_remote_address(request)
+
+
+# Rate limiter (shared across routers), per browser rather than per front server
+limiter = Limiter(key_func=client_address, enabled=settings.RATE_LIMIT_ENABLED)

@@ -43,6 +43,22 @@ L'URL publique du front (protection CSRF des formulaires) est lue au démarrage 
 
 Les serveurs déployés avant ce changement gardent le clone des sources et les images construites localement. Pour repartir de zéro, [`scripts/reset-kyst.sh`](../../scripts/reset-kyst.sh) supprime tout ce que le rôle a créé (Podman reste installé), puis relancer le playbook.
 
+## Journalisation
+
+Les logs des conteneurs vont dans le journal systemd du serveur. Ce journal est persistant et gardé 1 an, avec un scellement qui rend toute modification détectable (rôle [`journald`](../journald/README.md)). Ils survivent donc à la recréation des conteneurs.
+
+- **API** (`journalctl -t kyst-api`) : une ligne JSON par appel (`"event": "http.access"`). Elle contient l'utilisateur (identifiant du jeton vérifié), l'adresse du navigateur, la méthode, la route et ses identifiants (`/patients/{patient_id}`, `{"patient_id": "…"}`), le statut, la durée et un `request_id`, également renvoyé dans l'en-tête `X-Request-ID`. S'y ajoutent les connexions réussies et échouées (`auth.login`, `auth.login_failed`, avec l'identifiant saisi), ainsi que les versions des modèles chargés au démarrage (`api.started`). Les corps de requête et les paramètres d'URL ne sont jamais journalisés : ils peuvent contenir des données de patients. Les prédictions restent enregistrées en base, avec la version du modèle qui les a produites, tout comme l'auteur de chaque décision sur une proposition.
+- **Front** : il transmet à l'API l'adresse du navigateur (dernière entrée de `X-Forwarded-For`, ajoutée par le reverse proxy). Elle sert aussi à limiter les tentatives de connexion par navigateur.
+- **PostgreSQL** (`journalctl -t postgres`) : connexions et déconnexions, avec l'utilisateur, la base et l'adresse d'origine.
+
+Exemples, sur le serveur :
+
+```bash
+journalctl -t kyst-api -g '"patient_id": "<uuid>"'   # qui a consulté ou modifié ce patient
+journalctl -t kyst-api -g '"user": "jdupont@chu.fr"' --since -7d
+podman logs kyst-api                                  # en tant que podman, conteneur courant
+```
+
 ## Déployer
 
 1. Publier une release GitHub et attendre la fin de la CI, qui pousse les images.

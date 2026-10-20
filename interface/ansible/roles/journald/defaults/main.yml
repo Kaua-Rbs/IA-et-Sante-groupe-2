@@ -1,0 +1,18 @@
+---
+# Durée de conservation des journaux (format systemd.time). La CNIL recommande 6 mois à
+# 1 an pour les traces d'accès ; l'AI Act (art. 19 et 26) demande au moins 6 mois.
+journald_retention: 1year
+# Place maximale du journal sur le disque : au-delà, les entrées les plus anciennes sont
+# supprimées avant la fin de journald_retention. À adapter au volume observé
+# (journalctl --disk-usage).
+journald_max_use: 8G
+# Espace disque toujours laissé libre par le journal
+journald_keep_free: 2G
+
+# Scellement (Forward Secure Sealing) : rend détectable toute modification ou suppression
+# d'entrées passées. La clé de vérification n'est jamais conservée sur le serveur : elle est
+# copiée sur la machine de contrôle, dans credentials/ (non versionné).
+journald_seal: true
+journald_credentials_dir: "{{ playbook_dir }}/../credentials/{{ inventory_hostname }}/journald"
+# Intervalle entre deux scellements : une modification n'est détectable qu'au-delà
+journald_seal_interval: 15min

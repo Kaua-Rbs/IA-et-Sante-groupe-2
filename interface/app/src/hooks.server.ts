@@ -1,5 +1,6 @@
-import { redirect } from '@sveltejs/kit';
-import type { Handle } from '@sveltejs/kit/hooks';
+import { redirect, type RequestEvent } from '@sveltejs/kit';
+import type { Handle, HandleFetch } from '@sveltejs/kit/hooks';
+import { KYST_API_URL } from '$app/env/private';
 import { createApi } from '#lib/server/api.ts';
 import { resolveSession } from '#lib/server/session.ts';
 
@@ -18,4 +19,20 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	return resolve(event);
+};
+
+// Adresse du navigateur. En production, seul le reverse proxy joint le front (pare-feu) :
+// la dernière entrée de X-Forwarded-For est celle qu'il a ajoutée.
+function clientAddress(event: RequestEvent): string {
+	const forwarded = event.request.headers.get('x-forwarded-for')?.split(',').at(-1)?.trim();
+	return forwarded || event.getClientAddress();
+}
+
+// Chaque appel à l'API transmet l'adresse du navigateur : elle figure dans la trace d'accès
+// de l'API et sert à limiter les tentatives de connexion par navigateur.
+export const handleFetch: HandleFetch = async ({ event, request, fetch }) => {
+	if (request.url.startsWith(KYST_API_URL)) {
+		request.headers.set('x-forwarded-for', clientAddress(event));
+	}
+	return fetch(request);
 };

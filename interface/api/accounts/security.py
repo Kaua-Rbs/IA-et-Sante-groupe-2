@@ -113,6 +113,18 @@ def revoke_user_refresh_tokens(session: Session, user_id: UUID) -> None:
     session.commit()
 
 
+def token_subject(token: str) -> str | None:
+    """Username of a valid access token, None otherwise (access trail)."""
+    try:
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM],
+            issuer=ISSUER, audience=AUDIENCE,
+        )
+    except InvalidTokenError:
+        return None
+    return payload.get("sub") if payload.get("type") == "access" else None
+
+
 # --- Dependencies ---
 
 async def get_current_user(

@@ -45,6 +45,25 @@ Objectif : une instance qui ressemble à la vraie vie d'un service, avec l'IA br
 - Passer `kyst_seed_demo: false` avant d'y mettre de vraies données
 - `interface/docs/Features.md` : les autres statuts « Démonstration » (prédictions, propositions) ne sont plus vrais en prod
 
+### Conformité (RGPD, marquage CE)
+
+#### Fait
+
+- Journalisation sur le serveur (rôle `journald`) : journal persistant, rétention 1 an (`journald_retention`, max 8 Go), scellement FSS dont la clé de vérification reste dans `credentials/<hôte>/journald/`
+- Logs des conteneurs dans le journal (`log_driver = "journald"`) : ils ne sont plus perdus à chaque `--force-recreate` (déploiement, mise à jour automatique)
+- Trace d'accès de l'API (`api/audit.py`) : une ligne JSON par appel (utilisateur, IP du navigateur, route et identifiants, statut), connexions réussies et échouées, versions des modèles au démarrage ; jamais de corps de requête ni de paramètres d'URL
+- Le front transmet l'IP du navigateur (`handleFetch`) : la limite de 5 connexions par minute s'applique par navigateur et non plus au front entier
+- PostgreSQL journalise connexions et déconnexions
+
+#### Reste à faire
+
+- Vérifier après déploiement : `journalctl -t kyst-api` rempli, `journalctl --verify --verify-key=…` OK, IP du navigateur (et non celle du proxy) dans `client` : sinon, vérifier que le proxy ajoute `X-Forwarded-For`
+- Copier la clé `credentials/<hôte>/journald/verification_key` hors de la machine de contrôle
+- Copie des journaux hors du serveur (`systemd-journal-remote` ou syslog distant)
+- Hébergement de données de santé réelles : hébergeur certifié HDS obligatoire (le serveur actuel ne l'est pas : démo uniquement)
+- Documents à produire pour le rapport : registre des traitements, AIPD, information des patients, durée de conservation des données patients (aucune purge automatique aujourd'hui)
+- Statut réglementaire à argumenter : logiciel de planification (dispositif médical MDR ou non, risque AI Act), avec validation humaine de chaque date proposée
+
 ## Rendu final
 
 - Diapo
