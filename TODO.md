@@ -4,27 +4,23 @@
 
 ### Modèles IA
 
-- Récupérer les modèles entraînés `surgery_duration_model.joblib` et `los_regressor.joblib`
-  - Introuvables : ni sur la machine, ni dans Git (toutes branches, historique, LFS)
-  - Demander à l'équipe modèles (branches `model/los-bridge`, `model/or-occupation`) qui les a en local
-  - Sinon les ré-entraîner (`python -m prediction.los_model`, `python -m prediction.surgery_duration`, depuis la racine) : il faut `resources/model_los_dataset.parquet` et `resources/model_surgery_duration_dataset.parquet` (générés par `preprocessing_los.ipynb` et `preprocessing_surgery_duration.ipynb` à partir du classeur source)
-  - Vérifier les releases / artefacts CI GitHub (`gh` non installé)
-  - Noter quelque part (hors Git) la provenance : date d'entraînement, données, commit, hash (l'API affiche `room-<sha256[:12]>` / `los-<sha256[:12]>`)
-- Décider où ranger les modèles
-  - Option A (en place) : copiés par Ansible depuis `artifacts/ml-models/` (`kyst_models_src`) vers `/home/podman/ias/models`, montés en lecture seule dans l'API ; le déploiement échoue s'ils manquent
-  - Option B : `interface/api/ai/` → ajouter au `.gitignore`, faire pointer `ROOM_MODEL_PATH` / `LOS_MODEL_PATH` dessus, retirer la copie et le montage `./models` du rôle
-  - ⚠️ Option B : le Dockerfile copie `interface/api/` → modèles (données confidentielles) dans l'image publiée sur ghcr.io. Vérifier si l'image est publique
-- Tester les modèles en local avant de déployer : `AI_BACKEND=trained` dans `kyst.local.env`, créer une demande, vérifier temps de salle / séjour / propositions
-- Vérifier la compatibilité des versions (scikit-learn, etc.) entre l'environnement d'entraînement et `interface/api/uv.lock` : un `.joblib` se charge mal d'une version à l'autre
-- Faire échouer l'API au démarrage si les modèles manquent (aujourd'hui `get_predictors` est paresseux : l'erreur n'apparaît qu'à la première prédiction)
+- Code des modèles « consultation » (v3, 2026-10-20) mergé depuis `improvement/technical-audit` (`consultation_features.py` et `prediction_planning.py` déplacés dans `prediction/`)
+- Récupérer les fichiers `.joblib` auprès de l'auteur de la branche (racha334) : ils ne sont pas dans Git (`/artifacts/` est ignoré)
+  - Liste : `FINAL_MODEL_ARTIFACT_FILES.txt` ; empreintes SHA-256 : `experiments/results/final-consultation-2026-10-20-v3/manifest.json` et `experiments/results/final-artifact-verification-2026-10-20-v3/artifact_verification.json`
+  - À placer dans `artifacts/ml-models/final-2026-10-20-v3/` : le rôle `kyst` déploie `room_consultation_selected_…` et `los_consultation_selected_…` sous les noms attendus par l'API (`kyst_model_files`)
+  - Vérifier les empreintes à la réception (`sha256sum`)
+  - Provenance : les manifestes ci-dessus suffisent (date, données, hash des sources)
+- Versions compatibles : scikit-learn 1.9.1, xgboost 3.4.1, pandas 3.0.6, joblib 1.6.0 identiques entre `experiments/final_model_requirements.txt` et `interface/api/uv.lock` (entraînement sous Python 3.14 / Windows, image API en 3.13 : à confirmer au chargement)
+- Tester les modèles en local avant de déployer : `AI_BACKEND=trained` dans `kyst.local.env`, avec `ROOM_MODEL_PATH` / `LOS_MODEL_PATH` pointant vers les fichiers v3, créer une demande, vérifier temps de salle / séjour / propositions
 - Précision dégradée en consultation (anesthésie et praticien absents) : voir `docs/web-full-system-integration.md`, à mentionner dans le rapport
 - Les bornes P80/P95 du temps de salle ne sont pas exposées (pas d'intervalle affiché pour le bloc en mode `trained`)
+- Chiffres pour le rapport : `FINAL_MODEL_RESULTS_FOR_REPORT.md` (MAE salle 16,6 min, séjour 0,51 j ; couverture faible pour les séjours ≥ 7 j)
 
 ### Instance de démo
 
 Objectif : une instance qui ressemble à la vraie vie d'un service, avec l'IA branchée et assez de données pour être crédible.
 
-#### Fait (non commité)
+#### Fait
 
 - Prod = toujours `AI_BACKEND=trained` (en dur dans `compose.yml`) ; seul `kyst_seed_demo` change entre instances
 - Rôle Ansible : copie des modèles depuis `kyst_models_src` vers `/home/podman/ias/models` ; variables `kyst_ai_backend` / `kyst_model_dir` supprimées
@@ -38,7 +34,6 @@ Objectif : une instance qui ressemble à la vraie vie d'un service, avec l'IA br
 
 #### Reste à faire
 
-- Commiter : UI + rôle Ansible + seed + docs (attention : `.gitignore` et le déplacement `reference/` → `docs/reference/` sont aussi dans l'arbre de travail)
 - Tester le seed avec les modèles entraînés (`AI_BACKEND=trained`) : durée d'exécution, part de l'ambulatoire (en fixtures, seul l'ORL est ambulatoire → ~6 places sur 21), occupation des lits (en fixtures : 14 à 39 lits sur 45)
 - Vérifier les codes CCAM du catalogue du seed (écrits de mémoire), idéalement avec les codes les plus fréquents du classeur pour que les modèles les reconnaissent
 - Les demandes du seed sont attribuées au premier administrateur (« créée par Administrateur ») : créer des comptes fictifs (chirurgiens, secrétariat, cadre) pour la démo ?

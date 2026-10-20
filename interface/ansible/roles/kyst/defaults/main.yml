@@ -44,11 +44,15 @@ kyst_replan_horizon_days: 14
 kyst_replan_budget_seconds: 1
 kyst_replan_max_cases: 200
 # Modèles entraînés (temps en salle et durée de séjour), non versionnés : ils sont copiés
-# depuis la machine de contrôle. Par défaut, le dossier artifacts/ml-models/ du dépôt.
+# depuis la machine de contrôle. Par défaut, les modèles « consultation » de la branche
+# improvement/technical-audit, rangés dans artifacts/ml-models/final-2026-10-20-v3/.
+# src : chemin relatif à kyst_models_src ; dest : nom attendu par l'API (compose.yml).
 kyst_models_src: "{{ playbook_dir }}/../../../artifacts/ml-models"
 kyst_model_files:
-  - surgery_duration_model.joblib
-  - los_regressor.joblib
+  - src: final-2026-10-20-v3/room_consultation_selected_2026-10-20_v1.joblib
+    dest: surgery_duration_model.joblib
+  - src: final-2026-10-20-v3/los_consultation_selected_2026-10-20_v1.joblib
+    dest: los_regressor.joblib
 # Crée les ressources de démonstration (spécialités, salles, lits, vacations) si la base
 # n'en a aucune. À désactiver avant d'y mettre de vraies données.
 kyst_seed_demo: true

@@ -40,12 +40,14 @@
 
 - name: Copy trained models
   ansible.builtin.copy:
-    src: "{{ kyst_models_src }}/{{ item }}"
-    dest: "{{ kyst_project_dir }}/models/{{ item }}"
+    src: "{{ kyst_models_src }}/{{ item.src }}"
+    dest: "{{ kyst_project_dir }}/models/{{ item.dest }}"
     owner: podman
     group: podman
     mode: "0644"
   loop: "{{ kyst_model_files }}"
+  loop_control:
+    label: "{{ item.dest }}"
   become: true
 
 ##### Démarrage #####
