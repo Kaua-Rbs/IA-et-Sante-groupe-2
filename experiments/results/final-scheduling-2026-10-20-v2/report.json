@@ -1,0 +1,91 @@
+{
+  "cohorts": 8,
+  "unique_cases": 100,
+  "runs": 64,
+  "cohort_prediction_errors_minutes": {
+    "median": {
+      "mae": 22.1,
+      "bias": -8.63
+    },
+    "ml": {
+      "mae": 20.05491370788669,
+      "bias": -4.929043381927683
+    }
+  },
+  "cohort_sha256": "f371d901b7adcc75b6bfd7c806508d37effedd550a4ab36fa0b85273f54a4b3c",
+  "summary": [
+    {
+      "rooms": 1,
+      "arm": "median",
+      "completed": 6.375,
+      "unstarted": 6.125,
+      "overtime_minutes_including_turnover": 41.625,
+      "total_start_delay_minutes": 150.875,
+      "solver_seconds": 0.02787020625328296,
+      "run_seconds": 0.33919070000047213,
+      "predicted_or_overtime_minutes": 56.0,
+      "predicted_all_cases_no_overtime": 0.0
+    },
+    {
+      "rooms": 1,
+      "arm": "ml",
+      "completed": 6.375,
+      "unstarted": 6.125,
+      "overtime_minutes_including_turnover": 54.125,
+      "total_start_delay_minutes": 124.75,
+      "solver_seconds": 0.023017706251266645,
+      "run_seconds": 0.34641778750301455,
+      "predicted_or_overtime_minutes": 36.625,
+      "predicted_all_cases_no_overtime": 0.0
+    },
+    {
+      "rooms": 2,
+      "arm": "median",
+      "completed": 10.625,
+      "unstarted": 1.875,
+      "overtime_minutes_including_turnover": 79.25,
+      "total_start_delay_minutes": 300.6875,
+      "solver_seconds": 0.02661462500145717,
+      "run_seconds": 0.3580520687501121,
+      "predicted_or_overtime_minutes": 153.5,
+      "predicted_all_cases_no_overtime": 0.25
+    },
+    {
+      "rooms": 2,
+      "arm": "ml",
+      "completed": 10.6875,
+      "unstarted": 1.8125,
+      "overtime_minutes_including_turnover": 98.0,
+      "total_start_delay_minutes": 214.1875,
+      "solver_seconds": 0.02740339999945718,
+      "run_seconds": 0.37192604375013616,
+      "predicted_or_overtime_minutes": 137.875,
+      "predicted_all_cases_no_overtime": 0.125
+    }
+  ],
+  "paired_delta_ml_minus_median": [
+    {
+      "rooms": 1,
+      "completed": 0.0,
+      "unstarted": 0.0,
+      "overtime_minutes_including_turnover": 12.5,
+      "total_start_delay_minutes": -26.125,
+      "solver_seconds": -0.004852500002016313,
+      "run_seconds": 0.0072270875025424175,
+      "predicted_or_overtime_minutes": -19.375,
+      "predicted_all_cases_no_overtime": 0.0
+    },
+    {
+      "rooms": 2,
+      "completed": 0.0625,
+      "unstarted": -0.0625,
+      "overtime_minutes_including_turnover": 18.75,
+      "total_start_delay_minutes": -86.5,
+      "solver_seconds": 0.000788774998000008,
+      "run_seconds": 0.013873975000024075,
+      "predicted_or_overtime_minutes": -15.625,
+      "predicted_all_cases_no_overtime": -0.125
+    }
+  ],
+  "bed_scope": "Fixed 1-day LOS and explicitly available 30 beds; nonbinding, no ward outcome claim"
+}

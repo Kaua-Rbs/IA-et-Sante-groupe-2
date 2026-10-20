@@ -90,3 +90,9 @@ Thumbs.db
 # Generated exports
 /artifacts/
 /interface/models/
+
+# Worktree-local technical-validation dependencies, caches and temporary files
+/.deps/
+/.cache/
+/.tmp/
+matplotlib-cache/

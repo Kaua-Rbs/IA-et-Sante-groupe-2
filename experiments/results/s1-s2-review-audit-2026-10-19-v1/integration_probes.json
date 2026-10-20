@@ -1,0 +1,7 @@
+{
+  "solution_to_dataframe_rows": 2,
+  "legacy_bed_plot_accepts_full_stay_problem": false,
+  "legacy_reconstruction_accepts_extended_capacity": false,
+  "plot_error": "shape mismatch: objects cannot be broadcast to a single shape.  Mismatch is between 'x' with shape (2,) and 'height' with shape (5,).",
+  "reconstruction_error": "operands could not be broadcast together with shapes (2,) (5,) "
+}

@@ -500,7 +500,10 @@ def predict_schedule_loaded(frame, saved, raw=False):
     for label in ('p80', 'p95'):
         if label in saved.get('bounds', {}):
             bound = saved['bounds'][label]
-            prediction = np.maximum(bound['model'].predict(X) + bound['offset'], previous)
+            # Version-3 consultation artifacts calibrate residuals around the
+            # saved point predictor; older quantile-model artifacts are unchanged.
+            base = point if bound.get('base') == 'point' else bound['model'].predict(X)
+            prediction = np.maximum(base + bound['offset'], previous)
             result[f'duration_{label}_min'] = checked_prediction(prediction)
             previous = prediction
     if 'duration_p95_min' in result:

@@ -1,0 +1,31 @@
+{
+  "protocol": "final-consultation-v1",
+  "python": "3.14.2",
+  "input_sha256": {
+    "room_data": "f8aa6ed1f9c1a985237eabe30af3c68a6390ccc8ac8e76ac2332da6928fbc361",
+    "los_data": "71acfbae0f1b2b0af8c765d9325e1667786b6d4cf03251fc30853b650b189292",
+    "old_room": "91f00b3859282c2afde23e3e655163119f18f615b27dbd03a9e0fe4b4ce9caff"
+  },
+  "source_sha256": {
+    "surgery_duration.py": "697b2273e3e494e7e253d0e953cf95f6a1ecfdfb7e6a9dd0aea94cb401dd9c06",
+    "duration_features.py": "38a2b1615f7bfdc4a7759c918a41a0c89147c4ad4e9847da549ae20f3430be3c",
+    "los_model.py": "e9789cdfd1b71a1c112eab7164f4cee79da40bacbcd95c047d1b02d300fbc7cc",
+    "consultation_features.py": "7fef260eb225ced430388389ba219171ac676a213c380fd67c6629bb1d0d116a",
+    "experiments/train_consultation_models.py": "720934c37e9dbf4d64c7e351718b51e33fb7199f2d96cdbff9dc1b354013cda3"
+  },
+  "candidate_policy": "Two fixed existing HGB loss variants for room, fixed existing XGB recipe for LOS; validation-only selection; no test-driven iterations",
+  "confidentiality": "No patient rows, identifiers, per-case predictions or real schedules are exported",
+  "status": "complete",
+  "artifact_sha256": {
+    "los_consultation_baseline_2026-10-20_v1.joblib": "05bee4be5ad8e5fda0f330eb8b34943cde88558313aed95908b2e14ee96a089a",
+    "los_consultation_selected_2026-10-20_v1.joblib": "2aae6fd5ba20361ed97d2d83f4afaf258a588f7e1b5794c2ad4b3c2ad6f4e5de",
+    "los_full_reproduction_2026-10-20_v1.joblib": "b0ced8a3a9aab54337f9561dab445da126e430045c04bd1fe50ef11622807d32",
+    "los_full_reproduction_2026-10-20_v1.json": "b5611a3e14b1320aec51269e8a067a1cd8502feb25db2176749470291ea2ea2a",
+    "room_consultation_baseline_2026-10-20_v1.joblib": "cc8f560835000d79dfdb0ad1dae0e0eba777d7722c6f1748f149fedae97715de",
+    "room_consultation_selected_2026-10-20_v1.joblib": "712577b71d7eccdc983774412df7fcb6e321d9b2d65598e77b60896d0481fdcd"
+  },
+  "output_sha256": {
+    "model_metrics.csv": "1bc999ad1af83f0a90800a51db02de45d534494576325d7682486e07058bab9c",
+    "report.json": "81684a66cdac94c1de17c1ec8054c661f842d2b6b5a2fcc830815dc2d888cf69"
+  }
+}
