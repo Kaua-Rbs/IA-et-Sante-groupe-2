@@ -1,0 +1,46 @@
+\section{Proposed Hybrid Optimization Approach}
+\label{sec:hybrid-approach}
+
+\subsection{Combining tabu memory and simulated annealing}
+
+The aggregate-model hybrid combines candidate ranking and short-term tabu
+memory with a Metropolis acceptance rule. This description follows
+\texttt{tabu\_simulated\_annealing} in the project implementation. It searches
+the same assignment representation and fitness function as the comparison
+methods, so improvements are evaluated using Equation~\ref{eq:los-cost}.
+Tabu memory discourages recently recorded moves, while temperature-dependent
+acceptance permits escape from a local improvement path.
+
+\begin{enumerate}
+\item Generate a random assignment, evaluate fitness $f=-C$, and initialise
+      the incumbent best, an empty bounded tabu list and temperature $T_0$.
+\item At each iteration, sample a neighbourhood, evaluate its assignments,
+      and sort candidates by decreasing fitness.
+\item Select the best candidate whose move is not tabu or whose fitness
+      exceeds the best recorded fitness (aspiration). If none qualifies,
+      the implementation uses the highest-ranked sampled candidate.
+\item With $\Delta=f_{\mathrm{candidate}}-f_{\mathrm{current}}$, accept when
+      $\Delta\geq0$ or with probability
+      $\exp(\Delta/\max(T,10^{-9}))$ otherwise. On acceptance, record the
+      move in tabu memory and update the best solution if improved.
+\item Set $T\leftarrow\alpha T$, repeat until the iteration budget is used,
+      and return the best recorded assignment and convergence history.
+\end{enumerate}
+
+The function defaults are 400 iterations, a tabu list of size 20, 15 sampled
+neighbours per iteration, $T_0=20$ and $\alpha=0.97$. These are implementation
+defaults, not a claim that every archived experiment used identical settings.
+The comparisons retain each source campaign's parameter choices and stopping
+rules; Section~\ref{sec:experimental-design} explains the resulting budget
+limitations. Temperature is expressed on the fitness scale, so changing
+objective weights can also change acceptance behaviour.
+
+\subsection{Prediction interface and execution coupling}
+
+Point and upper-endpoint LOS predictions provide alternative parameter
+vectors $\ell$ to the same aggregate scheduler; their construction is given
+in Section~\ref{sec:data-prediction}. Prediction does not replace the search
+or change its assignment representation. The present LOS campaign freezes
+the resulting schedules before scenario evaluation.
+
+\input{sections/parts/room-approach}

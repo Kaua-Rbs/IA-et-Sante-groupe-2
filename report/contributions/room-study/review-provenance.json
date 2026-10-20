@@ -1,0 +1,22 @@
+{
+  "source_commit": "7894aea52e38078bfbff7fac235b286779d1a3ef",
+  "local_source_sha256": {
+    "hospital_sim/room_problem.py": "4a3b8f2b1730c52367c6b5abffae918708ab3ec46393e8278c4e32e96cd775aa",
+    "hospital_sim/metaheuristics.py": "ef83162f683b044b3a752787c560d2ee6f754da727af8b41dc8b19d0209f7e73",
+    "hospital_sim/coordinator.py": "e91a8a06f2db5638069f660dbb3326bae9061318391b547136b23288fa24253c",
+    "hospital_sim/simulation.py": "a74e09690fc1bf523c79de5ea91beb1f684b04bbe6180a1482f00ba06eec9cbd",
+    "hospital_sim/historical_data.py": "1ec3ef3bc3a0cc95f5631da50bc03aecade228bf5ac5838cf82c5ed54470aa6e",
+    "hospital_sim/instances.py": "276d4aa00ea10404a6b226083f6d795cf0a32d15a39a782c14a63d3171c26b55",
+    "hospital_sim/experiment.py": "888ed4daa3c7a5823de86598f58d321bd4a74aaf1f7cb0a62ee1e81db3c0e50d",
+    "optimiseur/optimizer.py": "47dc18cf8d82bcdb1283a5a469c1afe58636d72b9b4b7346e7e29078ad3ab15b",
+    "optimiseur/search_control.py": "4d59fa43cdc0cac242d0f67b0b097fe9cdcfe3c229e3591ff213e3f72c687fdc",
+    "preprocessing_los.ipynb": "9f1e21d2acbfc737fc51173302fa73cab32902d03aac7b879229ea7990bf2a5f",
+    "preprocessing_surgery_duration.ipynb": "e4a7b73bc459427ac49ff75dca2da5e1e07a36095948504cbd92053fa1d5c48f"
+  },
+  "duration_model_branch_commit": "a9607f9bc3247bcb8e8af094c04e797ee69505e7",
+  "test_suite": {
+    "run": 94,
+    "passed": 92,
+    "skipped": 2
+  }
+}

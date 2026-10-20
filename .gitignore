@@ -90,3 +90,7 @@ Thumbs.db
 # Generated exports
 /artifacts/
 /interface/models/
+
+# Local Python environment and compiled report
+/venv/
+/output/pdf/

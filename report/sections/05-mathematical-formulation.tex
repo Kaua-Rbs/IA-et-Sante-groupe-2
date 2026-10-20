@@ -1,0 +1,62 @@
+\section{Mathematical Formulation}
+\label{sec:formulation}
+
+\subsection{Sets, parameters and assignment decisions}
+
+For the aggregate model, let $I$ be the cases, $J$ the available sessions,
+and $D=\{0,\ldots,H-1\}$ the planning days. Case $i$ has operating duration
+$p_i$ and supplied integer stay $\ell_i$; session $j$ has day $d_j$, capacity
+$c_j$ and speciality $a_j$. Let $J_i$ be the eligible session positions for
+case $i$. The implementation uses matching speciality sessions when available,
+otherwise all sessions; this fallback is a modelling limitation rather than
+clinical authorisation. Let $b$ denote the constant aggregate bed capacity.
+
+The binary variable $x_{ij}$ equals one if case $i$ is assigned to session
+$j$. Each case receives exactly one eligible assignment:
+\begin{equation}
+ \sum_{j\in J_i}x_{ij}=1\quad(i\in I),\qquad
+ x_{ij}\in\{0,1\}\quad(j\in J_i).
+\end{equation}
+The native solution dictionary stores the selected session's positional index,
+not its external identifier. Capacity excess is penalised rather than ruled
+out by a hard feasibility constraint.
+
+Session load and bed occupancy on day $t$ are
+\begin{align}
+ L_j(x)&=\sum_{i:j\in J_i}p_i x_{ij},\\
+ B_t(x;\ell)&=\sum_{i\in I}\sum_{j\in J_i}
+ x_{ij}\,\mathbf{1}\{d_j\leq t\leq d_j+\ell_i\},\qquad t\in D.
+\end{align}
+Writing $[z]_+=\max(0,z)$, define
+\begin{align}
+ O_{\mathrm{session}}(x)&=\sum_{j\in J}[L_j(x)-c_j]_+,\\
+ O_{\mathrm{bed}}(x;\ell)&=\sum_{t\in D}[B_t(x;\ell)-b]_+,\\
+ \sigma_{\mathrm{load}}(x)&=\sqrt{\frac{1}{|J|}
+ \sum_{j\in J}(L_j(x)-\overline L(x))^2},\qquad
+ \overline L(x)=\frac{1}{|J|}\sum_{j\in J}L_j(x).
+\end{align}
+These definitions use all sessions, including empty ones, and the population
+standard deviation used by the implementation. They describe the objective
+evaluated by the search; no exact mathematical-programming solve is claimed.
+
+\subsection{LOS planning objective and occupancy convention}
+
+The LOS bridge links EDA cases to the predictor described in
+Section~\ref{sec:data-prediction}. The point prediction and upper interval
+endpoint define two planning instances. Operating durations remain historical
+room-occupancy values; only LOS is varied in this study. The optimisation
+cost is the existing session-model cost,
+\begin{equation}
+ C(x;\ell)=5\,O_{\mathrm{session}}(x)
+          +3\,O_{\mathrm{bed}}(x;\ell)
+          +0.05\,\sigma_{\mathrm{load}}(x),
+ \label{eq:los-cost}
+\end{equation}
+Here $x$ is the assignment and $\ell$ the supplied stay vector. Fitness
+is $-C$; reported costs are minimised. The weights are model-specific,
+without monetary or clinical calibration. Bed counting includes surgery day
+and the next $\ell_i$ days, clipped to the horizon. This differs from the
+predictor's inclusive admission-to-discharge target and requires reconciliation;
+preoperative admissions and existing occupants are not reconstructed.
+
+\input{sections/parts/room-formulation}

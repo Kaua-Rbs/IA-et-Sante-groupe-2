@@ -1,0 +1,76 @@
+\subsection{Shared search interface and coupled parameter profile}
+\label{sec:room-approach}
+
+The room adapter reuses the five searches on waiting-case-to-room allocations
+and evaluates each through the decoder and Equation~\ref{eq:room-cost}.
+Reassignment and swap moves operate on this common space. At opening, a
+greedy baseline inserts cases by increasing prediction into the earliest
+available room. At replanning, the incumbent retains room choices from the
+accepted plan and greedily inserts previously unassigned cases before decoding
+against current availability. Local searches start from this incumbent;
+GA includes it in the population and ACO retains it as the initial best.
+Keeping the best evaluated candidate protects predicted request cost, while
+execution can still deteriorate under duration error.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Coupled room-study settings. Iteration ceilings are raised so the
+common fitness-call budget controls nontrivial searches. These fixed settings
+are not the outcome of a tuning experiment.}
+\label{tab:room-settings}
+\begin{tabularx}{\linewidth}{@{}lY@{}}
+\toprule
+Method & Parameters \\
+\midrule
+SA & $T_0=1$, cooling $0.95$. \\
+Tabu & Memory 20, 15 sampled neighbours. \\
+GA & Population 40, crossover $0.8$, mutation $0.08$, elitism. \\
+Hybrid & Memory 20, 15 neighbours, $T_0=1$, cooling $0.97$. \\
+ACO & 15 ants, $\alpha=1$, $\beta=2$, evaporation $0.3$, deposit scale 1. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+The room profile adapts both annealing temperatures to its normalised cost;
+it must not be confused with the aggregate hybrid's $T_0=20$ default. ACO
+constructs room assignments with probabilities proportional to
+$\tau_{ir}^{\alpha}\eta_r^{\beta}$, where
+$\eta_r=(1+L_r/c_r)^{-1}$ uses accumulated predicted load and remaining
+capacity. This construction heuristic excludes turnover; complete candidates
+are assessed by the common decoder. Pheromone evaporates by a factor $0.7$
+per iteration, and the best ant's assignments receive $1/(1+C_{\mathrm{room}})$.
+Pheromone is reinitialised for each request.
+
+\subsection{Mesa execution and proposal acceptance}
+\label{sec:coupling}
+
+One Mesa agent represents a patient episode with waiting, running and
+completed states; rooms are capacity resources. Coordination is centralised:
+agents do not negotiate schedules or run their own optimisers. The execution
+loop is as follows:
+\begin{enumerate}
+\item Build a request from the observable state, predictions and fixed
+      running/completed assignments; omit hidden realised durations.
+\item Obtain an allocation from the scheduler, decode it and check coverage,
+      timing, turnover, known closures and preservation of fixed work.
+\item Accept only a feasible proposal based on the current state version.
+      A new state invalidates stale proposals; failed requests retain the
+      accepted plan, or an all-unassigned plan if initial planning fails.
+\item Advance one simulated minute: complete operations, release turnover,
+      reveal closure/reopening, synchronise state and, under the reactive
+      policy, request a new plan at those availability events.
+\item Start eligible cases from the accepted schedule, subject to actual
+      room occupancy, turnover, the start cutoff and closure guards.
+\end{enumerate}
+Static and reactive replays begin from the same saved initial schedule.
+Duration overruns alone do not trigger replanning. A planned start remains
+a lower bound until changed by an accepted replan. Execution duration is
+unchanged by reassignment; ongoing work continues through a room closure.
+
+Nontrivial searches run in separate processes with progress incumbents.
+Budgets count initialisation and repeated fitness calls; cancellation/deadline
+handling terminates and joins workers. A pre-search deadline may return a
+validated incumbent with zero evaluations, labelled separately. Empty and
+singleton requests use trivial/direct handling. Runtime includes startup and
+communication; simulated time pauses during solving. This supports controlled
+experiments, not a production response-time guarantee.

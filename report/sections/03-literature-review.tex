@@ -1,0 +1,157 @@
+\section{Literature Review}
+\label{sec:literature-review}
+
+This focused review covers decision levels, exact and approximate methods,
+hybridisation and evaluation under uncertainty. It draws on accessible
+reviews, methodological papers and retrospective studies; it is not an
+exhaustive systematic review. Comparisons concern modelling choices and
+evidence rather than a cross-study algorithm ranking.
+
+\subsection{Planning, assignment and sequencing}
+
+Operating room decisions range from strategic capacity to tactical session
+allocation and operational case scheduling \citep{cardoen2010,guerriero2011}.
+Choosing a date or session does not determine the within-day sequence.
+\citet{alamin2025} review deterministic and uncertain formulations, while
+\citet{wang2021} distinguish outpatient and inpatient scheduling. That
+distinction matters when same-day discharge and overnight stays create
+different downstream requirements.
+
+Resource scope changes the problem. \citet{fei2010} separate weekly planning
+from daily scheduling with recovery capacity, and \citet{rachuba2026} examine
+integrated hospital planning. \citet{carter2024} smooth ward demand through
+adjusted surgical activity; \citet{shehadeh2026} use distributionally robust
+optimisation for assignment, sequencing and scheduling with uncertain surgery
+and downstream stays. These formulations motivate resource integration,
+but require information absent from a room-only dataset.
+
+Duration targets must also remain distinct. Room occupancy, surgical
+procedure time, turnover and hospital LOS measure different resource uses.
+\citet{dupre2025} investigate room occupancy and LOS in emergency surgery;
+neither target definition nor predictive performance transfers automatically
+to elective planning. Our session-and-bed model and minute-resolution room
+model consequently retain separate assumptions and objectives.
+
+\subsection{Exact methods and interpretation of bounds}
+
+Exact methods seek a model-specific optimum and may provide bounds when
+interrupted. \citet{cardoen2009} use branch-and-price for day-care sequencing
+with recovery resources and multiple criteria. In contrast, \citet{fei2010}
+formulate planning as set partitioning but solve it with a column-generation
+heuristic before hybrid genetic daily scheduling. An integer formulation
+does not by itself certify the resulting solution.
+
+Exhaustive enumeration is useful for small verification instances. With $n$
+cases and $m$ rooms, the allocation space contains $m^n$ elements. The gap
+$C(s)-C^\star$ is an optimality gap only when $C^\star$ is certified for the
+same objective and decoder. An overload-based lower bound can support a bound
+gap without proving optimality; a best-known value supports neither claim.
+Even an exact predicted optimum does not certify performance under hidden
+execution durations.
+
+\subsection{Heuristics and metaheuristics}
+
+Constructive rules provide fast baselines and initial incumbents.
+Metaheuristics modify or rebuild these assignments under a finite budget,
+with mechanisms that must be interpreted alongside representation and
+feasibility handling.
+
+\emph{Simulated annealing} accepts a cost increase $\Delta C>0$ with
+probability $\exp(-\Delta C/T)$ as temperature decreases
+\citep{kirkpatrick1983}. Temperature is therefore sensitive to objective
+scale. \emph{Tabu search} uses move memory and aspiration to guide exploration
+beyond local improvement \citep{glover1989}; sampled-neighbour count and
+memory length affect both trajectory and effort.
+
+\emph{Genetic algorithms} evolve populations through selection, crossover
+and mutation. Their behaviour depends on encoding, repair and incumbent
+retention. Surgical examples include \citet{fei2010} and the biased random-key
+framework of \citet{vieira2025}. A generation cannot be equated with one
+iteration of a single-solution method. \emph{Ant colony optimisation}
+constructs solutions using heuristic desirability and pheromone memory
+\citep{dorigo1996}. This foundational reference establishes the mechanism,
+not hospital-specific superiority. In our allocation adaptation, favouring
+a lightly loaded room is only a construction rule; the decoder must enforce
+temporal feasibility.
+
+Initial solutions, neighbourhoods, parameter settings and stopping criteria
+are needed to explain differences between these methods. Equal fitness-call
+budgets control one measure of effort, but candidate construction and
+processing costs still differ; runtime must be reported separately.
+
+\subsection{Hybrid approaches and a shared decoder}
+
+Hybridisation can combine search mechanisms or connect distinct modelling
+stages. \citet{fei2010} combine planning decomposition and daily search;
+\citet{vieira2025} separate a random-key representation from deterministic
+schedule decoding. The latter provides a useful comparison for a common
+decoder, although our encoding and constraints differ.
+
+The project's Tabu--Simulated Annealing hybrid selects candidates through
+tabu memory and applies annealing acceptance. Any benefit requires comparison
+with both components under stated budgets and repeated seeds. A lower cost
+obtained with more evaluations does not isolate hybridisation itself.
+
+Simulation coupling addresses a different question: whether decisions retain
+value when execution diverges from planning assumptions
+\citep{guerriero2011,rachuba2026}. Our search evaluates a predicted decoder
+cost; Mesa executes the accepted plan and requests replanning at observed
+availability events. It does not repeatedly simulate every search candidate.
+Reactive policies may consume several request budgets, which must be included
+in total effort.
+
+Predictive--prescriptive hybrids add another stage. \citet{ahmadian2025}
+combine a neural network with metaheuristics for operating rooms and
+post-anaesthesia care under uncertain durations. \citet{kayvanfar2027},
+published online in 2026 and assigned to a 2027 volume, connect estimation
+with robust multi-resource optimisation. These studies motivate integration
+but do not establish that one predictor or solver will dominate in our
+simpler models.
+
+\subsection{Prediction, uncertainty and realised performance}
+
+\citet{merghani2025} review machine learning in operating room management,
+supporting comparison of nonlinear models with simple historical references.
+\citet{dupre2025} report residual uncertainty and speciality differences in
+room-occupancy and LOS prediction. Predictive accuracy therefore requires
+its own assessment, including temporal validation, calibration and tail errors.
+
+\citet{lex2025} combine duration prediction with elective orthopaedic
+optimisation and identify trade-offs between overtime and underutilisation.
+\citet{lex2026} study a related single-centre arthroplasty pipeline. These
+retrospective designs show how prediction can inform scheduling, while
+transfer to other pathways and clinical settings remains conditional.
+
+Prediction and scheduling must respect information timing. Encoders,
+imputation and category grouping should use training data; realised durations
+remain outcomes, not ordinary solver inputs. An explicit oracle scenario
+changes that information boundary and must be labelled separately. A lower
+prediction error or predicted objective does not necessarily improve every
+operational metric, as the diversity reviewed by \citet{schouten2023} makes
+clear. Completion, overtime, delay and resource use remain complementary.
+
+\subsection{Positioning of the present study}
+
+Table~\ref{tab:positioning} summarises the methodological comparisons.
+Our contribution is a common experimental interface with explicit limits:
+allocation search uses fixed sequencing, session penalties differ from the
+room objective, and uncertainty scenarios differ from reactive execution.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Selected literature and its relevance to the experimental design.
+The studies use different resources and are not interchangeable benchmarks.}
+\label{tab:positioning}
+\begin{tabularx}{\linewidth}{@{}lYY@{}}
+\toprule
+Study & Relevant approach & Comparison limit \\
+\midrule
+\citet{cardoen2009} & Exact day-care sequencing. & Richer recovery-resource model. \\
+\citet{fei2010} & Weekly planning and hybrid daily scheduling. & Different decomposition and constraints. \\
+\citet{vieira2025} & Searches sharing a decoder. & Different representation and search mechanisms. \\
+\citet{dupre2025} & Room-occupancy and LOS prediction. & Emergency-surgery cohort and targets. \\
+\citet{lex2025,lex2026} & Prediction followed by schedule optimisation. & Single-centre retrospective evidence. \\
+\citet{rachuba2026} & Integrated hospital planning. & Broader scope than either project model. \\
+\bottomrule
+\end{tabularx}
+\end{table}

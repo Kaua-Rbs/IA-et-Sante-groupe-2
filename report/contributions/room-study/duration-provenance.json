@@ -1,0 +1,782 @@
+{
+  "median/small": {
+    "duration_mode": "median",
+    "duration_information": "Synthetic fixture estimates.",
+    "generated_room_sizing": "Original median estimates, before applying duration mode.",
+    "code": {
+      "commit": "1ee8d0860cb72aaba25f8536929871773fbcea45",
+      "dirty": true,
+      "implementation_sha256": "92078c6a81c41aa8ac607d122c2703ab9ec4e99bb34140add047c8adfc0aa280"
+    },
+    "dataset_sha256": null,
+    "dependencies": {
+      "mesa": "3.5.1",
+      "pandas": "3.0.6",
+      "numpy": "2.5.3",
+      "openpyxl": "3.1.5",
+      "networkx": "3.7",
+      "scipy": "1.18.1"
+    },
+    "python": "3.12.3",
+    "instances": {
+      "small-reference": {
+        "kind": "exact_reference",
+        "cases": 7,
+        "configurations": [
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 660,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 660,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 540,
+              "end": 600
+            }
+          }
+        ]
+      }
+    },
+    "max_evaluations": 1000,
+    "solver_budget_seconds": 60.0,
+    "budget_mode": "evaluations",
+    "methods": [
+      "baseline",
+      "annealing",
+      "tabu",
+      "genetic",
+      "hybrid",
+      "aco"
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "policies": [
+      "static",
+      "reactive"
+    ],
+    "exact_references": {
+      "small-reference": {
+        "allocations": 128,
+        "fitness": -0.31368821292775667,
+        "objective": {
+          "unstarted": 0,
+          "overtime": 165,
+          "changes": 0,
+          "cost": 0.31368821292775667
+        },
+        "allocation": {
+          "0": 0,
+          "1": 0,
+          "2": 0,
+          "3": 1,
+          "4": 0,
+          "5": 1,
+          "6": 1
+        }
+      }
+    },
+    "execution_layout": null,
+    "manifest_sha256": "8c5a6d0c9b45e60dfba53be2d177713faaa2b0db7c9c2e0743c68f1cb0afae7c",
+    "data_quality": {
+      "source": "synthetic reference"
+    }
+  },
+  "median/historical": {
+    "duration_mode": "median",
+    "duration_information": "2019\u20132021 procedure medians with overall training-median fallback.",
+    "generated_room_sizing": "Original median estimates, before applying duration mode.",
+    "code": {
+      "commit": "1ee8d0860cb72aaba25f8536929871773fbcea45",
+      "dirty": true,
+      "implementation_sha256": "92078c6a81c41aa8ac607d122c2703ab9ec4e99bb34140add047c8adfc0aa280"
+    },
+    "dataset_sha256": "7896e82c38a7744353b31b9747dcecaddbe3def243e692132ad3681827795005",
+    "dependencies": {
+      "mesa": "3.5.1",
+      "pandas": "3.0.6",
+      "numpy": "2.5.3",
+      "openpyxl": "3.1.5",
+      "networkx": "3.7",
+      "scipy": "1.18.1"
+    },
+    "python": "3.12.3",
+    "instances": {
+      "2022-01-03": {
+        "kind": "historical_day",
+        "cases": 9,
+        "configurations": [
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      },
+      "2022-02-02": {
+        "kind": "historical_day",
+        "cases": 15,
+        "configurations": [
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      },
+      "2022-10-20": {
+        "kind": "historical_day",
+        "cases": 25,
+        "configurations": [
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      }
+    },
+    "max_evaluations": 1000,
+    "solver_budget_seconds": 60.0,
+    "budget_mode": "evaluations",
+    "methods": [
+      "baseline",
+      "annealing",
+      "tabu",
+      "genetic",
+      "hybrid",
+      "aco"
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "policies": [
+      "static",
+      "reactive"
+    ],
+    "exact_references": {},
+    "execution_layout": null,
+    "manifest_sha256": "eddf640787343fdf0d940ef9c67773e7f26cc5ad612c79250f0f28cfa2a880d1",
+    "data_quality": {
+      "input_rows": 14507,
+      "usable_rows": 14434,
+      "excluded_rows": 73,
+      "exclusions_by_reason": {
+        "zero_endpoint": 73
+      },
+      "training_rows": 10800,
+      "training_period": [
+        "2019-01-01",
+        "2021-12-31"
+      ],
+      "evaluation_year": 2022,
+      "minimum_procedure_training_count": 10,
+      "fallback_median_minutes": 70.0
+    }
+  },
+  "median/large": {
+    "duration_mode": "median",
+    "duration_information": "2019\u20132021 procedure medians with overall training-median fallback.",
+    "generated_room_sizing": "Original median estimates, before applying duration mode.",
+    "code": {
+      "commit": "1ee8d0860cb72aaba25f8536929871773fbcea45",
+      "dirty": true,
+      "implementation_sha256": "92078c6a81c41aa8ac607d122c2703ab9ec4e99bb34140add047c8adfc0aa280"
+    },
+    "dataset_sha256": "7896e82c38a7744353b31b9747dcecaddbe3def243e692132ad3681827795005",
+    "dependencies": {
+      "mesa": "3.5.1",
+      "pandas": "3.0.6",
+      "numpy": "2.5.3",
+      "openpyxl": "3.1.5",
+      "networkx": "3.7",
+      "scipy": "1.18.1"
+    },
+    "python": "3.12.3",
+    "instances": {
+      "sample-100-0": {
+        "kind": "sampled_2022_cases",
+        "instance_seed": 0,
+        "target_load": 1.1,
+        "cases": 100,
+        "configurations": [
+          {
+            "rooms": 14,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 14,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      },
+      "sample-100-1": {
+        "kind": "sampled_2022_cases",
+        "instance_seed": 1,
+        "target_load": 1.1,
+        "cases": 100,
+        "configurations": [
+          {
+            "rooms": 15,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 15,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      },
+      "sample-300-0": {
+        "kind": "sampled_2022_cases",
+        "instance_seed": 0,
+        "target_load": 1.1,
+        "cases": 300,
+        "configurations": [
+          {
+            "rooms": 44,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 44,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      },
+      "sample-300-1": {
+        "kind": "sampled_2022_cases",
+        "instance_seed": 1,
+        "target_load": 1.1,
+        "cases": 300,
+        "configurations": [
+          {
+            "rooms": 45,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 45,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      }
+    },
+    "max_evaluations": 1000,
+    "solver_budget_seconds": 60.0,
+    "budget_mode": "evaluations",
+    "methods": [
+      "baseline",
+      "annealing",
+      "tabu",
+      "genetic",
+      "hybrid",
+      "aco"
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "policies": [
+      "static",
+      "reactive"
+    ],
+    "exact_references": {},
+    "execution_layout": null,
+    "manifest_sha256": "6549ef7b90b420447c3adf5c31ad5ed8108abca8496ce2a25157841707a854cf",
+    "data_quality": {
+      "input_rows": 14507,
+      "usable_rows": 14434,
+      "excluded_rows": 73,
+      "exclusions_by_reason": {
+        "zero_endpoint": 73
+      },
+      "training_rows": 10800,
+      "training_period": [
+        "2019-01-01",
+        "2021-12-31"
+      ],
+      "evaluation_year": 2022,
+      "minimum_procedure_training_count": 10,
+      "fallback_median_minutes": 70.0
+    }
+  },
+  "oracle/small": {
+    "duration_mode": "oracle",
+    "duration_information": "Perfect knowledge: scheduling estimates equal realized room occupancy; not an ML prediction.",
+    "generated_room_sizing": "Original median estimates, before applying duration mode.",
+    "code": {
+      "commit": "1ee8d0860cb72aaba25f8536929871773fbcea45",
+      "dirty": true,
+      "implementation_sha256": "92078c6a81c41aa8ac607d122c2703ab9ec4e99bb34140add047c8adfc0aa280"
+    },
+    "dataset_sha256": null,
+    "dependencies": {
+      "mesa": "3.5.1",
+      "pandas": "3.0.6",
+      "numpy": "2.5.3",
+      "openpyxl": "3.1.5",
+      "networkx": "3.7",
+      "scipy": "1.18.1"
+    },
+    "python": "3.12.3",
+    "instances": {
+      "small-reference": {
+        "kind": "exact_reference",
+        "cases": 7,
+        "configurations": [
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 660,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 660,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 540,
+              "end": 600
+            }
+          }
+        ]
+      }
+    },
+    "max_evaluations": 1000,
+    "solver_budget_seconds": 60.0,
+    "budget_mode": "evaluations",
+    "methods": [
+      "baseline",
+      "annealing",
+      "tabu",
+      "genetic",
+      "hybrid",
+      "aco"
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "policies": [
+      "static",
+      "reactive"
+    ],
+    "exact_references": {
+      "small-reference": {
+        "allocations": 128,
+        "fitness": -0.39933444259567386,
+        "objective": {
+          "unstarted": 0,
+          "overtime": 240,
+          "changes": 0,
+          "cost": 0.39933444259567386
+        },
+        "allocation": {
+          "0": 0,
+          "1": 0,
+          "2": 0,
+          "3": 1,
+          "4": 1,
+          "5": 0,
+          "6": 1
+        }
+      }
+    },
+    "execution_layout": null,
+    "manifest_sha256": "2e8805c2edec1cf0c4001a7095d3b4f003bd6b7a96d1be1d4a03756b31fbbd59",
+    "data_quality": {
+      "source": "synthetic reference"
+    }
+  },
+  "oracle/historical": {
+    "duration_mode": "oracle",
+    "duration_information": "Perfect knowledge: scheduling estimates equal realized room occupancy; not an ML prediction.",
+    "generated_room_sizing": "Original median estimates, before applying duration mode.",
+    "code": {
+      "commit": "1ee8d0860cb72aaba25f8536929871773fbcea45",
+      "dirty": true,
+      "implementation_sha256": "92078c6a81c41aa8ac607d122c2703ab9ec4e99bb34140add047c8adfc0aa280"
+    },
+    "dataset_sha256": "7896e82c38a7744353b31b9747dcecaddbe3def243e692132ad3681827795005",
+    "dependencies": {
+      "mesa": "3.5.1",
+      "pandas": "3.0.6",
+      "numpy": "2.5.3",
+      "openpyxl": "3.1.5",
+      "networkx": "3.7",
+      "scipy": "1.18.1"
+    },
+    "python": "3.12.3",
+    "instances": {
+      "2022-01-03": {
+        "kind": "historical_day",
+        "cases": 9,
+        "configurations": [
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      },
+      "2022-02-02": {
+        "kind": "historical_day",
+        "cases": 15,
+        "configurations": [
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      },
+      "2022-10-20": {
+        "kind": "historical_day",
+        "cases": 25,
+        "configurations": [
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      }
+    },
+    "max_evaluations": 1000,
+    "solver_budget_seconds": 60.0,
+    "budget_mode": "evaluations",
+    "methods": [
+      "baseline",
+      "annealing",
+      "tabu",
+      "genetic",
+      "hybrid",
+      "aco"
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "policies": [
+      "static",
+      "reactive"
+    ],
+    "exact_references": {},
+    "execution_layout": null,
+    "manifest_sha256": "dca1602623e8d9be023c374bff2caf671615ba1eb4005b6b60a68d5f491fa81e",
+    "data_quality": {
+      "input_rows": 14507,
+      "usable_rows": 14434,
+      "excluded_rows": 73,
+      "exclusions_by_reason": {
+        "zero_endpoint": 73
+      },
+      "training_rows": 10800,
+      "training_period": [
+        "2019-01-01",
+        "2021-12-31"
+      ],
+      "evaluation_year": 2022,
+      "minimum_procedure_training_count": 10,
+      "fallback_median_minutes": 70.0
+    }
+  },
+  "oracle/large": {
+    "duration_mode": "oracle",
+    "duration_information": "Perfect knowledge: scheduling estimates equal realized room occupancy; not an ML prediction.",
+    "generated_room_sizing": "Original median estimates, before applying duration mode.",
+    "code": {
+      "commit": "1ee8d0860cb72aaba25f8536929871773fbcea45",
+      "dirty": true,
+      "implementation_sha256": "92078c6a81c41aa8ac607d122c2703ab9ec4e99bb34140add047c8adfc0aa280"
+    },
+    "dataset_sha256": "7896e82c38a7744353b31b9747dcecaddbe3def243e692132ad3681827795005",
+    "dependencies": {
+      "mesa": "3.5.1",
+      "pandas": "3.0.6",
+      "numpy": "2.5.3",
+      "openpyxl": "3.1.5",
+      "networkx": "3.7",
+      "scipy": "1.18.1"
+    },
+    "python": "3.12.3",
+    "instances": {
+      "sample-100-0": {
+        "kind": "sampled_2022_cases",
+        "instance_seed": 0,
+        "target_load": 1.1,
+        "cases": 100,
+        "configurations": [
+          {
+            "rooms": 14,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 14,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      },
+      "sample-100-1": {
+        "kind": "sampled_2022_cases",
+        "instance_seed": 1,
+        "target_load": 1.1,
+        "cases": 100,
+        "configurations": [
+          {
+            "rooms": 15,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 15,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      },
+      "sample-300-0": {
+        "kind": "sampled_2022_cases",
+        "instance_seed": 0,
+        "target_load": 1.1,
+        "cases": 300,
+        "configurations": [
+          {
+            "rooms": 44,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 44,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      },
+      "sample-300-1": {
+        "kind": "sampled_2022_cases",
+        "instance_seed": 1,
+        "target_load": 1.1,
+        "cases": 300,
+        "configurations": [
+          {
+            "rooms": 45,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 45,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      }
+    },
+    "max_evaluations": 1000,
+    "solver_budget_seconds": 60.0,
+    "budget_mode": "evaluations",
+    "methods": [
+      "baseline",
+      "annealing",
+      "tabu",
+      "genetic",
+      "hybrid",
+      "aco"
+    ],
+    "seeds": [
+      0,
+      1,
+      2
+    ],
+    "policies": [
+      "static",
+      "reactive"
+    ],
+    "exact_references": {},
+    "execution_layout": null,
+    "manifest_sha256": "4d1cfc8c8287c7236344c37686f2612e1971867c5dff79266bc8732c79c33be7",
+    "data_quality": {
+      "input_rows": 14507,
+      "usable_rows": 14434,
+      "excluded_rows": 73,
+      "exclusions_by_reason": {
+        "zero_endpoint": 73
+      },
+      "training_rows": 10800,
+      "training_period": [
+        "2019-01-01",
+        "2021-12-31"
+      ],
+      "evaluation_year": 2022,
+      "minimum_procedure_training_count": 10,
+      "fallback_median_minutes": 70.0
+    }
+  }
+}

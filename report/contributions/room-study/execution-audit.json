@@ -1,0 +1,32 @@
+{
+  "room-comparison": {
+    "execution_records_checked": 576,
+    "shared_initial_plans_checked": 144,
+    "raw_export_sha256": "73bcf0d8cb2ae57a791d3c0975c4836f64c6641bc33e9c43badb39e90f94b662",
+    "checks": [
+      "case conservation",
+      "start windows and closures",
+      "turnover and room non-overlap",
+      "recomputed occupancy and overtime",
+      "utilization denominator",
+      "evaluation caps",
+      "four-way initial-plan equality",
+      "zero reported failures/timeouts/deadline stops"
+    ]
+  },
+  "duration-comparison": {
+    "execution_records_checked": 1152,
+    "shared_initial_plans_checked": 288,
+    "raw_export_sha256": "026ea98ffa9b46f2e9cddf1553af901f0f479c2274a5e0439c8273ace70dc4e3",
+    "checks": [
+      "case conservation",
+      "start windows and closures",
+      "turnover and room non-overlap",
+      "recomputed occupancy and overtime",
+      "utilization denominator",
+      "evaluation caps",
+      "four-way initial-plan equality",
+      "zero reported failures/timeouts/deadline stops"
+    ]
+  }
+}

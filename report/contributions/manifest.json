@@ -1,0 +1,90 @@
+{
+  "report-latex": {
+    "ref": "origin/report/latex",
+    "commit": "8708301f03d4f365e4ec25025fb59cff4f437d93",
+    "files": [
+      {
+        "path": "report/sections/00-introduction.tex",
+        "sha256": "9b8f893b5d33c863eab2cc7b99bd5e63f68c2119aa0275279fbd11005558147e"
+      },
+      {
+        "path": "report/sections/01-problemes-ordonnancement.tex",
+        "sha256": "fe8d8051a5c7016a977d0ae0a04c3552774b02c029b8ef929051a9bb09cd0762"
+      },
+      {
+        "path": "report/sections/02-analyse-bdd.tex",
+        "sha256": "94acd268dec1862f6b3bb2754117e81150901eb9d8d3db0fd864dcfb5daee019"
+      },
+      {
+        "path": "report/bibliography.bib",
+        "sha256": "64c120d46eb26b52175f054f2c6021f940b77892f3efdf1b4d0d349694c2c9e7"
+      }
+    ]
+  },
+  "los-uncertainty": {
+    "ref": "origin/model/los-bridge",
+    "commit": "d2dc2260d7b9c4b1ed2a49e6889b08fe0c484888",
+    "files": [
+      {
+        "path": "Report_LOS_uncertainty.tex",
+        "sha256": "7ced0334d847480a66610fae13fabfad69f4816d33612a9c6408f47cb889e6a0"
+      },
+      {
+        "path": "resumen_resultados.tex",
+        "sha256": "11c99c78404e9058859bef1ba1253d57c9a0e53c7bb763c5fe6267a96175d273"
+      },
+      {
+        "path": "bridge_los.py",
+        "sha256": "571b2ab83d14c4d87fc303e587c8c644adc5e8a1f3cc0498ee40eee919e66ca1"
+      },
+      {
+        "path": "los_campaign_v3.py",
+        "sha256": "85999512da3c4e64a435f3109f058254f75292d20e92ea3894a02c06969e2a4a"
+      },
+      {
+        "path": "robustness_mc.py",
+        "sha256": "d4ccac4f712fa1891842141bc80c61ce6f5cf4ed529934938d1c679fbc59e96a"
+      },
+      {
+        "path": "make_report_assets.py",
+        "sha256": "2281720e17ebdc2bba65776e62168baa39913cffb942a98378a966b9b8a548aa"
+      },
+      {
+        "path": "plot_new_results.py",
+        "sha256": "63c8b587671e791c0b70e72840543468dba291b6e7fcc081ecf05b0932858ecc"
+      },
+      {
+        "path": "check_calibration.py",
+        "sha256": "c8a2ea39b3b982ec1eadc62f062f81deec3989c5c7cede5f45a5413ce61ed170"
+      },
+      {
+        "path": "check_split.py",
+        "sha256": "faab0acd3bdf735c82785e5e1e8c46564ae77532a88ed1f6a73dd7ad9d22378c"
+      },
+      {
+        "path": "results_mc.csv",
+        "sha256": "ba62c6facc3295168ff9043988aac80439bbd70738c3ea94702de0d5d6981fc8"
+      },
+      {
+        "path": "results_ga_sensitivity.csv",
+        "sha256": "e7798bd268122f4f960540769d0672a09828829cb03704d685bfd92f51b46c86"
+      },
+      {
+        "path": "results_los_v3_base.csv",
+        "sha256": "ed9e35dc435434f20402a177217a502990323a34083b09cfbd15af602969a9a0"
+      },
+      {
+        "path": "results_los_v3_v2res.csv",
+        "sha256": "3f1721f03f1a394dc78134790e1a27460331e75712ebe86eeb1ba963d738a1e4"
+      },
+      {
+        "path": "results_los_v3_load.csv",
+        "sha256": "9e41f075a8687593ffea4c3aabd91b49a90132ad58294f70ffdd20b2ec2a7cc6"
+      },
+      {
+        "path": "results_los_v3_matched.csv",
+        "sha256": "476a6cded5c0db8e875cec48fc8dda060a2a4f291026c9d1a59ec9db3487d2c6"
+      }
+    ]
+  }
+}

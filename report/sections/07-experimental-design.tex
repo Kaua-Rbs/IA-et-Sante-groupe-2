@@ -1,0 +1,131 @@
+\section{Experimental Design}
+\label{sec:experimental-design}
+
+The aggregate LOS experiments incorporate Virna Lissi Mart\'inez S\'anchez's
+report and structural sensitivity analysis \citep{martinez2026los}. The
+room-execution campaigns are evaluated separately. Tables and figures are
+regenerated from pinned aggregate results; original contributions retain
+their attribution and source hashes.
+
+\subsection{Data and predictive modelling}
+\label{sec:data-prediction}
+
+\subsubsection{Source data and targets}
+
+The original workbook audit describes 14\,649 cases, 30 variables and
+11\,108 patients; 2546 patients have repeated cases, up to nine per person
+\citep{group2026dataaudit}. Interventions span 2 January 2019--30 December
+2022, with one admission in 2018. Records cover demographics, clinical codes,
+admission/discharge and pathway timestamps. They do not reconstruct reliable
+room/session assignments, staffing, bed capacity, cancellations or rejected
+dates. Experimental calendars and capacities are therefore assumptions.
+Raw, cleaned, prediction-eligible and matched cohorts have different denominators.
+
+Targets are inclusive admission-to-discharge LOS and room entry-to-exit
+occupancy, distinct from incision-to-closure time. The audit found no exact
+duplicate rows, but 2560 LOS values disagree with the date-derived target;
+1884 recorded one-day stays span a night, and 31 recorded values resemble
+Julian dates rather than durations. A one-day value alone cannot identify
+ambulatory care. Zero clocks are treated as missing unless midnight is
+confirmed: the audit reports 172 room-entry, 172 room-exit, 552 incision and
+133 pre-anaesthesia zeros. Inverted intervals are not automatically repaired
+by adding 24 hours. Section~\ref{sec:data-audit} retains further aggregate
+checks; no original patient or professional identifiers are reproduced.
+
+\subsubsection{Prediction time and evaluation}
+
+Temporal and patient-disjoint evaluation measure different generalisation
+settings. Imputation, encoding and category
+rules use training data only. Historical medians, MAE, tail errors and
+calibration provide complementary references. Features must be available
+at decision time: discharge and observed pathway durations are excluded;
+planned diagnoses, procedures, anaesthesia and clinician information remain
+conditional on local preoperative availability. A changed proposed date
+also changes any date-derived predictor. The implemented notebook and room
+baseline splits are distinguished below.
+
+\subsubsection{LOS predictor and matching interface}
+
+The contributor uses XGBoost \citep{chen2016} on $\log(1+\mathrm{LOS})$ and
+reports test MAE 0.412 days, $R^2=0.789$ and 89.4\% coverage for a nominal
+90\% interval with half-width 1.02 days \citep{martinez2026los}. Scheduling
+CSVs do not independently verify these metrics. The bridge uses a fixed
+half-width in the inductive confidence-prediction tradition
+\citep{papadopoulos2002}.
+
+Back-transformed predictions are floored at one day and matched by patient
+key and normalised intervention date, averaging duplicate key-date predictions.
+Reported match rates are 86.7\% for the small workload and 86.4\% for the
+large one. Unmatched cases receive the median matched prediction in the
+selected window, or three days if no match exists; this is not an independently
+estimated training median. Point and interval endpoints are rounded for
+planning. The HIGH/LOW flag thresholds regression output above four days
+and is distinct from the contributor's separately evaluated risk classifier.
+
+\subsection{LOS instances, benchmarks and scenarios}
+
+The original campaign compares SA, tabu, the hybrid, GA and ACO on 45 cases
+with 35 sessions over five dates and 420 cases with 210 sessions over
+30 dates. Capacity is 480 minutes per speciality-day and 42 aggregate beds.
+The large workload has a speciality requiring 15\,438 minutes against
+14\,400 available, so unavoidable overload is at least 1038 minutes and the
+weighted objective has lower bound 5190, without certifying its full optimum.
+
+The structural campaign splits each daily session into two 240-minute
+sessions, preserving total capacity and giving 420 sessions. It tests SA,
+tabu, the hybrid and GA with mutation $1/n$, without ACO. Original GA uses
+0.08; a separate sensitivity run tests $1/n$. Source stopping rules and
+unequal computation are retained rather than interpreted as a common-budget
+comparison.
+
+For each method and seed, point-LOS and upper-endpoint schedules are frozen
+and evaluated on 200 common scenarios. Ten seeds, 42--51, support the main
+comparisons; paired SE uses ten seed-level upper-minus-point scenario means,
+not 200 independent optimiser runs. Original noise is uniform in
+$[-1.02,1.02]$ days around unrounded predictions, clipped at one day and
+integer-rounded. Alternatives use symmetric bounded noise with stochastic
+rounding and extended, rather than horizon-truncated, bed tracking. These
+are sensitivity rules, not distributions implied by interval coverage.
+Additional experiments vary bottleneck-speciality block load across
+0.80, 0.93, 0.98 and 1.10 with five seeds, keeping 42 beds. Matched-only
+analysis retains 363 cases and removes 57 fallback cases, changing demand.
+
+\input{sections/parts/room-design}
+
+\subsection{Additional source-workbook audit details}
+\label{sec:data-audit}
+
+By admission year, the raw audit counts are 1 (2018), 3690 (2019),
+3526 (2020), 3764 (2021) and 3668 (2022); intervention dates are in 2019--2022.
+All interventions lie between admission and discharge in that audit, with
+no missing date endpoints or discharge before admission. These checks retain the raw-audit denominator rather than that of the
+cleaned room cohort.
+
+\begin{table}[H]
+\centering\small
+\caption{Selected additional quality checks in the original workbook audit.
+Timestamp comparisons exclude zero clocks and use their own valid-pair denominators.}
+\label{tab:source-quality}
+\begin{tabularx}{\linewidth}{@{}YY@{}}
+\toprule
+Check & Audit result \\
+\midrule
+Associated diagnosis fields 1--5 & Missingness 20.7\%, 43.2\%, 63.2\%, 77.1\%, 86.9\%. \\
+Secondary procedure fields 2--4 & Missingness 7.3\%, 38.6\%, 66.0\%. \\
+Anaesthesia / locoregional anaesthesia & Missingness 15.3\% / 37.1\%. \\
+Room exit before entry & 0 of 14\,477 comparable pairs. \\
+Room exit before incision / incision before entry & 4 / 42 of 14\,026 pairs. \\
+Room entry / exit before pre-anaesthesia entry & 309 / 2 of 14\,442 pairs. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Administrative spreadsheet completeness therefore does not imply valid
+clinical timing. Zero-coded endpoints and inverted intervals require explicit
+handling, not an automatic 24-hour correction. High-cardinality coding
+(617 principal diagnoses, 570 principal procedures and 1433 intervention-type
+labels) motivates category harmonisation. The audit's coded-sex categories
+require confirmation before interpretation. The full aggregate source audit,
+including variable families, population summaries and detailed LOS discrepancy
+counts, is preserved in the pinned contribution archive. No patient or
+professional identifiers are reproduced.

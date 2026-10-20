@@ -1,0 +1,114 @@
+\section{Problem Description}
+\label{sec:problem-description}
+
+\subsection{Decision setting and modelling scope}
+
+Two complementary models assign a given workload to available capacity.
+The aggregate model assigns patients to speciality sessions over several days
+and approximates bed demand. The operational model assigns a daily workload
+to rooms and evaluates execution in Mesa. They share search mechanisms but
+have different decision spaces and objective scales. Static/reactive policy
+comparisons concern the operational model.
+
+An operational instance specifies cases, room count, opening hours, turnover
+and an optional temporary closure. Rooms and calendars are experimental
+assumptions rather than reconstructed hospital resources. All cases are ready
+at opening. Days are independent: unstarted cases are counted, without
+carryover, new arrivals or clinical prioritisation. The model evaluates a
+fixed workload rather than a multi-day waiting list.
+
+\subsection{Cases and available information}
+
+Each case has a local identifier, procedure category and positive predicted
+room-occupancy duration. A separate realised duration determines execution
+and remains hidden from ordinary scheduling. Historical entry times define
+observed occupancy but do not impose new-schedule release times or ordering.
+The room baseline uses 2019--2021 procedure medians and a global fallback
+for groups with fewer than ten observations; 2022 supplies evaluation cases.
+Invalid dates and missing, zero or nonpositive clock intervals are excluded,
+without interpreting exit-before-entry as overnight surgery. Durations round
+up to integer minutes. Section~\ref{sec:room-design} reports selection counts.
+
+At replanning, visible inputs are statuses, the accepted plan, estimated room
+availability and revealed closures. For an ongoing case, availability uses
+its predicted finish or at least the next minute if that prediction has
+elapsed, followed by turnover. Hidden actual finish is not supplied. The
+explicit oracle experiment instead substitutes realised occupancy estimates
+while preserving workloads and resources.
+
+\subsection{Aggregate sessions and bed demand}
+
+A patient has speciality, operating minutes and stay days; a session has
+speciality, day and minute capacity. The decision assigns each patient to a
+session, without a start time or within-session sequence. Search options use
+matching speciality when available, otherwise all sessions. This fallback
+is computational and does not establish clinical compatibility.
+
+Session load sums assigned durations. Bed occupancy counts the surgery day
+through that day plus supplied LOS, inclusively, truncated to the planning
+horizon. A zero-day stay therefore occupies one day. The model has a single
+aggregate bed capacity, without existing occupants, bed types or explicit
+admission/discharge processes. Session excess, bed excess and workload
+standard deviation incur soft penalties; returned plans may exceed capacity.
+The EDA adapter constructs sessions and derives a speciality proxy from codes,
+requiring clinical confirmation. Historical durations are not out-of-sample
+predictions unless a separate validated predictor supplies them.
+
+\subsection{Room allocation and operational constraints}
+
+Rooms are interchangeable: the operational model excludes beds, staff,
+equipment and speciality eligibility. A solution allocates waiting cases to
+rooms. The shared decoder orders each room's cases by increasing predicted
+duration, breaking ties by local ID, then computes starts from current time,
+opening, estimated availability and known closures. Sequence is fixed by
+this rule rather than searched independently.
+
+Every accepted schedule covers each case exactly once as assigned or
+explicitly unassigned. Waiting assignments use integer starts and predicted
+durations, respect availability and avoid predicted occupancy/turnover
+overlap. Cases unable to start strictly before closing become unassigned,
+but may be reconsidered at a later replan. Closing prohibits new starts,
+not late finishes; required turnover contributes to overtime.
+
+A closure blocks starts from its beginning up to reopening, without
+interrupting ongoing non-preemptive work. Reassignment does not change realised
+duration. Actual occupancy and turnover guard execution against conflicts
+when predictions are optimistic. Planned starts remain lower bounds: cases
+do not start early after an unexpectedly short predecessor unless replanned.
+
+\subsection{Disruptions and rescheduling}
+
+Static and reactive policies share one saved initial plan. Static execution
+retains room assignments and order, allowing starts to slip when resources
+remain occupied or closed. Reactive execution requests a plan at closure and
+reopening. The closure is revealed when it begins, including its end time;
+duration overruns alone do not trigger replanning.
+
+Only waiting cases may change. Running/completed commitments remain fixed,
+and the common validator checks coverage, resources, timing and consistency
+with the current state. A failed replan retains the accepted plan; failed
+initial planning leaves cases unassigned. Minute steps process completions
+and turnover, availability changes, state synchronisation, optional replanning
+and eligible starts. Simulated time pauses during solving, so measured
+runtime is not itself an imposed patient delay.
+
+\subsection{Objectives and performance criteria}
+
+The room objective prioritises predicted unstarted waiting cases, then
+overtime including turnover, then changed waiting decisions. Changes include
+room/start revisions and assigned/unassigned transitions; they are inactive
+at initial planning. Section~\ref{sec:room-formulation} formalises these
+priorities. The aggregate model instead weights session excess, excess
+bed-days and imbalance; raw costs cannot be compared across models.
+
+Execution measures completed/unstarted cases, overtime, utilisation, delay
+and revisions. Utilisation counts actual occupancy within opening hours,
+excluding turnover, divided by configured room-hours; closure does not reduce
+that denominator. Overtime sums post-closing occupancy and turnover over
+rooms, excluding idle time. Start delay is relative to the initial plan and
+measured only for completed cases with an initial assignment, requiring its
+own denominator. Revisions count decision changes across replans, potentially
+counting a case more than once. Fitness calls, solver time and request counts
+measure effort. These definitions support interpretation within the model;
+emergency arrivals, clinical urgency, staff constraints and downstream
+congestion remain outside its operational scope.

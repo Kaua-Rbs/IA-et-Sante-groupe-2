@@ -1,0 +1,55 @@
+\subsection{Operational room allocation and deterministic decoding}
+\label{sec:room-formulation}
+
+At decision time $t$, let $W$ be the waiting cases, $\mathcal R$ the rooms,
+$N=|W|$, $[a,b)$ the opening window, $\tau$ the turnover time and $A_r$
+the estimated availability of room $r$. Case $i$ has integer predicted
+occupancy $p_i>0$. Running and completed assignments form a fixed set $F$.
+The search chooses binary allocations $y_{ir}$ satisfying
+\begin{equation}
+ \sum_{r\in\mathcal R}y_{ir}=1\quad(i\in W),\qquad y_{ir}\in\{0,1\}.
+\end{equation}
+All rooms are eligible. Allocation does not guarantee that a case can start:
+the decoder may return it explicitly unassigned.
+
+Let $h_r(v)$ return the first minute at or after $v$ outside any currently
+known start-blocking closure of room $r$. For each room, order its allocated
+cases by $(p_i,\text{local ID}_i)$. Initialise $v_r=\max(t,a,A_r)$, then
+compute $s_i=h_r(v_r)$. If $s_i<b$, accept the assignment and update
+$v_r=s_i+p_i+\tau$; otherwise mark the case unassigned without advancing
+$v_r$. Restore $F$ unchanged. This recurrence fixes the sequencing rule and
+ensures predicted non-overlap with turnover; it does not optimise permutations.
+Starts must satisfy $s_i\geq\max(t,a,A_r)$ and avoid known closures. Finishes
+may exceed $b$. Future closures are absent until revealed by execution.
+
+Write $D(y)$ for the decoded schedule and $W_A(y)$ for its assigned waiting
+cases. Let $q_i(y)$ denote the complete room/start/duration assignment,
+or the unassigned symbol, and let $q_i^0$ denote the accepted decision.
+The request-level components are
+\begin{align}
+ U(y)&=N-|W_A(y)|,\\
+ O(y)&=\sum_{i\in W_A(y)}[s_i+p_i+\tau-b]_+,\\
+ R(y)&=\sum_{i\in W}\mathbf{1}\{q_i(y)\ne q_i^0\},
+ \qquad B=\sum_{i\in W}(p_i+\tau).
+\end{align}
+At initial planning, set $R=0$. The implemented minimisation objective is
+\begin{equation}
+ C_{\mathrm{room}}(y)=U(y)+\frac{O(y)+R(y)/(N+1)}{B+1},
+ \qquad f(y)=-C_{\mathrm{room}}(y).
+ \label{eq:room-cost}
+\end{equation}
+Since starts precede closing, $O\leq B$; also $R\leq N$. The fractional
+term is less than one, so an additional unstarted case dominates every
+possible overtime/change improvement. Overtime uses integer minutes, and
+$R/(N+1)<1$, so one minute dominates all changes. This encodes the intended
+lexicographic priorities without clinically calibrated trade-off weights.
+Fixed activity's overtime is constant within a request and excluded from
+this score; execution metrics include it.
+
+The admissible schedules must cover each case exactly once as assigned or
+unassigned, retain $F$, and pass the common temporal validator. Enumeration
+on a small instance certifies the best cost only among allocations decoded
+by this rule. It does not certify optimal execution with hidden durations,
+an optimal independent sequence, or an optimum across objectives. Different
+workloads or duration modes change $B$, so raw normalised costs are not a
+cross-instance performance scale.

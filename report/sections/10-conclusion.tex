@@ -1,0 +1,29 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+This report combines a historical-data audit, a predictive LOS interface,
+five metaheuristics and a room-level simulation-optimisation framework.
+It formalises separate session-and-bed and operational room objectives,
+describes the shared decoder and acceptance loop, and retains the provenance
+of each experimental contribution.
+
+The LOS results show that session granularity can change algorithm rankings
+at unchanged total capacity. The hybrid attains the lowest mean cost among
+four split-session configurations, with a 5.70\% gap to an overload lower
+bound under unequal search budgets. Upper-endpoint planning does not
+consistently reduce scenario-mean cost. In the room campaign, all searches
+reach the small fixture's exact initial allocation optimum, while larger
+predicted improvements need not survive execution. Reactive scheduling
+improves completions in 16 of 144 closure pairs, ties in 83 and worsens them
+in 45. The separate oracle experiment illustrates that increased throughput
+can require increased overtime even with perfect duration information.
+These are descriptive findings under explicit modelling assumptions, not
+a universal method ranking or evidence of clinical effectiveness.
+
+Further work should reconcile LOS and bed-accounting conventions, evaluate
+current learned room-duration models on held-out workloads, compare total
+computation as well as per-request budgets, and vary loads, disruptions and
+sequencing policies. Integrating ward dynamics, staff and clinical constraints
+would connect the current experiments more closely to admission-date decision
+support. Such extensions require additional data and validation; they are
+not implied by the successful software integration.

@@ -1,0 +1,87 @@
+\subsection{Room/Mesa cohorts and paired experiment matrix}
+\label{sec:room-design}
+
+The separate room study uses the cleaned workbook, not the raw audit's
+14\,649-row denominator. Its saved manifest records 14\,507 source rows,
+14\,434 usable episodes and 73 exclusions, all zero clock endpoints in that
+file version. Duration medians are learned from 10\,800 valid 2019--2021
+cases, with a ten-observation threshold per procedure and a 70-minute global
+fallback. Evaluation uses 2022. This temporal split permits recurring patients, unlike the patient-disjoint
+model-preprocessing partitions described below.
+
+The first room campaign contains one seven-case fixture, three historical
+days (3 January: 9 cases; 2 February: 15; 20 October: 25), and two generated
+samples at each of 100 and 300 cases. The selected dates have no exclusions; the middle and largest workloads
+follow valid daily case counts among such dates. Generated instances sample complete eligible 2022
+rows with replacement, retaining procedure--duration associations but not
+within-day dependence. Each workload uses six methods and solver seeds
+0, 1 and 2. Its 144 initial plans are each replayed under static/reactive
+policies and closure/no-closure scenarios: 576 executions, not 576 independent
+hospital days \citep{group2026roomstudy}.
+
+Historical and generated days open 08:00--17:00 with 15-minute turnover.
+Historical workloads use two interchangeable rooms; room 1 forbids starts
+10:00--12:00 in the closure scenario. The small fixture uses two rooms,
+08:00--11:00 and a 09:00--10:00 closure. Initial plans do not know the future
+closure. For generated workloads,
+\begin{equation}
+ |\mathcal R|=\max\!\left(1,
+ \left\lceil\frac{\sum_i(p_i+\tau)}{(b-a)\rho}\right\rceil\right),
+ \qquad\rho=1.1.
+\end{equation}
+The four samples therefore use 14, 15, 44 and 45 rooms. Integer rounding
+changes achieved load. This is an overloaded target experiment, not a
+light-load sensitivity campaign; a single closure also represents a smaller
+capacity fraction as the room pool grows.
+
+Each nontrivial request has 1000 fitness calls and a 60-second safety limit.
+No deadline stops occur in the saved campaigns. The baseline performs no
+search evaluations. Reactive execution may use two additional request
+budgets, so policies do not receive equal total computation. Runtime includes worker startup and communication. The 100-case runs were
+sequential and 300-case runs used four concurrent batches, limiting timing
+comparisons. Manifests record Python 3.12.3, Mesa 3.5.1, dependency versions
+and source fingerprints, including dirty-checkout provenance.
+
+\subsection{Duration-information experiment and predictive interfaces}
+\label{sec:duration-design}
+
+A separate saved campaign repeats the same matrix in median and oracle modes,
+providing 1152 executions from 288 initial plans. These median runs are a
+rerun, not extra independent replications of the first campaign. Oracle
+mode replaces only scheduling estimates with realised room-occupancy minutes.
+Workloads, execution durations and resources are held fixed; generated room
+counts are computed from the original medians before substitution. Initial
+plans are recomputed across modes but shared within each mode's four execution
+conditions. Future closures remain hidden. This is a perfect-information
+reference under finite search and a fixed decoder, not an ML predictor or a
+certified operational upper bound. Normalised objective costs change scale
+between modes; comparisons therefore use completions and realised overtime.
+
+The operating-duration model branch \citep{group2026durationmodel} validates
+patient-disjoint chronological partitions, excludes calendar features by
+default, separates selection from later patient-disjoint calibration, and
+selects the fastest candidate within 0.2 minutes of the best validation MAE.
+Test data are reserved for reporting. Its review labels older metric tables
+as belonging to a previous protocol; those are not verified current-model
+results. Neither the median nor oracle campaign evaluates a learned room
+model within Mesa.
+
+Both preprocessing notebooks use pre-2021 training, new-patient validation
+in 2021 and new-patient testing from 2022, excluding later cases of patients
+in earlier partitions. Split identifiers/dates remain audit metadata.
+Target-derived fields and postoperative/discharge information are excluded
+from predictors; clinical codes require confirmed preoperative availability.
+These controls must survive model-to-scheduler integration.
+
+\subsection{Verification and reproducible evidence}
+
+The incorporated room tables are regenerated from pinned aggregate CSVs.
+Checks enforce unique run keys, four replays per initial plan, case conservation,
+paired mode coverage and equality of no-closure policy outcomes. An independent
+review of all 576 primary and 1152 duration execution exports recomputes
+occupancy and overtime and checks start windows, closures, turnover separation,
+evaluation caps and shared initial schedules. All pass, with zero reported
+coordinator/search failures, timeouts or deadline stops. Validation of the reviewed source snapshot ran 94 tests, with 92 passing
+and two optional tests skipped. These
+checks support implementation consistency; they do not validate clinical
+assumptions or make solver-seed repetitions independent observations.

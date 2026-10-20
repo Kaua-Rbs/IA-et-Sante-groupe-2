@@ -1,0 +1,88 @@
+% Adapted from elsarticle-template-harv.tex supplied in resources/elsarticle.
+% The Elsevier class and bibliography style retain their original licences.
+\documentclass[final,3p,a4paper,authoryear]{elsarticle}
+
+\usepackage[T1]{fontenc}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[utf8]{inputenc}
+\fi
+% English is LaTeX's default language; no additional language package is needed.
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs,tabularx,array}
+\usepackage{float,placeins}
+\usepackage{microtype}
+\usepackage{xurl}
+\usepackage[hidelinks,unicode]{hyperref}
+\biboptions{authoryear,round}
+\setlength{\emergencystretch}{2em}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\journal{Fil rouge Project -- AI and Healthcare}
+\myfooter[C]{Fil rouge Project -- Working draft -- \today}
+\abstracttitle{Abstract}
+\keywordtitle{Keywords}
+
+\begin{document}
+% Outline item 1 is the Elsevier front matter.
+\pdfbookmark[1]{1. Title, Abstract and Keywords}{frontmatter}
+\begin{frontmatter}
+\title{Operating Room Planning: Comparing Metaheuristics and Coupling
+Optimisation with Reactive Simulation}
+\author{Group 2 -- AI and Healthcare Project}
+% Replace the collective author with confirmed names and affiliations before submission.
+
+\begin{abstract}
+Operating room planning must coordinate limited capacity while procedure
+and hospital stay durations remain uncertain. This report connects a
+historical-data audit, predictive modelling, five metaheuristics and execution
+simulation. It distinguishes an aggregate session-and-bed model from a
+minute-resolution room model coupled with Mesa. In the length-of-stay study,
+changing session granularity alters algorithm rankings; the hybrid attains
+the lowest mean cost among four split-session configurations, with a 5.70\%
+gap to an overload lower bound under unequal search budgets. Upper-endpoint
+stay estimates do not consistently reduce scenario-mean cost. The separate
+room campaign comprises 144 initial plans replayed in 576 static/reactive,
+closure/no-closure executions. All five searches reach the exact initial
+allocation optimum on a seven-case fixture, but predicted improvements do
+not guarantee better execution. Across 144 closure pairs, reactive planning
+increases completions in 16, ties in 83 and reduces them in 45. A separate
+1152-execution median/oracle comparison shows that perfect duration information
+can increase throughput while also increasing overtime. These findings support
+joint assessment of completions, overtime and computation rather than a
+universal method ranking. Prediction matching, target conventions, cohort
+selection, fixed sequencing and limited workload replication qualify the
+results. Learned room-duration models and downstream resources require
+further end-to-end evaluation.
+\end{abstract}
+
+\begin{keyword}
+Operating room planning \sep Scheduling \sep Metaheuristics
+\sep Hybrid optimisation \sep Simulation \sep Rescheduling
+\end{keyword}
+\end{frontmatter}
+
+% Keep the outline numbering: front matter is item 1, Introduction is item 2.
+\setcounter{section}{1}
+\input{sections/02-introduction}
+\input{sections/03-literature-review}
+\input{sections/04-problem-description}
+\input{sections/05-mathematical-formulation}
+\input{sections/06-hybrid-approach}
+\input{sections/07-experimental-design}
+% Keep audit tables inside Experimental Design.
+\FloatBarrier
+\input{sections/08-results}
+% Keep result figures and tables inside Computational Results.
+\FloatBarrier
+\input{sections/09-discussion}
+\input{sections/10-conclusion}
+
+\renewcommand{\bibsection}{\section{References}\label{sec:references}}
+\begingroup
+% Compact, readable reference leading avoids a one-entry overflow page.
+\renewcommand{\bibfont}{\fontsize{8}{9}\selectfont}
+\bibliographystyle{elsarticle-harv}
+\bibliography{bibliography}
+\endgroup
+\end{document}

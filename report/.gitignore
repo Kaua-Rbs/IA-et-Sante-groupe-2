@@ -1,0 +1,15 @@
+/build/
+/PLAN.md
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+
+# Override the repository-wide Python build-directory rule for LaTeX inputs.
+!/sections/parts/
+!/sections/parts/*.tex

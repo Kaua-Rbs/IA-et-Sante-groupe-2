@@ -1,0 +1,19 @@
+{
+  "primary_execution_runs": 576,
+  "primary_initial_plans": 144,
+  "duration_execution_runs": 1152,
+  "duration_initial_plans": 288,
+  "closure_pairs": {
+    "completed": {
+      "positive": 16,
+      "equal": 83,
+      "negative": 45
+    },
+    "overtime_minutes_including_turnover": {
+      "positive": 73,
+      "equal": 7,
+      "negative": 64
+    }
+  },
+  "interpretation": "Separate median reruns are not pooled; solver seeds do not create new hospital days."
+}

@@ -1,0 +1,25 @@
+{
+  "description": "Aggregate room-study inputs; median campaigns are distinct reruns and are not pooled.",
+  "files": {
+    "runs.csv": {
+      "source": "docs/comparison-results/runs.csv",
+      "sha256": "ba00ec35dc9f208e0f0185390d8cdb209d63b6fc7adeb7b2b5b59258c119590a"
+    },
+    "initial-plans.csv": {
+      "source": "docs/comparison-results/initial-plans.csv",
+      "sha256": "c94de7304bf8edf7e40267dcac1d8837acceb0cc443839662f635eb0de3739fe"
+    },
+    "provenance.json": {
+      "source": "docs/comparison-results/provenance.json",
+      "sha256": "a3ee0855b13e7b74ea9551f9acdb89a4a05395cb4899e697c64cd46105e673e8"
+    },
+    "duration-runs.csv": {
+      "source": "artifacts/full-duration-comparison/combined-summary.csv",
+      "sha256": "a60cd94d28df92b5ab6e484e1d4f219eaab17f231167521dce9f888fa7d607d0"
+    },
+    "duration-provenance.json": {
+      "source": "Selected aggregate fields from six local duration-comparison manifests; no episode records",
+      "sha256": "ba702fc63db3f4522421c4a5f86da68a2bd12fdb09e58eb76354f960c80e3bcc"
+    }
+  }
+}

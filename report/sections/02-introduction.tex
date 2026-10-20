@@ -1,0 +1,66 @@
+\section{Introduction}
+\label{sec:introduction}
+
+\subsection{Context and motivation}
+
+Operating room planning coordinates limited surgical capacity with clinical
+teams, equipment and postoperative care. Decision horizon, patient pathway,
+resources and performance criteria define distinct scheduling problems
+\citep{cardoen2010,guerriero2011}. Improving room utilisation can shift pressure
+to downstream units, which motivates integrated resource planning
+\citep{rachuba2026}. Duration uncertainty adds a second difficulty: a schedule
+built from estimates may execute differently, with delays, overtime or cases
+unable to start \citep{denton2007}. These outcomes require separate metrics;
+utilisation alone cannot summarise performance \citep{schouten2023}.
+
+The Fil rouge AI and Healthcare project investigates this problem using
+historical surgical activity. Its organisational motivation is to move from
+calendar-driven booking towards capacity-aware admission and intervention
+date recommendations \citep{group2026dataaudit}. The present experiments
+address components of that ambition rather than a complete admission system.
+One model assigns patients to multi-day operating sessions and penalises
+session overload, bed demand and imbalance. A second assigns a daily workload
+to rooms and evaluates minute-resolution execution in Mesa. It includes
+turnover and temporary closures but excludes beds, staffing and speciality
+compatibility. Their objective values are not directly comparable.
+
+\subsection{Research question and positioning}
+
+The research question is: \emph{with common information and evaluation rules,
+how do operating room metaheuristics compare, and do improvements in predicted
+schedule quality survive execution under duration deviations and temporary
+room unavailability?}
+
+Exact methods, metaheuristics and predictive--prescriptive pipelines are
+already established in the literature \citep{fei2010,vieira2025,lex2025}.
+Our contribution is a reproducible comparison with explicit representation,
+information and resource assumptions. In the room experiments, every method
+uses a shared decoder that fixes within-room order by increasing predicted
+duration. Realised durations remain hidden during ordinary planning. Thus,
+the study compares allocation search and execution policies within that
+representation, not unrestricted surgical sequencing.
+
+\subsection{Contributions and report organisation}
+
+The report brings together three experimental contributions:
+\begin{enumerate}
+\item Five searches---simulated annealing, tabu search, a genetic algorithm,
+      hybrid Tabu--Simulated Annealing and ant colony optimisation---compared
+      with a greedy baseline and a small exactly enumerable room reference.
+\item Static and closure-triggered reactive Mesa execution from shared
+      initial schedules, plus a separate median/oracle duration comparison.
+\item A length-of-stay (LOS) study linking learned estimates to session
+      planning, with paired uncertainty scenarios and granularity sensitivity.
+\end{enumerate}
+The room campaign controls per-request fitness calls, whereas the LOS
+campaign retains unequal source budgets. The hybrid search combines tabu
+selection with annealing acceptance; simulation coupling instead evaluates
+schedules during execution. Neither form of hybridisation implies clinical
+validation or a universal best method.
+
+The literature review and problem description establish scope.
+Sections~\ref{sec:formulation}--\ref{sec:experimental-design} present the
+formulations, methods and protocols; Sections~\ref{sec:results}
+and~\ref{sec:discussion} report and interpret the evidence, followed by the
+conclusion. The eleven-part structure keeps each experimental contribution
+within these common sections.

@@ -1,0 +1,126 @@
+\section{Computational Results}
+\label{sec:results}
+% Prevent result tables from floating above their section heading.
+\suppressfloats[t]
+
+The first results concern the aggregate LOS study. The room/Mesa campaign
+and its separate median/oracle comparison follow in
+Sections~\ref{sec:room-results} and~\ref{sec:duration-results}. Each family
+retains its own objective, workloads and experimental replication unit.
+
+\subsection{Solution quality and computation time}
+
+Table~\ref{tab:los-legacy} retains the original five-method comparison.
+For the large workload, SA, tabu and the hybrid achieve mean nominal costs
+near 5198--5207, close to the overload-based lower bound. Default GA has a
+mean cost of 8569.4; changing its mutation probability to $1/n$ reduces this
+to 5286.9 in the sensitivity comparison. Thus, the default result does not
+establish an inherent weakness of genetic search. ACO reaches 5783.5 and
+requires about 10.08 seconds, compared with 0.27 for SA and 0.33 for tabu.
+These runtimes are measurements from the contributor's machine and campaign,
+not hardware-independent guarantees. On the small instance, all five methods
+have costs around 3.25--3.29, with no session or bed overload, so the instance
+provides little discrimination between them.
+
+\input{tables/los-legacy}
+
+Table~\ref{tab:los-quality} and Figure~\ref{fig:los-granularity} compare
+point-LOS planning across session structures. With one 480-minute session,
+tabu and the hybrid have mean gaps of about 0.16\% to the lower bound,
+compared with 0.32\% for SA and 1.87\% for tuned GA. With two 240-minute
+sessions, the hybrid's mean cost is 5485.9, a 5.70\% gap, compared with
+5892.3 for tabu, 6022.1 for SA and 7217.0 for tuned GA. The hybrid has the
+lowest mean cost among the four methods tested in that configuration; this
+comparison cannot establish its superiority to the untested ACO variant.
+
+\input{tables/los-quality}
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=0.88\linewidth]{figures/los-granularity.png}
+\caption{Effect of session granularity on nominal schedule quality. Total
+speciality-day capacity is unchanged. Bars show mean percentage gaps to the
+5190 lower bound; error bars show SD across ten seeds.}
+\label{fig:los-granularity}
+\end{figure}
+
+Splitting capacity changes the assignment landscape even though the total
+number of available minutes is unchanged. The observed ranking therefore
+depends on session granularity as well as the algorithm. The hybrid also
+uses more computation: its mean point-planning runtime in the split-session
+campaign is 0.755 seconds, versus 0.385 for SA and 0.441 for tabu. This is an instance-specific comparison under unequal computation;
+the lower-bound gap does not prove optimality.
+
+\subsection{LOS scenarios and upper-bound planning}
+
+For the large workload, mean rounded nominal LOS is about 1.90 days. The
+floor-noise scenarios average about 2.10 days, while the alternative symmetric
+rule averages about 1.98 days. Clipping and differences between unrounded
+predictions and rounded nominal inputs therefore change the mean as well
+as variability. Under point planning, the original floor-noise evaluation
+raises expected cost by about 109--115 for SA, tabu and the hybrid. Since
+only LOS changes when a schedule is re-evaluated, this increase acts through
+the bed term of Equation~\ref{eq:los-cost}; it is not deterioration in room
+assignment itself.
+
+The effect of upper-bound planning is best assessed using paired expected
+costs rather than the increase relative to each schedule's own nominal
+baseline. Table~\ref{tab:los-robustness} and
+Figure~\ref{fig:los-uncertainty} retain the configuration and scenario labels
+for this comparison. In the one-session configuration, upper-bound planning
+increases scenario-mean cost by 68.4 for SA, 63.1 for tabu and 102.3 for the
+hybrid. The source also reports lower dispersion, indicating a cost/predictability
+trade-off.
+
+\input{tables/los-robustness}
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=0.88\linewidth]{figures/los-uncertainty.png}
+\caption{Paired scenario-mean cost differences for upper-bound versus point
+planning, using floor noise and horizon-truncated bed accounting. Error bars
+are one SE across ten paired seeds, not confidence intervals. Negative values
+favour upper-bound planning.}
+\label{fig:los-uncertainty}
+\end{figure}
+
+The two-session results are less conclusive: paired differences are
+$-88.6\pm68.8$ for SA, $31.3\pm87.6$ for tabu, $9.1\pm34.1$ for the hybrid
+and $-98.4\pm167.8$ for tuned GA, expressed as mean $\pm$ SE. These results show a method-dependent effect with substantial uncertainty;
+a uniform increase or benefit under this configuration is not established. More generally, a
+small increase from a schedule's own baseline is not evidence of lower
+absolute cost or protection from extreme failures. Scenario distributions,
+horizon treatment and the cost baseline must remain explicit.
+
+\subsection{Load, matching and horizon sensitivity}
+
+Figure~\ref{fig:los-load} preserves the source study's load experiment with
+an explicit axis definition. The varied quantity is operating-block load
+for the bottleneck speciality, obtained by changing session capacity; the
+figure does not establish a critical bed-utilisation threshold at 93\%.
+The bed capacity is fixed and only four target block loads are examined.
+Five seeds per load also limit the precision of comparisons.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=0.88\linewidth]{figures/los-block-load.png}
+\caption{Planned cost versus target operating-block load for the two-session
+configuration. Points show means and error bars show SD over five seeds.
+The horizontal axis is not measured bed utilisation.}
+\label{fig:los-load}
+\end{figure}
+
+In the matched-only workload, the overload lower bound is zero. The hybrid
+achieves zero session overload and a mean nominal cost of 7.13, consisting
+of workload imbalance; tabu's mean cost is 7.65. Percentages relative to a
+zero lower bound are undefined. Removing 57 cases changes demand as well
+as prediction matching, so the improvement cannot be attributed solely to
+better model linkage. The source also examines full-stay accounting because
+horizon truncation can favour postponing patients towards the last days.
+Extended accounting is a sensitivity analysis of frozen plans, not a claim
+that the planning objective itself has been replaced.
+
+
+% Finish the LOS floats before the room-study results.
+\FloatBarrier
+\input{sections/parts/room-results}

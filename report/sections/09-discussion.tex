@@ -1,0 +1,84 @@
+\section{Discussion and Managerial Insights}
+\label{sec:discussion}
+
+\subsection{Prediction quality, allocation quality and execution performance}
+
+The two study families support different conclusions. The LOS campaign links
+learned stay estimates to session planning and shows that session granularity
+and GA mutation settings can alter observed rankings. The room campaign
+shows that reaching an exact predicted allocation optimum, or improving
+predicted overtime on a larger instance, does not guarantee more completed
+cases under hidden durations. Execution evaluates a different quantity from
+the surrogate search score. The oracle comparison further shows that more
+accurate duration information can increase throughput and overtime together
+when the objective prioritises case starts. Prediction MAE, predicted cost,
+completions and overtime should therefore be reported separately.
+
+Reactive replanning supports every solver, yet produces gains, ties and
+losses. It optimises the visible state with fixed sequencing and reacts only
+to closure/reopening, rather than optimising future execution scenarios.
+This is a plausible explanation for mixed effects, not evidence that
+rescheduling is inherently harmful. Alternative triggers and sequencing
+rules require separate experiments.
+
+\subsection{Implications for planning and resource management}
+
+Managers need to assess throughput and overtime jointly. On the 15-case
+historical day, lower reactive overtime for tabu and the hybrid accompanies
+fewer completed cases; on the 25-case day, overtime falls without changing
+completion counts. A recommendation based on overtime alone would conflate
+these outcomes. Delay also has a selected population: only completed cases
+with an initial assignment contribute, so a method can change both the
+average and its denominator. Utilisation excludes turnover and retains
+closed room-hours in its denominator; it is not interchangeable with an
+availability-adjusted utilisation measure.
+
+Session structure is itself a planning choice: dividing unchanged minutes
+into smaller blocks changes the assignment landscape. The LOS hybrid's
+5.70\% lower-bound gap in the split-session experiment supports further
+comparison under a common budget, not a universal recommendation. Point and
+upper-endpoint LOS should remain explicit alternatives with cost and
+variability trade-offs. Their relative value depends on workload, weights,
+noise rules and bed-accounting conventions.
+
+The capacity-aware date-recommendation ambition is only partially represented. Daily room
+experiments allocate a fixed workload and do not propose admission dates,
+carry a waiting list across days or enforce ward capacity. The aggregate
+model represents beds but has no minute-level execution. Combining their
+findings does not establish a validated end-to-end admission recommendation
+system. Surgeon availability, staff, equipment, clinical priority and
+pre-existing ward occupancy need their own data and constraints.
+
+\subsection{Robustness, generalisation and remaining evidence gaps}
+
+The room campaign uses three solver seeds and only three historical days,
+plus two generated samples per size. Seeds repeat a workload and deterministic
+baseline repetitions add no workload diversity. Generated rows retain
+procedure--duration pairing but omit day-level correlations. The 1.1 target
+load and single-room closure do not characterise light-load performance or
+constant proportional disruption severity. Equal per-request evaluation
+budgets differ from equal policy-wide computation; concurrent 300-case timing
+and paused simulation time further limit operational latency conclusions.
+Larger held-out workload samples, several loads and budgets, and alternative
+disruption patterns are needed before claiming general superiority.
+
+For LOS, a constant-width conformal interval does not capture patient-specific
+heteroscedasticity; uniform in-interval noise omits outside-tail events and
+clipping changes its mean. Coverage, target units and feature availability
+require saved-model verification. About 14\% of cases lack matched predictions,
+with fallback depending on the selected workload. Inclusive total LOS differs
+from the optimiser's surgery-day-plus-stay occupancy convention; horizon
+truncation omits downstream demand. The matched-only variant removes cases,
+so its improvement cannot isolate matching quality.
+
+Learned room-model evaluation must pin the current dataset, category mapping,
+selected artefact and calibration sample, then provide held-out predictions
+for the exact room-occupancy target. Existing median/oracle room experiments
+and frozen-plan LOS scenarios do not measure that end-to-end benefit.
+
+Implementation verification checks case conservation, resource consistency,
+information boundaries and reproducible scoring. It does not establish
+clinical validity. Multi-day ward dynamics, emergency arrivals, patient
+priority, unrestricted sequencing, clinically confirmed resource eligibility
+and prospective workflow evaluation remain scientific extensions, rather
+than demonstrated capabilities of the campaigns reported here.

@@ -1,0 +1,23 @@
+\begin{table}[H]
+\centering\small
+\caption{Separate duration-information campaign: no-closure static execution. M = historical-median estimates; O = oracle durations. Means use two workloads and three solver seeds. Resources and hidden outcomes are held fixed across modes; initial plans are recomputed. OT includes turnover.}
+\label{tab:room-duration}
+\begin{tabular}{@{}rlrrrr@{}}
+\toprule
+Cases & Method & Done M & Done O & OT M & OT O \\
+\midrule
+100 & Baseline & 97.50 & 99.50 & 922.0 & 886.0 \\
+100 & SA & 97.17 & 100.00 & 942.7 & 908.5 \\
+100 & Tabu & 97.17 & 100.00 & 874.7 & 908.5 \\
+100 & GA & 97.50 & 99.50 & 922.0 & 883.3 \\
+100 & Hybrid & 97.17 & 100.00 & 874.7 & 908.5 \\
+100 & ACO & 97.17 & 100.00 & 908.5 & 927.5 \\
+300 & Baseline & 287.50 & 300.00 & 2779.0 & 3678.0 \\
+300 & SA & 288.00 & 300.00 & 2949.7 & 3590.5 \\
+300 & Tabu & 289.17 & 300.00 & 2965.0 & 3590.5 \\
+300 & GA & 287.50 & 300.00 & 2779.0 & 3678.0 \\
+300 & Hybrid & 289.17 & 300.00 & 2965.0 & 3590.5 \\
+300 & ACO & 287.50 & 300.00 & 2779.0 & 3678.0 \\
+\bottomrule
+\end{tabular}
+\end{table}

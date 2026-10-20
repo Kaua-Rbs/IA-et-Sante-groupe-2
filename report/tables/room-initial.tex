@@ -1,0 +1,23 @@
+\begin{table}[H]
+\centering\small
+\caption{Generated workloads: initial predicted unstarted count U, overtime OT and end-to-end solve time, averaged over six plans per method and size. These predicted quantities are distinct from execution outcomes. The 300-case campaign used four concurrent batches.}
+\label{tab:room-initial}
+\begin{tabular}{@{}rlrrr@{}}
+\toprule
+Cases & Method & Predicted U & Predicted OT & Time (s) \\
+\midrule
+100 & Baseline & 0.00 & 668.0 & 0.002 \\
+100 & SA & 0.00 & 602.0 & 0.696 \\
+100 & Tabu & 0.00 & 602.0 & 0.679 \\
+100 & GA & 0.00 & 668.0 & 0.697 \\
+100 & Hybrid & 0.00 & 602.0 & 0.682 \\
+100 & ACO & 0.00 & 616.2 & 1.366 \\
+300 & Baseline & 0.00 & 2195.0 & 0.009 \\
+300 & SA & 0.00 & 1908.0 & 1.098 \\
+300 & Tabu & 0.00 & 1905.5 & 1.107 \\
+300 & GA & 0.00 & 2195.0 & 1.128 \\
+300 & Hybrid & 0.00 & 1905.5 & 1.089 \\
+300 & ACO & 0.00 & 2195.0 & 3.707 \\
+\bottomrule
+\end{tabular}
+\end{table}

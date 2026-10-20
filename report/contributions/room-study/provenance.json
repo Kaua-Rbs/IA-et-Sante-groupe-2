@@ -1,0 +1,268 @@
+{
+  "small": {
+    "code": {
+      "commit": "1ee8d0860cb72aaba25f8536929871773fbcea45",
+      "dirty": false,
+      "implementation_sha256": "e6c05b88a7bff50e1e89fe083aa0dca6b9b8c06c7a2b510047cd700f315f75f0"
+    },
+    "dataset_sha256": null,
+    "dependencies": {
+      "mesa": "3.5.1",
+      "pandas": "3.0.6",
+      "numpy": "2.5.3",
+      "openpyxl": "3.1.5",
+      "networkx": "3.7",
+      "scipy": "1.18.1"
+    },
+    "python": "3.12.3",
+    "instances": {
+      "small-reference": {
+        "kind": "exact_reference",
+        "cases": 7,
+        "configurations": [
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 660,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 660,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 540,
+              "end": 600
+            }
+          }
+        ]
+      }
+    },
+    "max_evaluations": 1000,
+    "solver_budget_seconds": 60.0,
+    "execution_layout": "Sequential runs"
+  },
+  "historical": {
+    "code": {
+      "commit": "1ee8d0860cb72aaba25f8536929871773fbcea45",
+      "dirty": false,
+      "implementation_sha256": "e6c05b88a7bff50e1e89fe083aa0dca6b9b8c06c7a2b510047cd700f315f75f0"
+    },
+    "dataset_sha256": "7896e82c38a7744353b31b9747dcecaddbe3def243e692132ad3681827795005",
+    "dependencies": {
+      "mesa": "3.5.1",
+      "pandas": "3.0.6",
+      "numpy": "2.5.3",
+      "openpyxl": "3.1.5",
+      "networkx": "3.7",
+      "scipy": "1.18.1"
+    },
+    "python": "3.12.3",
+    "instances": {
+      "2022-01-03": {
+        "kind": "historical_day",
+        "cases": 9,
+        "configurations": [
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      },
+      "2022-02-02": {
+        "kind": "historical_day",
+        "cases": 15,
+        "configurations": [
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      },
+      "2022-10-20": {
+        "kind": "historical_day",
+        "cases": 25,
+        "configurations": [
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 2,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      }
+    },
+    "max_evaluations": 1000,
+    "solver_budget_seconds": 60.0,
+    "execution_layout": "Sequential runs"
+  },
+  "large": {
+    "code": {
+      "commit": "1ee8d0860cb72aaba25f8536929871773fbcea45",
+      "dirty": false,
+      "implementation_sha256": "e6c05b88a7bff50e1e89fe083aa0dca6b9b8c06c7a2b510047cd700f315f75f0"
+    },
+    "dataset_sha256": "7896e82c38a7744353b31b9747dcecaddbe3def243e692132ad3681827795005",
+    "dependencies": {
+      "mesa": "3.5.1",
+      "pandas": "3.0.6",
+      "numpy": "2.5.3",
+      "openpyxl": "3.1.5",
+      "networkx": "3.7",
+      "scipy": "1.18.1"
+    },
+    "python": "3.12.3",
+    "instances": {
+      "sample-100-0": {
+        "kind": "sampled_2022_cases",
+        "instance_seed": 0,
+        "target_load": 1.1,
+        "cases": 100,
+        "configurations": [
+          {
+            "rooms": 14,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 14,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      },
+      "sample-100-1": {
+        "kind": "sampled_2022_cases",
+        "instance_seed": 1,
+        "target_load": 1.1,
+        "cases": 100,
+        "configurations": [
+          {
+            "rooms": 15,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 15,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      },
+      "sample-300-0": {
+        "kind": "sampled_2022_cases",
+        "instance_seed": 0,
+        "target_load": 1.1,
+        "cases": 300,
+        "configurations": [
+          {
+            "rooms": 44,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 44,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      },
+      "sample-300-1": {
+        "kind": "sampled_2022_cases",
+        "instance_seed": 1,
+        "target_load": 1.1,
+        "cases": 300,
+        "configurations": [
+          {
+            "rooms": 45,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": null
+          },
+          {
+            "rooms": 45,
+            "opening": 480,
+            "closing": 1020,
+            "turnover": 15,
+            "outage": {
+              "room_id": "room-1",
+              "start": 600,
+              "end": 720
+            }
+          }
+        ]
+      }
+    },
+    "max_evaluations": 1000,
+    "solver_budget_seconds": 60.0,
+    "execution_layout": "100-case runs sequential; 300-case runs in four concurrent batches; end-to-end solver times include shared CPU load."
+  }
+}
