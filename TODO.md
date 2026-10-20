@@ -40,8 +40,8 @@ Objectif : une instance qui ressemble à la vraie vie d'un service, avec l'IA br
 - Les données vieillissent (datées autour du jour du seed) : vider la base et relancer le playbook juste avant la soutenance
 - Publier une release GitHub pour que la CI pousse les images, puis `just playbook-deploy-infra`
 - Vérifier après déploiement : connexion admin (`credentials/<hôte>/kyst/first_admin_password`), tableau de bord rempli, une demande → dates A/B → confirmation
-- Définir `kyst_origin` (URL publique, ex. `https://kyst.tech`) si le proxy ne transmet pas `Host`
-- pgAdmin exposé sur 3001 derrière le proxy : le retirer en prod
+- `kyst_origin` laissé vide : vérifié le 2026-10-20, le proxy transmet `Host` (POST de formulaire depuis `https://kyst.tech` accepté, depuis une autre origine refusé en 403). À définir seulement si le proxy change
+- pgAdmin désactivé par défaut (`kyst_pgadmin_enabled: false` : ni conteneur, ni règle de pare-feu sur 3001) ; pour déboguer : `just playbook-deploy-infra -e kyst_pgadmin_enabled=true`
 - Passer `kyst_seed_demo: false` avant d'y mettre de vraies données
 - `interface/docs/Features.md` : les autres statuts « Démonstration » (prédictions, propositions) ne sont plus vrais en prod
 

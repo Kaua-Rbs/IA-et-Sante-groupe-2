@@ -21,6 +21,9 @@ services:
   pgadmin:
     image: docker.io/dpage/pgadmin4:latest
     container_name: pgadmin
+    # Démarré seulement avec --profile pgadmin (kyst_pgadmin_enabled)
+    profiles:
+      - pgadmin
     restart: unless-stopped
     volumes:
       # Volume nommé : pgAdmin tourne sous l'UID 5050, qui ne peut pas écrire dans un dossier

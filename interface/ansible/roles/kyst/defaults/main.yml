@@ -31,6 +31,8 @@ kyst_auto_update_services:
 
 kyst_postgres_db: kyst
 kyst_postgres_user: kyst
+# pgAdmin (port 3001, ouvert au reverse proxy) : pour le débogage, à laisser désactivé en prod
+kyst_pgadmin_enabled: false
 kyst_pgadmin_email: dummyemail@dummy.org
 
 # Application

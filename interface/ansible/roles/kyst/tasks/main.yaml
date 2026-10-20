@@ -61,9 +61,18 @@
 
 - name: Start KYST services
   ansible.builtin.command:
-    cmd: podman-compose up -d --force-recreate
+    cmd: podman-compose {{ '--profile pgadmin' if kyst_pgadmin_enabled | bool else '' }} up -d --force-recreate
     chdir: "{{ kyst_project_dir }}"
   changed_when: true
+  become: true
+  become_user: podman
+
+- name: Remove pgAdmin when disabled
+  ansible.builtin.command:
+    cmd: podman rm --force --ignore pgadmin
+  when: not kyst_pgadmin_enabled | bool
+  register: kyst_pgadmin_removed
+  changed_when: kyst_pgadmin_removed.stdout | length > 0
   become: true
   become_user: podman
 
@@ -117,17 +126,20 @@
     name: firewall
     tasks_from: create_rule.yml
   vars:
+    kyst_front_rule:
+      rule_name: "Allow traffic from the reverse proxy to the KYST front (port 3000)"
+      chain: INPUT
+      protocol: tcp
+      source: "{{ kyst_allowed_source }}"
+      destination_port: 3000
+      target: ACCEPT
+    kyst_pgadmin_rule:
+      rule_name: "Allow traffic from the reverse proxy to pgAdmin (port 3001)"
+      chain: INPUT
+      protocol: tcp
+      source: "{{ kyst_allowed_source }}"
+      destination_port: 3001
+      target: ACCEPT
+    # Le fichier de règles est réécrit en entier : désactiver pgAdmin retire aussi sa règle
     firewall_rules:
-      050-kyst:
-        - rule_name: "Allow traffic from the reverse proxy to the KYST front (port 3000)"
-          chain: INPUT
-          protocol: tcp
-          source: "{{ kyst_allowed_source }}"
-          destination_port: 3000
-          target: ACCEPT
-        - rule_name: "Allow traffic from the reverse proxy to pgAdmin (port 3001)"
-          chain: INPUT
-          protocol: tcp
-          source: "{{ kyst_allowed_source }}"
-          destination_port: 3001
-          target: ACCEPT
+      050-kyst: "{{ [kyst_front_rule] + ([kyst_pgadmin_rule] if kyst_pgadmin_enabled | bool else []) }}"

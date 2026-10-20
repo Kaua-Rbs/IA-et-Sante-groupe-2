@@ -11,7 +11,7 @@ Le fichier [`files/compose.yml`](files/compose.yml) est copié dans `kyst_projec
 | Front SvelteKit | `kyst-app` | 3000 | Ouvert uniquement depuis `kyst_allowed_source` (reverse proxy) |
 | API FastAPI | `kyst-api` | aucun | Réseau interne : seul le front l'appelle (`http://api:8000`) |
 | PostgreSQL 18 | `postgres` | 5432 | Fermé par le pare-feu (politique `INPUT DROP`), joignable depuis l'hôte et le réseau interne |
-| pgAdmin | `pgadmin` | 3001 | Ouvert uniquement depuis `kyst_allowed_source` |
+| pgAdmin | `pgadmin` | 3001 | Seulement avec `kyst_pgadmin_enabled: true`, ouvert uniquement depuis `kyst_allowed_source` |
 
 ## Images
 
