@@ -1,8 +1,7 @@
-"""Shared decoder, budgets, processes and paired experiment regression tests."""
+"""Shared decoder, budgets and process regression tests."""
 
 import asyncio
-from dataclasses import asdict, replace
-from datetime import date
+from dataclasses import replace
 import itertools
 import multiprocessing as mp
 import random
@@ -12,14 +11,12 @@ from unittest.mock import patch
 
 from optimiseur import optimizer as op
 from optimiseur.search_control import SearchControl
-from hospital_sim.contracts import Proposal, SchedulingRequest, Snapshot
+from hospital_sim.contracts import Proposal, Snapshot
 from hospital_sim.domain import Assignment, CaseState, Outage, RoomState, Schedule, SimulationConfig
-from hospital_sim.experiment import plan_initial
-from hospital_sim.instances import exact_reference, opening_request, small_reference
 from hospital_sim.metaheuristics import METHODS, MetaheuristicScheduler, SearchSettings
 from hospital_sim.room_problem import RoomAllocationProblem
 from hospital_sim.scheduling import RoomValidator
-from hospital_sim.simulation import run_day
+from tests.room_instances import exact_reference, opening_request, small_reference
 from tests.test_historical_simulation import scenario
 
 
@@ -116,28 +113,7 @@ class RoomProblemTests(unittest.TestCase):
         self.assertGreaterEqual(result.meilleure_fitness, problem.fitness(seed))
 
 
-class InstanceTests(unittest.TestCase):
-    def test_sampling_keeps_pairs_and_scales_capacity(self):
-        from types import SimpleNamespace
-        import pandas as pd
-        from hospital_sim.instances import sampled_scenario, scale_rooms
-        data = SimpleNamespace(
-            frame=pd.DataFrame({"date": pd.to_datetime(["2021-01-01", "2022-01-01", "2022-01-02"]),
-                                "procedure": ["TRAIN_ONLY", "A", "B"], "duration": [999, 20, 70]}),
-            medians={"A": 30, "B": 60}, fallback=45,
-        )
-        first = sampled_scenario(data, 100, 3)
-        self.assertEqual(first, sampled_scenario(data, 100, 3))
-        for case in first.cases:
-            self.assertEqual(first.realized_minutes[case.case_id], {"A": 20, "B": 70}[case.procedure])
-            self.assertEqual(case.predicted_minutes, {"A": 30, "B": 60}[case.procedure])
-        self.assertEqual(len({c.case_id for c in first.cases}), 100)
-        light = scale_rooms(SimulationConfig(), first, 0.8)
-        heavy = scale_rooms(SimulationConfig(), first, 1.1)
-        self.assertGreater(light.rooms, heavy.rooms)
-        with self.assertRaises(ValueError):
-            scale_rooms(SimulationConfig(), first, 0)
-
+class SearchControlTests(unittest.TestCase):
     def test_control_deadline_is_checked_before_each_evaluation(self):
         from optimiseur.search_control import SearchStopped
         p, v = op.small_validation_instance()
@@ -208,38 +184,6 @@ class ProcessAdapterTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(adapter.reports[-1]["stop_reason"], "cancelled")
         self.assertEqual({p.pid for p in mp.active_children()}, before)
 
-    async def test_saved_initial_plan_and_hidden_duration_separation(self):
-        config = SimulationConfig(closing=600)
-        settings = SearchSettings("annealing", 3, 60)
-        inputs = scenario((30, 40, 50, 60))
-        initial, report = await plan_initial(inputs, config, settings, 15)
-        altered = replace(inputs, realized_minutes={k: 100 for k in inputs.realized_minutes})
-        other, _ = await plan_initial(altered, config, settings, 15)
-        self.assertEqual(initial, other)
-        static = await run_day(inputs, config, "static", MetaheuristicScheduler(settings),
-                               initial_schedule=initial, initial_report=report)
-        reactive = await run_day(inputs, config, "reactive", MetaheuristicScheduler(settings),
-                                 initial_schedule=initial, initial_report=report)
-        static["policy"] = "reactive"
-        self.assertEqual(strip_times(static), strip_times(reactive))
-        self.assertEqual(static["metrics"]["initial_planning_seconds"], report["elapsed_seconds"])
-
-    async def test_initial_failure_returns_explicit_unassigned_plan(self):
-        with patch("hospital_sim.experiment.MetaheuristicScheduler.propose", side_effect=ValueError):
-            plan, report = await plan_initial(scenario(), SimulationConfig(), SearchSettings("aco"), 1)
-        self.assertEqual(len(plan.unassigned), 4)
-        self.assertEqual(report["stop_reason"], "initial_failure")
-
-    async def test_closure_at_opening_preserves_shared_initial_plan(self):
-        inputs = scenario((30, 40))
-        config = SimulationConfig(rooms=1, closing=600)
-        initial, report = await plan_initial(inputs, config, SearchSettings(), 10)
-        closed = replace(config, outage=Outage("room-1", 480, 540))
-        result = await run_day(inputs, closed, "static", MetaheuristicScheduler(),
-                               initial_schedule=initial, initial_report=report)
-        self.assertEqual(result["schedule_history"][0]["assignments"], [asdict(a) for a in initial.assignments])
-        self.assertEqual(result["executed_schedule"][0]["start"], 540)
-        self.assertEqual(result["metrics"]["failures"], 0)
 
 
 if __name__ == "__main__":

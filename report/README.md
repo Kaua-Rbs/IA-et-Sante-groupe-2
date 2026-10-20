@@ -1,6 +1,6 @@
 # Rapport LaTeX
 
-Les sources du rapport sont séparées par chapitre afin que les six membres de l'équipe puissent travailler en parallèle. Chaque changement doit suivre les règles de contribution décrites dans le README principal.
+Les sources du rapport sont séparées par chapitre afin que les six membres de l'équipe puissent travailler en parallèle. Chaque changement suit les [règles de contribution](../CONTRIBUTING.md) du dépôt.
 
 ## Prérequis
 

@@ -87,4 +87,4 @@ Le même calcul (`interface/api/planning/capacity.py`) sert à l'ordonnanceur, �
 ## Conventions
 
 - Unités : `room_minutes` est le temps entre l'entrée et la sortie de salle, sans le temps de remise en état. `los_days` compte des jours calendaires inclusifs (ambulatoire = 1). Ce sont les mêmes conventions que `hospital_sim/contracts.py`.
-- Les dates et heures sont stockées en UTC naïf. Le schéma est créé par `create_all` ; les migrations Alembic restent à faire (voir `docs/todo.md`).
+- Les dates et heures sont stockées en UTC naïf. Le schéma est créé par `create_all` ; il n'y a pas encore de migrations (Alembic) : une colonne ajoutée à une table existante demande de recréer la base.

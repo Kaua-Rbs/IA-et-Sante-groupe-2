@@ -11,9 +11,8 @@ Sortie  : un planning optimise (dict patient_id -> vacation_id) pour
           systemes multi-agents (SMA et SMA x metaheuristiques, dans
           multiagent.py), accompagne de l'historique de convergence.
 
-Aucune dependance autre que pandas / numpy pour le calcul. matplotlib
-n'est utilise que dans plotting.py ; mesa n'est importe que par
-multiagent.py (import paresseux depuis optimize_planning).
+Aucune dependance autre que pandas / numpy pour le calcul ; mesa n'est
+importe que par multiagent.py (import paresseux depuis optimize_planning).
 """
 
 from __future__ import annotations
@@ -30,8 +29,8 @@ import pandas as pd
 
 from .search_control import controlled_search
 
-# Noms des methodes : source de verite unique, reutilisee par plotting.py,
-# app_gui.py et run_demo.py.
+# Noms des methodes : source de verite unique, reutilisee par l'API KYST
+# (interface/api/planning/router.py).
 METHODE_RECUIT = "Recuit simule"
 METHODE_TABOU = "Tabou"
 METHODE_GENETIQUE = "Genetique"

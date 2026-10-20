@@ -7,8 +7,6 @@ from prediction.consultation_features import consultation_features, CONSULTATION
 from prediction.duration_features import MISSING
 from prediction.los_model import predict_los_loaded
 from prediction.surgery_duration import MedianBaseline, predict_schedule_loaded
-from prediction.prediction_planning import prediction_problem
-from optimiseur.validation import validate_full_stay
 
 
 class FinalModelTests(unittest.TestCase):
@@ -55,39 +53,6 @@ class FinalModelTests(unittest.TestCase):
         saved["bounds"] = {"p80": {"model": self.saved(45)["model"], "offset": 5}}
         self.assertEqual(predict_schedule_loaded(X, saved).duration_p80_min.iloc[0], 50)
 
-    def inputs(self):
-        patients = pd.DataFrame({"patient_id": ["p1", "p2"], "specialite": ["A", "A"]})
-        sessions = pd.DataFrame({"vacation_id": ["v1"], "specialite": ["A"], "jour": [1], "capacite_min": [100]})
-        room = pd.DataFrame({"duration_point_min": [20.2, 30.]})
-        los = pd.DataFrame({"los_point_days": [1., 4.2]})
-        return patients, sessions, room, los
-
-    def test_synthetic_predictions_through_full_stay_validator(self):
-        p, s, r, l = self.inputs()
-        problem = prediction_problem(p, s, r, l, [2]*6,
-                                     known_preop_days=pd.Series([0, 1]))
-        self.assertEqual(problem.patients.duree_operatoire.tolist(), [21, 30])
-        self.assertEqual(problem.patients.duree_sejour.tolist(), [0, 3])
-        verified = validate_full_stay(problem.patients, s, [2]*6, {0: 0, 1: 0})
-        self.assertTrue(verified.feasible)
-        self.assertEqual(verified.occupancy, (0, 2, 1, 1, 1, 0))
-        self.assertTrue("duree_sejour" not in p)
-
-    def test_tail_capacities_are_required(self):
-        with self.assertRaises(ValueError):
-            prediction_problem(*self.inputs(), [2, 2])
-
-    def test_bad_predictions_alignment_and_preop_rejected(self):
-        for bad in (0, -1, np.nan, np.inf):
-            p, s, r, l = self.inputs()
-            r.loc[0, "duration_point_min"] = bad
-            with self.assertRaises(ValueError):
-                prediction_problem(p, s, r, l, [2]*8)
-        p, s, r, l = self.inputs()
-        with self.assertRaises(ValueError):
-            prediction_problem(p, s, r.iloc[::-1], l, [2]*8)
-        with self.assertRaises(ValueError):
-            prediction_problem(p, s, r, l, [2]*8, known_preop_days=pd.Series([0, .5]))
 
 
 if __name__ == "__main__":

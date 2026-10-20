@@ -1,6 +1,0 @@
-artifacts/ml-models/final-2026-10-20-v3/los_consultation_baseline_2026-10-20_v1.joblib
-artifacts/ml-models/final-2026-10-20-v3/los_consultation_selected_2026-10-20_v1.joblib
-artifacts/ml-models/final-2026-10-20-v3/los_full_reproduction_2026-10-20_v1.joblib
-artifacts/ml-models/final-2026-10-20-v3/los_full_reproduction_2026-10-20_v1.json
-artifacts/ml-models/final-2026-10-20-v3/room_consultation_baseline_2026-10-20_v1.joblib
-artifacts/ml-models/final-2026-10-20-v3/room_consultation_selected_2026-10-20_v1.joblib

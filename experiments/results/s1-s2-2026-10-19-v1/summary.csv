@@ -1,4 +1,0 @@
-arm,runs,feasible_runs,feasible_rate,ever_feasible_runs,mean_or_overload_minutes,mean_full_bed_overload_days,mean_tail_bed_overload_days,mean_final_balance_when_feasible,mean_best_feasible_balance_when_found,median_first_feasible_evaluation_when_found,mean_search_seconds,mean_run_seconds,invalid_runs,hidden_bed_violation_runs,deadline_stops
-A_legacy_weighted,60,40,0.6666666666666666,48,2.0,0.4,0.38333333333333336,38.89151929599261,41.323250860409296,87.5,0.8941828966650064,0.9902236849996068,0,12,0
-B_full_weighted,60,49,0.8166666666666667,49,1.75,0.1,0.03333333333333333,41.85548623544952,41.85548623544952,92,1.0829849533338953,1.1807639850002791,0,2,0
-C_full_feasibility_first,60,55,0.9166666666666666,55,0.75,0.05,0.03333333333333333,42.64533044342894,42.64533044342894,108,1.0707532266664201,1.1732898583320397,0,1,0

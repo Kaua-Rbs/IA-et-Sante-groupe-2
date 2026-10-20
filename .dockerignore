@@ -25,4 +25,3 @@ interface/api/justfile
 tests
 docs
 soutenance
-reference

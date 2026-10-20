@@ -1,7 +1,0 @@
-{
-  "primary_schedules_checked": 180,
-  "feasible_incumbents_checked": 152,
-  "hashes_verified": true,
-  "equal_complete_budgets": true,
-  "identical_starts": true
-}

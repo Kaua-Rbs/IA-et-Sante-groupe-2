@@ -4,17 +4,17 @@
 
 ### Modèles IA
 
-- Code des modèles « consultation » (v3, 2026-10-20) mergé depuis `improvement/technical-audit` (`consultation_features.py` et `prediction_planning.py` déplacés dans `prediction/`)
+- Code des modèles « consultation » (v3, 2026-10-20) mergé depuis `improvement/technical-audit` (`consultation_features.py` dans `prediction/`)
 - Fichiers `.joblib` récupérés dans `artifacts/ml-models/final-2026-10-20-v3/` (non versionnés) : empreintes vérifiées, chargés par l'API sous Python 3.13
-  - Liste : `FINAL_MODEL_ARTIFACT_FILES.txt` ; empreintes SHA-256 : `experiments/results/final-consultation-2026-10-20-v3/manifest.json` et `experiments/results/final-artifact-verification-2026-10-20-v3/artifact_verification.json`
+  - Liste et empreintes SHA-256 : `experiments/results/final-consultation-2026-10-20-v3/manifest.json` (`artifact_sha256`)
   - À placer dans `artifacts/ml-models/final-2026-10-20-v3/` : le rôle `kyst` déploie `room_consultation_selected_…` et `los_consultation_selected_…` sous les noms attendus par l'API (`kyst_model_files`)
-  - Provenance : les manifestes ci-dessus suffisent (date, données, hash des sources)
+  - Provenance : le manifeste ci-dessus suffit (date, données, hash des sources)
 - Versions compatibles : scikit-learn 1.9.1, xgboost 3.4.1, pandas 3.0.6, joblib 1.6.0 identiques entre `experiments/final_model_requirements.txt` et `interface/api/uv.lock` (entraînement sous Python 3.14 / Windows, image API en 3.13 : à confirmer au chargement)
 - Tester en local dans l'interface : `AI_BACKEND=trained` dans `kyst.local.env`, avec `ROOM_MODEL_PATH` / `LOS_MODEL_PATH` pointant vers les fichiers v3, créer une demande, vérifier temps de salle / séjour / propositions
 - Ambulatoire : séjour prédit arrondi à 1 jour (< 1,5) et réservation d'une seule journée ; le modèle prédit une moyenne, l'ancien seuil `<= 1` ne classait presque rien en ambulatoire. À mentionner dans le rapport
-- Précision dégradée en consultation (anesthésie et praticien absents) : voir `docs/web-full-system-integration.md`, à mentionner dans le rapport
+- Précision dégradée en consultation (anesthésie et praticien absents) : voir `docs/models.md`, à mentionner dans le rapport
 - Les bornes P80/P95 du temps de salle ne sont pas exposées (pas d'intervalle affiché pour le bloc en mode `trained`)
-- Chiffres pour le rapport : `FINAL_MODEL_RESULTS_FOR_REPORT.md` (MAE salle 16,6 min, séjour 0,51 j ; couverture faible pour les séjours ≥ 7 j)
+- Chiffres pour le rapport : `docs/models.md` (MAE salle 16,6 min, séjour 0,51 j ; couverture faible pour les séjours ≥ 7 j)
 
 ### Instance de démo
 
@@ -43,7 +43,6 @@ Objectif : une instance qui ressemble à la vraie vie d'un service, avec l'IA br
 - `kyst_origin` laissé vide : vérifié le 2026-10-20, le proxy transmet `Host` (POST de formulaire depuis `https://kyst.tech` accepté, depuis une autre origine refusé en 403). À définir seulement si le proxy change
 - pgAdmin désactivé par défaut (`kyst_pgadmin_enabled: false` : ni conteneur, ni règle de pare-feu sur 3001) ; pour déboguer : `just playbook-deploy-infra -e kyst_pgadmin_enabled=true`
 - Passer `kyst_seed_demo: false` avant d'y mettre de vraies données
-- `interface/docs/Features.md` : les autres statuts « Démonstration » (prédictions, propositions) ne sont plus vrais en prod
 
 ### Conformité (RGPD, marquage CE)
 
@@ -71,28 +70,27 @@ Objectif : une instance qui ressemble à la vraie vie d'un service, avec l'IA br
   - Lien vers l'instance (`kyst.tech`) à vérifier le jour J
   - Captures d'écran de l'interface avec l'IA branchée
 - Rapport
-  - Chapitre sur l'intégration IA ↔ web : modèles, précision, limites (champs manquants en consultation)
+  - Chapitre sur l'intégration IA ↔ web : modèles, précision, limites (champs manquants en consultation) ; sources : `docs/models.md`, `docs/kyst-integration.md`
   - Résultats des modèles (MAE temps de salle, séjour) et des métaheuristiques
 - Merge tout dans final_deployment
   - Branches avec des commits absents de `final_deployment` :
     - `origin/report/presentation` (16)
-    - `origin/feat/combine-mesa-metaheuristics` (15)
-    - `origin/meta_heuristics` (9)
-    - `origin/feat/mesa-historical-simulation` (7)
     - `origin/model/los-bridge` (4)
-    - `origin/codex/web-full-system` (3)
     - `origin/model/or-occupation` (1)
+  - `meta_heuristics` et `feat/mesa-historical-simulation` sont contenues dans `feat/combine-mesa-metaheuristics`, dont le code est pour l'essentiel déjà intégré (≈ 120 lignes d'écart) ; leurs campagnes d'expérimentation (CLI `hospital_sim.experiment`, benchmarks, GUI) ont été retirées du produit final : ne pas les re-fusionner
   - Vérifier pour chacune si le contenu est déjà intégré autrement (rebase / squash) avant de merger
   - Relancer la CI et les tests (`tests/`, `interface/api/tests/`, `svelte-check`) après les merges
-- Rajouter des README dans tout les dossiers
-  - En priorité : `interface/`, `interface/api/`, `interface/app/`, `hospital_sim/`, `docs/`, `notebooks/`, `soutenance/`
-  - Déjà présents : racine, `optimiseur/`, `report/`, `interface/ansible/` et ses rôles `kyst` / `podman`
-- Organiser la documentation, la traduire en français
-  - En anglais : `README.md` (racine), `docs/coordination-core.md`, `docs/web-integration-summary.md`
-  - `docs/todo.md` est obsolète (parle de fixtures, du rôle `hestia` qui n'existe plus) : le fusionner avec ce fichier ou le supprimer
-  - README racine : section « Current state » à mettre à jour (KYST, déploiement, optimiseur, simulation)
-- Organiser les dossiers
-  - modèles dans `prediction/` ; imports, Dockerfile, tests et README mis à jour
-  - Notebooks de la racine rangés dans `notebooks/` (fait, non commité) ; leurs chemins `resources/` passent par `REPO`, ils se lancent depuis la racine ou depuis `notebooks/`
-  - Supprimer les `kyst.db` / `__pycache__` locaux (non versionnés, mais à ne pas embarquer)
-- Merge avec mains
+- Merge avec main
+
+### Fait (ménage du 2026-10-20)
+
+- Code hors produit supprimé : on ne garde que l'application, ce que l'API importe (`prediction/`, `optimiseur/{optimizer,multiagent,search_control}`, `hospital_sim/` sans les CLI d'expérimentation) et l'entraînement des modèles déployés (`experiments/train_consultation_models.py`, les trois notebooks de préparation)
+  - Supprimés : expériences S1/S2 et campagne de planification, ponts `bridge_los` / `prediction_planning`, aléas, benchmarks, GUI Tkinter, démos CLI, tableau de bord Streamlit, notebooks `guide_optimisation` et `rapport_aleas_et_adaptation`, `api/ai/validate_web_models.py`, tests correspondants
+  - Adaptateurs de démo et instances de référence de `hospital_sim` déplacés dans `tests/` (fixtures)
+  - Restes du gabarit Ansible retirés (recette `playbook-update`, Vault, pysnmp)
+- Documentation en français, reliée depuis `README.md` et `docs/README.md` ; un README par dossier ; règles Git dans `CONTRIBUTING.md`
+- Racine rangée : rapports dans `docs/` (`models.md`, `data-dictionary.md`), plan de tests dans `tests/README.md`
+
+### Reste à faire
+
+- Supprimer les bases locales `interface/api/kyst.db` et `ias.db` (non versionnées, exclues de l'image Docker)

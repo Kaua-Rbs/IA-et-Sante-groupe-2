@@ -4,7 +4,7 @@ import unittest
 
 from hospital_sim import Coordinator
 from hospital_sim.contracts import EventKind, HospitalEvent, Proposal, Snapshot, ValidationResult
-from hospital_sim.demo import (
+from tests.coordination_fixtures import (
     DemoLOSPredictor, DemoRoomDurationPredictor, DemoSchedule, DemoScheduler,
     DemoState, DemoStateAdapter, DemoValidator, outage,
 )

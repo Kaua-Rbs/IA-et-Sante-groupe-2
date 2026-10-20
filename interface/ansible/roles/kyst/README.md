@@ -1,6 +1,6 @@
 # KYST
 
-Déploie KYST (API et front) avec PostgreSQL et pgAdmin, dans le Podman rootless configuré par le rôle [`podman`](../podman/README.md) (dépendance déclarée dans `meta/main.yml`).
+Déploie KYST (API et front) avec PostgreSQL, et pgAdmin en option, dans le Podman rootless configuré par le rôle [`podman`](../podman/README.md) (dépendance déclarée dans `meta/main.yml`).
 
 ## Services
 
@@ -41,8 +41,6 @@ Le script ne touche ni à `compose.yml`, ni à `.env`, ni aux modèles : leurs c
 
 L'URL publique du front (protection CSRF des formulaires) est lue au démarrage du conteneur, dans la variable `ORIGIN`. Avec `kyst_origin` vide (défaut), le front suppose `https://` et l'en-tête `Host` transmis par le proxy, ce qui convient derrière un proxy TLS. Sinon, définir `kyst_origin` (ex. `https://kyst.example.org`) : le front est recréé au déploiement suivant, sans changer d'image.
 
-Les serveurs déployés avant ce changement gardent le clone des sources et les images construites localement. Pour repartir de zéro, [`scripts/reset-kyst.sh`](../../scripts/reset-kyst.sh) supprime tout ce que le rôle a créé (Podman reste installé), puis relancer le playbook.
-
 ## Journalisation
 
 Les logs des conteneurs vont dans le journal systemd du serveur. Ce journal est persistant et gardé 1 an, avec un scellement qui rend toute modification détectable (rôle [`journald`](../journald/README.md)). Ils survivent donc à la recréation des conteneurs.
@@ -70,7 +68,7 @@ podman logs kyst-api                                  # en tant que podman, cont
 
 3. Se connecter avec `kyst_first_admin_email` (`admin@kyst.fr`) et le mot de passe généré dans `credentials/<hôte>/kyst/first_admin_password`.
 
-Les prédictions viennent toujours des modèles entraînés (`AI_BACKEND=trained`). Ces fichiers ne sont pas versionnés : le rôle copie les fichiers listés dans `kyst_model_files` depuis `kyst_models_src` (par défaut `artifacts/ml-models/` à la racine du dépôt, sur la machine de contrôle) vers `kyst_project_dir/models`, sous les noms `surgery_duration_model.joblib` et `los_regressor.joblib` attendus par l'API, montés en lecture seule. Par défaut, ce sont les modèles « consultation » `room_consultation_selected_2026-10-20_v1.joblib` et `los_consultation_selected_2026-10-20_v1.joblib`, à placer dans `artifacts/ml-models/final-2026-10-20-v3/` (voir `FINAL_MODEL_IMPROVEMENTS.md`). Le déploiement échoue s'ils sont absents.
+Les prédictions viennent toujours des modèles entraînés (`AI_BACKEND=trained`). Ces fichiers ne sont pas versionnés : le rôle copie les fichiers listés dans `kyst_model_files` depuis `kyst_models_src` (par défaut `artifacts/ml-models/` à la racine du dépôt, sur la machine de contrôle) vers `kyst_project_dir/models`, sous les noms `surgery_duration_model.joblib` et `los_regressor.joblib` attendus par l'API, montés en lecture seule. Par défaut, ce sont les modèles « consultation » `room_consultation_selected_2026-10-20_v1.joblib` et `los_consultation_selected_2026-10-20_v1.joblib`, à placer dans `artifacts/ml-models/final-2026-10-20-v3/` (voir [les modèles](../../../../docs/models.md) et [leur entraînement](../../../../experiments/README.md)). Le déploiement échoue s'ils sont absents.
 
 Avec `kyst_seed_demo: true` (défaut), le rôle crée, si la base n'a aucune ressource, un service fictif mais réaliste : 4 spécialités, 4 salles, 8 chirurgiens, 45 lits conventionnels, 21 places ambulatoires, des vacations de 3 semaines en arrière à 5 semaines en avant, et l'activité qui va avec. Cette activité comprend environ 250 interventions réalisées avec leurs durées réelles, les patients hospitalisés le jour du déploiement, un planning à venir de moins en moins rempli et 20 demandes en attente. Les prédictions et les dates passent par les modèles et l'ordonnanceur de l'API. Les dates sont calculées à partir du jour du déploiement. Après quelques semaines, le planning à venir se vide : pour repartir de données fraîches, vider la base, puis relancer le playbook. À désactiver avant d'y mettre de vraies données.
 

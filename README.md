@@ -1,258 +1,100 @@
-# AI-Assisted Operating-Room Scheduling
+# KYST — programmation du bloc opératoire assistée par IA
 
-This repository contains a student engineering project on the prediction and optimization of hospital operating-room activity. The project aims to turn historical hospital data into operational decision support for planning interventions, operating-room sessions, and surgical-bed capacity.
+Projet d'élèves ingénieurs sur la prédiction et l'optimisation de l'activité d'un bloc opératoire. Il aboutit à **KYST** (*Keep Your Surgeries Timely*), une application web qui propose des dates d'intervention en tenant compte **à la fois du bloc et des lits**, à partir de durées prédites par des modèles entraînés sur les données de l'hôpital.
 
-The central problem is that several scarce and interdependent resources must be coordinated at once: patients, surgeons, operating rooms, specialty sessions, care teams, and inpatient or ambulatory beds. Optimizing only the operating room can overload the wards, while optimizing only bed occupancy can leave operating-room capacity underused.
+Instance de démonstration : [kyst.tech](https://kyst.tech) (données synthétiques).
 
-## Project vision
+## Le problème
 
-Current scheduling often follows a **push-flow** logic: an intervention is first placed according to the surgeon's schedule, after which the hospital must find the necessary room and bed capacity. This project explores a **pull-flow** approach in which predicted capacity is used to propose better admission and intervention dates.
+Plusieurs ressources rares et interdépendantes doivent être coordonnées : patients, chirurgiens, salles, vacations par spécialité, équipes et lits (ambulatoires ou conventionnels). Optimiser le bloc seul peut saturer les lits ; lisser les lits seuls peut laisser des vacations vides.
 
-The intended decision-support system should:
+Aujourd'hui, la programmation suit un **flux poussé** : l'intervention est fixée selon le planning du chirurgien, puis on cherche un lit. KYST explore un **flux tiré** : la capacité prévue du bloc et des lits sert à proposer les dates. **Le chirurgien garde la décision** : KYST propose et explique, un humain confirme.
 
-- predict a patient's length of stay and operating-room time;
-- estimate whether ambulatory or conventional inpatient capacity is required;
-- propose one or more suitable admission dates from forecast room and bed capacity;
-- assign interventions to specialty-compatible operating-room sessions;
-- use session time effectively while retaining a margin for emergencies and delays;
-- account for weekends, holidays, existing appointments, and resource availability;
-- explain why a scheduling change or date is recommended;
-- preserve the clinician's final decision.
+## Ce que fait KYST
 
-This is therefore a problem at the intersection of machine learning, combinatorial optimization, operations research, and simulation.
+1. En consultation, le chirurgien ou son secrétariat saisit la demande (patient pseudonymisé, diagnostic CIM-10, actes CCAM, fenêtre souhaitée).
+2. KYST prédit le **temps d'occupation de la salle**, la **durée de séjour** et le type d'hébergement (ambulatoire ou conventionnel).
+3. Il propose **deux dates** (A et B), chacune compatible avec une vacation de la bonne spécialité et un lit libre pendant tout le séjour, avec ses raisons.
+4. À la confirmation, il revérifie la capacité puis réserve la vacation et le lit.
+5. Le cadre de bloc peut optimiser l'ensemble des demandes en attente (dix métaheuristiques), simuler des scénarios avec Mesa et actualiser les propositions après un changement (annulation, salle fermée…).
 
-## Data
+Le détail est dans [les fonctionnalités de KYST](interface/docs/Features.md).
 
-The supplied workbook contains **14,649 hospital cases and 30 columns**. It includes:
-
-- admission, discharge, birth, and intervention dates;
-- anonymized case and patient identifiers;
-- principal and associated CIM-10 diagnosis codes;
-- CCAM medical-procedure codes;
-- GHM and GHS classifications;
-- practitioner and surgeon fields;
-- preoperative, room-entry, incision, and room-exit times;
-- anesthesia information, length of stay, and intervention type.
-
-See [`data_dictionary_donees_bloc.md`](data_dictionary_donees_bloc.md) for column-level definitions, relationships, validation findings, and remaining interpretation questions.
-
-### Confidentiality
-
-The project data is not versioned. The entire `resources/` directory is excluded through `.gitignore` because it contains the source workbook and internal project documents.
-
-Although the patient identifier is anonymized or pseudonymized, the workbook still contains dates, repeated patient identifiers, and personnel-related fields. Treat it as confidential: use it only in an authorized environment, do not commit it, and do not expose row-level records in notebooks, figures, logs, or the final report.
-
-## Current state
-
-The repository is currently at the exploratory-analysis stage:
-
-- [`notebooks/EDA_donees_bloc.ipynb`](notebooks/EDA_donees_bloc.ipynb) provides an executable data-analysis and initial cleaning workflow;
-- [`notebooks/preprocessing_los.ipynb`](notebooks/preprocessing_los.ipynb) creates a leakage-conscious length-of-stay modeling table;
-- [`notebooks/preprocessing_surgery_duration.ipynb`](notebooks/preprocessing_surgery_duration.ipynb) creates a leakage-conscious operating-room-duration modeling table;
-- [`prediction/`](prediction/) contains the operating-room-duration and length-of-stay models (training and inference);
-- [`tools/dashboard.py`](tools/dashboard.py) provides an interactive, aggregate view of the preprocessed data;
-- [`data_dictionary_donees_bloc.md`](data_dictionary_donees_bloc.md) documents and validates the workbook schema;
-- [`docs/patient-workflow.md`](docs/patient-workflow.md) provides a first activity-diagram draft of the planned surgical-patient journey;
-- [`report/`](report/) contains the collaborative LaTeX report and its local build instructions;
-- [`requirements.txt`](requirements.txt) lists the Python dependencies required by the notebooks, dashboard, prediction models, simulation and tests.
-
-The notebook covers schema inspection, missing values, duplicate rows, derived ages and durations, monthly and weekday activity, common clinical categories, operating-room timing, and duration comparisons by intervention type. Identifier columns are omitted from row-level previews and charts.
-
-An initial asynchronous coordination skeleton is available in [`hospital_sim/`](hospital_sim/),
-with adapter interfaces, versioned state, explicit proposal validation and acceptance, and a
-synthetic disruption demonstration. See the [coordination-core guide](docs/coordination-core.md)
-for its boundaries and integration points. It is infrastructure for future simulation and agents,
-not a clinical scheduler or a complete multi-agent system.
-
-Predictive models, real scheduling algorithms, comparative experiments, and an operational decision-support application have not yet been implemented.
-
-## Repository structure
+## Organisation du dépôt
 
 ```text
 .
-├── notebooks/
-│   ├── EDA_donees_bloc.ipynb      # Initial exploratory data analysis
-│   ├── preprocessing_los.ipynb    # Length-of-stay model preprocessing
-│   ├── preprocessing_surgery_duration.ipynb # Surgery-duration model preprocessing
-│   ├── guide_optimisation.ipynb   # Step-by-step optimisation guide
-│   └── rapport_aleas_et_adaptation.ipynb # Disruption and adaptation report
-├── prediction/                     # Duration models: room time, length of stay, simulation bridge
-├── tools/dashboard.py              # Interactive aggregate-data dashboard
-├── data_dictionary_donees_bloc.md # Description of the 30 source columns
-├── docs/
-│   └── patient-workflow.md        # Versioned patient-journey diagram
-├── report/                         # Collaborative LaTeX report sources
-├── requirements.txt               # Python research dependencies
-├── resources/                     # Local-only data and project briefs (ignored)
-└── README.md
+├── interface/      # Application KYST : API FastAPI, front SvelteKit, déploiement Ansible
+├── prediction/     # Modèles de durée de salle et de séjour (entraînement et inférence)
+├── optimiseur/     # Métaheuristiques d'affectation des demandes aux vacations
+├── hospital_sim/   # Simulation Mesa des salles et coordinateur de replanification
+├── experiments/    # Script d'entraînement des modèles déployés et ses résultats agrégés
+├── notebooks/      # Analyse exploratoire et préparation des jeux d'entraînement
+├── tests/          # Tests des moteurs (prediction, optimiseur, hospital_sim)
+├── docs/           # Documentation du projet (données, modèles, intégration, parcours)
+├── report/         # Rapport LaTeX
+├── soutenance/     # Présentation (Beamer)
+└── resources/      # Données de l'hôpital, locales et jamais versionnées
 ```
 
-## Getting started
+Chaque dossier a son README. La chaîne complète va des données au produit :
 
-### 1. Create a Python environment
+```mermaid
+flowchart LR
+    A[resources/<br/>classeur de l'hôpital] --> B[notebooks/<br/>nettoyage, jeux d'entraînement]
+    B --> C[experiments/<br/>entraînement des modèles]
+    C --> D[artifacts/<br/>modèles .joblib, non versionnés]
+    D --> E[interface/api<br/>prédictions]
+    F[prediction/] --> C
+    F --> E
+    G[optimiseur/ et hospital_sim/] --> E
+    E --> H[interface/app<br/>KYST]
+```
 
-Python 3.12 or newer is required.
+## Documentation
+
+| Pour… | Lire |
+| :--- | :--- |
+| Avoir une vue d'ensemble de la documentation | [docs/README.md](docs/README.md) |
+| Utiliser KYST et connaître ses fonctionnalités | [Fonctionnalités](interface/docs/Features.md) |
+| Développer sur KYST (API, front, déploiement) | [interface/README.md](interface/README.md) |
+| Comprendre les modèles et leur précision | [Modèles de prédiction](docs/models.md) |
+| Comprendre le lien entre l'IA et l'application | [Intégration de l'IA dans KYST](docs/kyst-integration.md) |
+| Connaître les données sources | [Dictionnaire des données](docs/data-dictionary.md) |
+| Lancer les tests | [tests/README.md](tests/README.md) |
+| Contribuer (branches, commits, revues) | [CONTRIBUTING.md](CONTRIBUTING.md) |
+
+## Démarrage rapide
+
+### Application KYST
+
+Voir le [guide de contribution de KYST](interface/CONTRIBUTING.md) pour installer les outils (`mise`, `just`, `uv`, `pnpm`). Ensuite :
+
+```bash
+cd interface/api && just install && just seed && just dev   # API sur http://127.0.0.1:8000
+cd interface/app && pnpm install && pnpm dev                # front sur http://localhost:5173
+```
+
+En local, l'API utilise par défaut des valeurs de prédiction fixes (`AI_BACKEND=fixtures`) ; les modèles entraînés s'activent avec `AI_BACKEND=trained` (voir [l'intégration](docs/kyst-integration.md#configuration)). Le déploiement est décrit dans le [rôle Ansible `kyst`](interface/ansible/roles/kyst/README.md).
+
+### Données, notebooks et modèles
+
+Python 3.12 ou plus récent est requis.
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-On Windows PowerShell, activate the environment with:
+Placer le classeur de l'hôpital, obtenu par le canal autorisé, dans `resources/donees bloc anonyme pour centrale 2026.xlsx`, puis exécuter les notebooks dans l'ordre décrit dans [notebooks/README.md](notebooks/README.md). L'entraînement des modèles est décrit dans [experiments/README.md](experiments/README.md).
 
-```powershell
-.venv\Scripts\Activate.ps1
-```
+## Confidentialité
 
-### 2. Obtain the data
+Les données de l'hôpital ne sont pas versionnées : tout le dossier `resources/` est exclu par `.gitignore`, tout comme `artifacts/`, qui reçoit les modèles entraînés. L'identifiant patient est pseudonymisé, mais le classeur contient encore des dates, des identifiants répétés et des champs relatifs au personnel : il reste confidentiel. Ne l'utiliser que dans un environnement autorisé et n'exposer aucune ligne individuelle dans les notebooks, figures, journaux ou rapports.
 
-Obtain the workbook through the team's authorized sharing channel and keep it inside the ignored `resources/` directory:
+KYST lui-même ne stocke ni nom ni date de naissance (seulement l'année) ; l'instance de démonstration ne contient que des patients synthétiques. Les choix liés au RGPD (journalisation, rétention, scellement des journaux) sont décrits dans le [rôle `journald`](interface/ansible/roles/journald/README.md).
 
-```text
-resources/donees bloc anonyme pour centrale 2026.xlsx
-```
+## Limites
 
-The notebook expects the workbook at this location through its `DATA_FILE` configuration:
-
-```python
-DATA_FILE = Path("resources/donees bloc anonyme pour centrale 2026.xlsx")
-```
-
-When executed, the notebook writes the fully preprocessed table to the ignored Parquet file
-`resources/donnees_bloc_pretraitees.parquet`. The export runs after all exclusions and derived
-measures, preserves numeric and datetime types, and does not overwrite the source workbook.
-
-### 3. Start JupyterLab
-
-From the repository root:
-
-```bash
-jupyter lab
-```
-
-Open `notebooks/EDA_donees_bloc.ipynb`, select the virtual-environment kernel, and run the cells in order.
-
-### 4. Prepare model datasets
-
-After running the EDA notebook, run the two model-specific preprocessing notebooks:
-
-- `notebooks/preprocessing_los.ipynb` writes `resources/model_los_dataset.parquet`;
-- `notebooks/preprocessing_surgery_duration.ipynb` writes `resources/model_surgery_duration_dataset.parquet`.
-
-Both outputs contain patient-disjoint temporal train, validation, and test splits. Columns beginning
-with `split_` are audit metadata and must not be passed to a model. The notebooks retain categorical
-features as strings so their encoding can be fitted inside each model pipeline without leakage.
-
-### 5. Start the dashboard
-
-After the notebook has created the preprocessed Parquet file, run:
-
-```bash
-streamlit run tools/dashboard.py
-```
-
-Use the sidebar to select a variable and one or more values—for example,
-`interv_type = Varices`. The dashboard compares the selection with the complete dataset, shows
-room-time and corrected-stay distributions, provides other numeric measures, breaks the selection
-down by a second category, and plots activity over time. It intentionally presents aggregate
-results only and does not expose patient or staff-level rows.
-
-## Planned methodology
-
-The expected work is organized into four main stages:
-
-1. **Understand and prepare the data** — assess quality, clarify business rules, engineer durations and capacity indicators, and model the patient workflow from admission to discharge.
-1. **Predict operational quantities** — estimate length of stay, operating-room duration, and the type of capacity needed for a future patient.
-1. **Formulate the scheduling problem** — define decision variables, resource and compatibility constraints, emergency margins, and objectives for room utilization and bed-occupancy smoothing.
-1. **Optimize and evaluate schedules** — implement and compare tabu search, simulated annealing, and genetic algorithms on small and large problem instances.
-
-Evaluation should report both optimization quality and operational impact, including room utilization, bed-occupancy variability, delays or waiting time, constraint violations, robustness to unexpected events, and computation time.
-
-## Contributing
-
-For the six-person team, keep runnable code, analysis, and future report sources on `main`. Make changes on short-lived branches and merge them through reviewed pull requests. Do not commit directly to `main`.
-
-### Branches
-
-Create a branch for one clearly defined task and use a descriptive `<area>/<topic>` name, for example:
-
-```text
-eda/timing-quality
-model/length-of-stay
-optim/tabu-search
-report/data-analysis
-fix/missing-timestamps
-```
-
-Start from an up-to-date `main`, keep the branch focused, and delete it after merging. If a branch lives for more than a few days, synchronize it with `main` regularly to detect conflicts early.
-
-### Atomic commits
-
-Each commit should represent one logical, reviewable change. A commit should not mix unrelated refactoring, analysis, documentation, and formatting changes. It should leave the repository in a usable state whenever possible.
-
-Before committing:
-
-- review the staged diff with `git diff --staged`;
-- use `git add -p` when a file contains several unrelated changes;
-- exclude temporary files, generated artifacts, credentials, and confidential data;
-- run the checks relevant to the files being changed.
-
-### Commit messages
-
-Use [Conventional Commits](https://www.conventionalcommits.org/) with an optional scope:
-
-```text
-<type>(<scope>): <short imperative description>
-```
-
-Common types for this project are:
-
-- `feat`: add a new capability, analysis, model, or optimization method;
-- `fix`: correct incorrect behavior or a data-processing error;
-- `docs`: change documentation or report content only;
-- `refactor`: restructure code without changing its behavior;
-- `test`: add or update tests;
-- `perf`: improve performance;
-- `chore`: maintain tooling, dependencies, or repository configuration.
-
-Examples:
-
-```text
-feat(eda): add operating-room duration analysis
-fix(data): handle procedures crossing midnight
-docs(report): describe the tabu-search formulation
-refactor(optim): extract the schedule scoring function
-chore(deps): add scikit-learn dependency
-```
-
-Keep the first line concise, use the imperative mood, and explain the motivation or important trade-offs in the commit body when the reason is not obvious. Mark incompatible changes with `!` and a `BREAKING CHANGE:` footer.
-
-### Pull requests and review
-
-A pull request should be small enough to review comfortably and should contain:
-
-- a short explanation of the problem and the chosen solution;
-- the affected data, model, notebook, or report section;
-- instructions for reproducing or validating the result;
-- relevant metrics, plots, or screenshots when behavior changes;
-- any assumptions, limitations, privacy implications, or follow-up work.
-
-At least one teammate should approve a pull request before it is merged. Reviewers should check correctness, reproducibility, readability, confidentiality, and consistency with the project objectives. Resolve discussions rather than silently dismissing them, and prefer squash merging when a branch contains fix-up commits that are not useful to the permanent history.
-
-### Notebooks, data, and report files
-
-- Keep notebooks executable from top to bottom and document required inputs.
-- Remove debugging cells and clear unnecessary outputs before committing.
-- Do not display or commit row-level patient, case, practitioner, or surgeon information.
-- Put reusable processing or modeling logic in Python modules once it becomes too large for a notebook.
-- Do not commit the contents of `resources/`, local environments, caches, generated PDFs, or LaTeX auxiliary files.
-- Give generated figures descriptive names and record the code and parameters used to produce them.
-- Split the LaTeX report into one file per section and agree on section ownership to reduce merge conflicts.
-
-## Important interpretation limits
-
-Several business rules must be confirmed before modeling results can be used operationally, particularly the meaning of zero-valued timestamps, whether interventions can cross midnight, the precise role represented by `Praticien`, and whether `Date Inter` is always the principal intervention date.
-
-All current analyses are exploratory. Any future recommendation system must be validated on real hospital workflows and should support—not replace—clinical and operational judgment.
+KYST est un démonstrateur de recherche, pas un dispositif validé cliniquement. Les modèles ont été évalués rétrospectivement ; leur précision baisse quand des informations manquent à la consultation (anesthésie, praticien), et ils sous-estiment les longues interventions et les longs séjours (voir [les modèles](docs/models.md#limites)). Toute utilisation réelle demanderait une validation prospective, un hébergeur certifié HDS et une analyse réglementaire.
