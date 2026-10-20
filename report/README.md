@@ -11,8 +11,8 @@ The room campaign contains 576 execution replays from 144 initial plans.
 The separate duration-information campaign contains 1152 replays from 288
 initial plans; its median reruns are not pooled with the first campaign.
 Attribution and interpretation are recorded in [INCORPORATION.md](INCORPORATION.md),
-with source scope in [SOURCES.md](SOURCES.md). Confirmed author names and
-clinical validation are still required. Learned room-duration models are
+with source scope in [SOURCES.md](SOURCES.md). The author list names all six
+team members; the study does not establish clinical validation. Learned room-duration models are
 reviewed at the protocol level; the reported room experiments use medians
 or explicit oracle information.
 
