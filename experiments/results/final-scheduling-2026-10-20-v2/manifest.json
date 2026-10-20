@@ -1,0 +1,48 @@
+{
+  "source_sha256": "74774705d1bfe5e79fda6e70d960d197b9a8351f140d7edb0c746ce582b29d8c",
+  "input_sha256": {
+    "dataset": "f8aa6ed1f9c1a985237eabe30af3c68a6390ccc8ac8e76ac2332da6928fbc361",
+    "eda": "38cb09b7cde60a0644d4e790a86ae619974aeeb602477762e063b83030f6f200"
+  },
+  "artifact_sha256": {
+    "median": "cc8f560835000d79dfdb0ad1dae0e0eba777d7722c6f1748f149fedae97715de",
+    "ml": "712577b71d7eccdc983774412df7fcb6e321d9b2d65598e77b60896d0481fdcd"
+  },
+  "design": {
+    "cohorts": "first 8 chronological heldout dates with >=8 unique matched cases; cap30 by source ID",
+    "rooms": [
+      1,
+      2
+    ],
+    "opening": 480,
+    "closing": 960,
+    "turnover": 15,
+    "seeds": [
+      7101,
+      7102
+    ],
+    "evaluations": 500,
+    "per_search_seconds": 10,
+    "policy": "static",
+    "initial_allocation": "positional round robin identical between arms",
+    "limitations": "Retrospective recorded codes assumed consultation-available; no prospective verification; fixed LOS"
+  },
+  "join_quality": {
+    "model_ambiguous_rows": 0,
+    "eda_ambiguous_rows": 0,
+    "matched_rows": 13311,
+    "target_agreement": true
+  },
+  "raw_prepared_parity": {
+    "median": {
+      "n": 3043,
+      "max_abs_difference": 0.0,
+      "mean_abs_difference": 0.0
+    },
+    "ml": {
+      "n": 3043,
+      "max_abs_difference": 0.0,
+      "mean_abs_difference": 0.0
+    }
+  }
+}

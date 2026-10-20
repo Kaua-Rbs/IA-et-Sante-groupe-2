@@ -1,0 +1,42 @@
+[
+  {
+    "workload_seed": 1106,
+    "solver_seed": 1,
+    "all_two_move_paths_checked": 8985,
+    "minimum_first_step_cost_increase_for_feasible_two_move_path": null,
+    "minimum_first_step_cost_increase_for_improving_two_move_path": null,
+    "scope": "Exhaustive two-move paths only; longer plateau paths may exist."
+  },
+  {
+    "workload_seed": 1106,
+    "solver_seed": 2,
+    "all_two_move_paths_checked": 8273,
+    "minimum_first_step_cost_increase_for_feasible_two_move_path": null,
+    "minimum_first_step_cost_increase_for_improving_two_move_path": null,
+    "scope": "Exhaustive two-move paths only; longer plateau paths may exist."
+  },
+  {
+    "workload_seed": 1106,
+    "solver_seed": 3,
+    "all_two_move_paths_checked": 8625,
+    "minimum_first_step_cost_increase_for_feasible_two_move_path": 150.0,
+    "minimum_first_step_cost_increase_for_improving_two_move_path": 150.0,
+    "scope": "Exhaustive two-move paths only; longer plateau paths may exist."
+  },
+  {
+    "workload_seed": 1106,
+    "solver_seed": 4,
+    "all_two_move_paths_checked": 8625,
+    "minimum_first_step_cost_increase_for_feasible_two_move_path": null,
+    "minimum_first_step_cost_increase_for_improving_two_move_path": null,
+    "scope": "Exhaustive two-move paths only; longer plateau paths may exist."
+  },
+  {
+    "workload_seed": 1110,
+    "solver_seed": 4,
+    "all_two_move_paths_checked": 8804,
+    "minimum_first_step_cost_increase_for_feasible_two_move_path": null,
+    "minimum_first_step_cost_increase_for_improving_two_move_path": 72.0,
+    "scope": "Exhaustive two-move paths only; longer plateau paths may exist."
+  }
+]

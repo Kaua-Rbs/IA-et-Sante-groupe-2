@@ -1,0 +1,291 @@
+[
+  {
+    "name": "no_specialty",
+    "workload": {
+      "patients": [
+        {
+          "patient_id": 0,
+          "specialite": "Y",
+          "duree_operatoire": 1000,
+          "duree_sejour": 0
+        },
+        {
+          "patient_id": 1,
+          "specialite": "X",
+          "duree_operatoire": 1000,
+          "duree_sejour": 0
+        }
+      ],
+      "sessions": [
+        {
+          "vacation_id": 0,
+          "jour": 0,
+          "specialite": "X",
+          "capacite_min": 2000
+        },
+        {
+          "vacation_id": 1,
+          "jour": 1,
+          "specialite": "X",
+          "capacite_min": 2000
+        }
+      ],
+      "bed_capacities": [
+        2,
+        0
+      ],
+      "patient_options": [
+        [
+          0
+        ],
+        [
+          0
+        ]
+      ],
+      "initial_assignments": {
+        "0": {
+          "0": 0,
+          "1": 0
+        }
+      },
+      "workload_seed": "no_specialty",
+      "category": "infeasible_stress"
+    },
+    "independent_validation": {
+      "valid": false,
+      "feasible": false,
+      "errors": [
+        "Every patient needs nonempty specialty-compatible integer options"
+      ],
+      "or_overload_minutes": 0.0,
+      "bed_overload_days": 0.0,
+      "tail_bed_overload_days": 0.0,
+      "balance_minutes": 0.0,
+      "occupancy": [],
+      "session_loads": [],
+      "assigned_cases": 0,
+      "missing_cases": 0
+    },
+    "proof": "Patient 0 has no specialty-compatible session; rejected before search.",
+    "rejected_before_search": true
+  },
+  {
+    "name": "oversized_case",
+    "workload": {
+      "patients": [
+        {
+          "patient_id": 0,
+          "specialite": "X",
+          "duree_operatoire": 2001,
+          "duree_sejour": 0
+        },
+        {
+          "patient_id": 1,
+          "specialite": "X",
+          "duree_operatoire": 1000,
+          "duree_sejour": 0
+        }
+      ],
+      "sessions": [
+        {
+          "vacation_id": 0,
+          "jour": 0,
+          "specialite": "X",
+          "capacite_min": 2000
+        },
+        {
+          "vacation_id": 1,
+          "jour": 1,
+          "specialite": "X",
+          "capacite_min": 2000
+        }
+      ],
+      "bed_capacities": [
+        2,
+        0
+      ],
+      "patient_options": [
+        [
+          0
+        ],
+        [
+          0
+        ]
+      ],
+      "initial_assignments": {
+        "0": {
+          "0": 0,
+          "1": 0
+        }
+      },
+      "workload_seed": "oversized_case",
+      "category": "infeasible_stress"
+    },
+    "independent_validation": {
+      "valid": true,
+      "feasible": false,
+      "errors": [],
+      "or_overload_minutes": 1001.0,
+      "bed_overload_days": 0.0,
+      "tail_bed_overload_days": 0.0,
+      "balance_minutes": 1500.5,
+      "occupancy": [
+        2,
+        0
+      ],
+      "session_loads": [
+        3001.0,
+        0.0
+      ],
+      "assigned_cases": 2,
+      "missing_cases": 0
+    },
+    "proof": "All allowed assignments exhaustively enumerated; none feasible."
+  },
+  {
+    "name": "aggregate_OR_deficit",
+    "workload": {
+      "patients": [
+        {
+          "patient_id": 0,
+          "specialite": "X",
+          "duree_operatoire": 1000,
+          "duree_sejour": 0
+        },
+        {
+          "patient_id": 1,
+          "specialite": "X",
+          "duree_operatoire": 1000,
+          "duree_sejour": 0
+        }
+      ],
+      "sessions": [
+        {
+          "vacation_id": 0,
+          "jour": 0,
+          "specialite": "X",
+          "capacite_min": 1500
+        },
+        {
+          "vacation_id": 1,
+          "jour": 1,
+          "specialite": "X",
+          "capacite_min": 2000
+        }
+      ],
+      "bed_capacities": [
+        2,
+        0
+      ],
+      "patient_options": [
+        [
+          0
+        ],
+        [
+          0
+        ]
+      ],
+      "initial_assignments": {
+        "0": {
+          "0": 0,
+          "1": 0
+        }
+      },
+      "workload_seed": "aggregate_OR_deficit",
+      "category": "infeasible_stress"
+    },
+    "independent_validation": {
+      "valid": true,
+      "feasible": false,
+      "errors": [],
+      "or_overload_minutes": 500.0,
+      "bed_overload_days": 0.0,
+      "tail_bed_overload_days": 0.0,
+      "balance_minutes": 1000.0,
+      "occupancy": [
+        2,
+        0
+      ],
+      "session_loads": [
+        2000.0,
+        0.0
+      ],
+      "assigned_cases": 2,
+      "missing_cases": 0
+    },
+    "proof": "All allowed assignments exhaustively enumerated; none feasible."
+  },
+  {
+    "name": "mandatory_bed_deficit",
+    "workload": {
+      "patients": [
+        {
+          "patient_id": 0,
+          "specialite": "X",
+          "duree_operatoire": 1000,
+          "duree_sejour": 0
+        },
+        {
+          "patient_id": 1,
+          "specialite": "X",
+          "duree_operatoire": 1000,
+          "duree_sejour": 0
+        }
+      ],
+      "sessions": [
+        {
+          "vacation_id": 0,
+          "jour": 0,
+          "specialite": "X",
+          "capacite_min": 2000
+        },
+        {
+          "vacation_id": 1,
+          "jour": 1,
+          "specialite": "X",
+          "capacite_min": 2000
+        }
+      ],
+      "bed_capacities": [
+        1,
+        0
+      ],
+      "patient_options": [
+        [
+          0
+        ],
+        [
+          0
+        ]
+      ],
+      "initial_assignments": {
+        "0": {
+          "0": 0,
+          "1": 0
+        }
+      },
+      "workload_seed": "mandatory_bed_deficit",
+      "category": "infeasible_stress"
+    },
+    "independent_validation": {
+      "valid": true,
+      "feasible": false,
+      "errors": [],
+      "or_overload_minutes": 0.0,
+      "bed_overload_days": 1.0,
+      "tail_bed_overload_days": 0.0,
+      "balance_minutes": 1000.0,
+      "occupancy": [
+        2,
+        0
+      ],
+      "session_loads": [
+        2000.0,
+        0.0
+      ],
+      "assigned_cases": 2,
+      "missing_cases": 0
+    },
+    "proof": "All allowed assignments exhaustively enumerated; none feasible."
+  }
+]

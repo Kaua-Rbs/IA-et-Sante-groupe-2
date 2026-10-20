@@ -1,0 +1,4421 @@
+[
+  {
+    "workload_seed": 1100,
+    "category": "slack",
+    "patients": [
+      {
+        "patient_id": 0,
+        "specialite": "X",
+        "duree_operatoire": 90,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 1,
+        "specialite": "X",
+        "duree_operatoire": 75,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 2,
+        "specialite": "Y",
+        "duree_operatoire": 135,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 3,
+        "specialite": "Y",
+        "duree_operatoire": 165,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 4,
+        "specialite": "X",
+        "duree_operatoire": 90,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 5,
+        "specialite": "X",
+        "duree_operatoire": 45,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 6,
+        "specialite": "Y",
+        "duree_operatoire": 180,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 7,
+        "specialite": "Y",
+        "duree_operatoire": 135,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 8,
+        "specialite": "X",
+        "duree_operatoire": 150,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 9,
+        "specialite": "X",
+        "duree_operatoire": 90,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 10,
+        "specialite": "Y",
+        "duree_operatoire": 45,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 11,
+        "specialite": "Y",
+        "duree_operatoire": 135,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 12,
+        "specialite": "X",
+        "duree_operatoire": 150,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 13,
+        "specialite": "X",
+        "duree_operatoire": 75,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 14,
+        "specialite": "Y",
+        "duree_operatoire": 75,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 15,
+        "specialite": "Y",
+        "duree_operatoire": 150,
+        "duree_sejour": 0
+      }
+    ],
+    "sessions": [
+      {
+        "vacation_id": 0,
+        "jour": 0,
+        "specialite": "X",
+        "capacite_min": 345
+      },
+      {
+        "vacation_id": 1,
+        "jour": 0,
+        "specialite": "Y",
+        "capacite_min": 480
+      },
+      {
+        "vacation_id": 2,
+        "jour": 1,
+        "specialite": "X",
+        "capacite_min": 315
+      },
+      {
+        "vacation_id": 3,
+        "jour": 1,
+        "specialite": "Y",
+        "capacite_min": 495
+      },
+      {
+        "vacation_id": 4,
+        "jour": 2,
+        "specialite": "X",
+        "capacite_min": 420
+      },
+      {
+        "vacation_id": 5,
+        "jour": 2,
+        "specialite": "Y",
+        "capacite_min": 360
+      },
+      {
+        "vacation_id": 6,
+        "jour": 3,
+        "specialite": "X",
+        "capacite_min": 405
+      },
+      {
+        "vacation_id": 7,
+        "jour": 3,
+        "specialite": "Y",
+        "capacite_min": 405
+      }
+    ],
+    "bed_capacities": [
+      8,
+      9,
+      12,
+      14,
+      9,
+      4
+    ],
+    "patient_options": [
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ]
+    ],
+    "feasible_witness": {
+      "0": 0,
+      "1": 0,
+      "2": 1,
+      "3": 1,
+      "4": 2,
+      "5": 2,
+      "6": 3,
+      "7": 3,
+      "8": 4,
+      "9": 4,
+      "10": 5,
+      "11": 5,
+      "12": 6,
+      "13": 6,
+      "14": 7,
+      "15": 7
+    },
+    "initial_assignments": {
+      "0": {
+        "0": 4,
+        "1": 4,
+        "2": 3,
+        "3": 5,
+        "4": 4,
+        "5": 0,
+        "6": 1,
+        "7": 3,
+        "8": 6,
+        "9": 4,
+        "10": 3,
+        "11": 7,
+        "12": 2,
+        "13": 0,
+        "14": 5,
+        "15": 3
+      },
+      "1": {
+        "0": 0,
+        "1": 2,
+        "2": 1,
+        "3": 5,
+        "4": 0,
+        "5": 2,
+        "6": 7,
+        "7": 5,
+        "8": 2,
+        "9": 4,
+        "10": 7,
+        "11": 5,
+        "12": 0,
+        "13": 0,
+        "14": 7,
+        "15": 3
+      },
+      "2": {
+        "0": 0,
+        "1": 4,
+        "2": 1,
+        "3": 1,
+        "4": 4,
+        "5": 6,
+        "6": 7,
+        "7": 7,
+        "8": 0,
+        "9": 6,
+        "10": 3,
+        "11": 1,
+        "12": 0,
+        "13": 0,
+        "14": 3,
+        "15": 5
+      },
+      "3": {
+        "0": 0,
+        "1": 6,
+        "2": 3,
+        "3": 1,
+        "4": 4,
+        "5": 4,
+        "6": 3,
+        "7": 1,
+        "8": 6,
+        "9": 6,
+        "10": 1,
+        "11": 7,
+        "12": 4,
+        "13": 4,
+        "14": 3,
+        "15": 7
+      },
+      "4": {
+        "0": 2,
+        "1": 6,
+        "2": 1,
+        "3": 1,
+        "4": 0,
+        "5": 4,
+        "6": 5,
+        "7": 5,
+        "8": 4,
+        "9": 2,
+        "10": 7,
+        "11": 1,
+        "12": 0,
+        "13": 4,
+        "14": 1,
+        "15": 7
+      }
+    }
+  },
+  {
+    "workload_seed": 1101,
+    "category": "slack",
+    "patients": [
+      {
+        "patient_id": 0,
+        "specialite": "X",
+        "duree_operatoire": 135,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 1,
+        "specialite": "X",
+        "duree_operatoire": 90,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 2,
+        "specialite": "Y",
+        "duree_operatoire": 75,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 3,
+        "specialite": "Y",
+        "duree_operatoire": 165,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 4,
+        "specialite": "X",
+        "duree_operatoire": 180,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 5,
+        "specialite": "X",
+        "duree_operatoire": 135,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 6,
+        "specialite": "Y",
+        "duree_operatoire": 90,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 7,
+        "specialite": "Y",
+        "duree_operatoire": 60,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 8,
+        "specialite": "X",
+        "duree_operatoire": 165,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 9,
+        "specialite": "X",
+        "duree_operatoire": 180,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 10,
+        "specialite": "Y",
+        "duree_operatoire": 90,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 11,
+        "specialite": "Y",
+        "duree_operatoire": 105,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 12,
+        "specialite": "X",
+        "duree_operatoire": 105,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 13,
+        "specialite": "X",
+        "duree_operatoire": 165,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 14,
+        "specialite": "Y",
+        "duree_operatoire": 180,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 15,
+        "specialite": "Y",
+        "duree_operatoire": 180,
+        "duree_sejour": 1
+      }
+    ],
+    "sessions": [
+      {
+        "vacation_id": 0,
+        "jour": 0,
+        "specialite": "X",
+        "capacite_min": 405
+      },
+      {
+        "vacation_id": 1,
+        "jour": 0,
+        "specialite": "Y",
+        "capacite_min": 420
+      },
+      {
+        "vacation_id": 2,
+        "jour": 1,
+        "specialite": "X",
+        "capacite_min": 495
+      },
+      {
+        "vacation_id": 3,
+        "jour": 1,
+        "specialite": "Y",
+        "capacite_min": 330
+      },
+      {
+        "vacation_id": 4,
+        "jour": 2,
+        "specialite": "X",
+        "capacite_min": 525
+      },
+      {
+        "vacation_id": 5,
+        "jour": 2,
+        "specialite": "Y",
+        "capacite_min": 375
+      },
+      {
+        "vacation_id": 6,
+        "jour": 3,
+        "specialite": "X",
+        "capacite_min": 450
+      },
+      {
+        "vacation_id": 7,
+        "jour": 3,
+        "specialite": "Y",
+        "capacite_min": 540
+      }
+    ],
+    "bed_capacities": [
+      8,
+      10,
+      10,
+      12,
+      7,
+      5
+    ],
+    "patient_options": [
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ]
+    ],
+    "feasible_witness": {
+      "0": 0,
+      "1": 0,
+      "2": 1,
+      "3": 1,
+      "4": 2,
+      "5": 2,
+      "6": 3,
+      "7": 3,
+      "8": 4,
+      "9": 4,
+      "10": 5,
+      "11": 5,
+      "12": 6,
+      "13": 6,
+      "14": 7,
+      "15": 7
+    },
+    "initial_assignments": {
+      "0": {
+        "0": 4,
+        "1": 4,
+        "2": 3,
+        "3": 5,
+        "4": 4,
+        "5": 0,
+        "6": 1,
+        "7": 3,
+        "8": 6,
+        "9": 4,
+        "10": 3,
+        "11": 7,
+        "12": 2,
+        "13": 0,
+        "14": 5,
+        "15": 3
+      },
+      "1": {
+        "0": 0,
+        "1": 2,
+        "2": 1,
+        "3": 5,
+        "4": 0,
+        "5": 2,
+        "6": 7,
+        "7": 5,
+        "8": 2,
+        "9": 4,
+        "10": 7,
+        "11": 5,
+        "12": 0,
+        "13": 0,
+        "14": 7,
+        "15": 3
+      },
+      "2": {
+        "0": 0,
+        "1": 4,
+        "2": 1,
+        "3": 1,
+        "4": 4,
+        "5": 6,
+        "6": 7,
+        "7": 7,
+        "8": 0,
+        "9": 6,
+        "10": 3,
+        "11": 1,
+        "12": 0,
+        "13": 0,
+        "14": 3,
+        "15": 5
+      },
+      "3": {
+        "0": 0,
+        "1": 6,
+        "2": 3,
+        "3": 1,
+        "4": 4,
+        "5": 4,
+        "6": 3,
+        "7": 1,
+        "8": 6,
+        "9": 6,
+        "10": 1,
+        "11": 7,
+        "12": 4,
+        "13": 4,
+        "14": 3,
+        "15": 7
+      },
+      "4": {
+        "0": 2,
+        "1": 6,
+        "2": 1,
+        "3": 1,
+        "4": 0,
+        "5": 4,
+        "6": 5,
+        "7": 5,
+        "8": 4,
+        "9": 2,
+        "10": 7,
+        "11": 1,
+        "12": 0,
+        "13": 4,
+        "14": 1,
+        "15": 7
+      }
+    }
+  },
+  {
+    "workload_seed": 1102,
+    "category": "slack",
+    "patients": [
+      {
+        "patient_id": 0,
+        "specialite": "X",
+        "duree_operatoire": 120,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 1,
+        "specialite": "X",
+        "duree_operatoire": 180,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 2,
+        "specialite": "Y",
+        "duree_operatoire": 135,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 3,
+        "specialite": "Y",
+        "duree_operatoire": 75,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 4,
+        "specialite": "X",
+        "duree_operatoire": 105,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 5,
+        "specialite": "X",
+        "duree_operatoire": 75,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 6,
+        "specialite": "Y",
+        "duree_operatoire": 180,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 7,
+        "specialite": "Y",
+        "duree_operatoire": 150,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 8,
+        "specialite": "X",
+        "duree_operatoire": 105,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 9,
+        "specialite": "X",
+        "duree_operatoire": 60,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 10,
+        "specialite": "Y",
+        "duree_operatoire": 105,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 11,
+        "specialite": "Y",
+        "duree_operatoire": 60,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 12,
+        "specialite": "X",
+        "duree_operatoire": 180,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 13,
+        "specialite": "X",
+        "duree_operatoire": 90,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 14,
+        "specialite": "Y",
+        "duree_operatoire": 60,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 15,
+        "specialite": "Y",
+        "duree_operatoire": 45,
+        "duree_sejour": 0
+      }
+    ],
+    "sessions": [
+      {
+        "vacation_id": 0,
+        "jour": 0,
+        "specialite": "X",
+        "capacite_min": 480
+      },
+      {
+        "vacation_id": 1,
+        "jour": 0,
+        "specialite": "Y",
+        "capacite_min": 390
+      },
+      {
+        "vacation_id": 2,
+        "jour": 1,
+        "specialite": "X",
+        "capacite_min": 360
+      },
+      {
+        "vacation_id": 3,
+        "jour": 1,
+        "specialite": "Y",
+        "capacite_min": 510
+      },
+      {
+        "vacation_id": 4,
+        "jour": 2,
+        "specialite": "X",
+        "capacite_min": 345
+      },
+      {
+        "vacation_id": 5,
+        "jour": 2,
+        "specialite": "Y",
+        "capacite_min": 345
+      },
+      {
+        "vacation_id": 6,
+        "jour": 3,
+        "specialite": "X",
+        "capacite_min": 450
+      },
+      {
+        "vacation_id": 7,
+        "jour": 3,
+        "specialite": "Y",
+        "capacite_min": 285
+      }
+    ],
+    "bed_capacities": [
+      8,
+      11,
+      13,
+      14,
+      9,
+      5
+    ],
+    "patient_options": [
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ]
+    ],
+    "feasible_witness": {
+      "0": 0,
+      "1": 0,
+      "2": 1,
+      "3": 1,
+      "4": 2,
+      "5": 2,
+      "6": 3,
+      "7": 3,
+      "8": 4,
+      "9": 4,
+      "10": 5,
+      "11": 5,
+      "12": 6,
+      "13": 6,
+      "14": 7,
+      "15": 7
+    },
+    "initial_assignments": {
+      "0": {
+        "0": 4,
+        "1": 4,
+        "2": 3,
+        "3": 5,
+        "4": 4,
+        "5": 0,
+        "6": 1,
+        "7": 3,
+        "8": 6,
+        "9": 4,
+        "10": 3,
+        "11": 7,
+        "12": 2,
+        "13": 0,
+        "14": 5,
+        "15": 3
+      },
+      "1": {
+        "0": 0,
+        "1": 2,
+        "2": 1,
+        "3": 5,
+        "4": 0,
+        "5": 2,
+        "6": 7,
+        "7": 5,
+        "8": 2,
+        "9": 4,
+        "10": 7,
+        "11": 5,
+        "12": 0,
+        "13": 0,
+        "14": 7,
+        "15": 3
+      },
+      "2": {
+        "0": 0,
+        "1": 4,
+        "2": 1,
+        "3": 1,
+        "4": 4,
+        "5": 6,
+        "6": 7,
+        "7": 7,
+        "8": 0,
+        "9": 6,
+        "10": 3,
+        "11": 1,
+        "12": 0,
+        "13": 0,
+        "14": 3,
+        "15": 5
+      },
+      "3": {
+        "0": 0,
+        "1": 6,
+        "2": 3,
+        "3": 1,
+        "4": 4,
+        "5": 4,
+        "6": 3,
+        "7": 1,
+        "8": 6,
+        "9": 6,
+        "10": 1,
+        "11": 7,
+        "12": 4,
+        "13": 4,
+        "14": 3,
+        "15": 7
+      },
+      "4": {
+        "0": 2,
+        "1": 6,
+        "2": 1,
+        "3": 1,
+        "4": 0,
+        "5": 4,
+        "6": 5,
+        "7": 5,
+        "8": 4,
+        "9": 2,
+        "10": 7,
+        "11": 1,
+        "12": 0,
+        "13": 4,
+        "14": 1,
+        "15": 7
+      }
+    }
+  },
+  {
+    "workload_seed": 1103,
+    "category": "slack",
+    "patients": [
+      {
+        "patient_id": 0,
+        "specialite": "X",
+        "duree_operatoire": 150,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 1,
+        "specialite": "X",
+        "duree_operatoire": 150,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 2,
+        "specialite": "Y",
+        "duree_operatoire": 90,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 3,
+        "specialite": "Y",
+        "duree_operatoire": 75,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 4,
+        "specialite": "X",
+        "duree_operatoire": 135,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 5,
+        "specialite": "X",
+        "duree_operatoire": 135,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 6,
+        "specialite": "Y",
+        "duree_operatoire": 120,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 7,
+        "specialite": "Y",
+        "duree_operatoire": 105,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 8,
+        "specialite": "X",
+        "duree_operatoire": 60,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 9,
+        "specialite": "X",
+        "duree_operatoire": 150,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 10,
+        "specialite": "Y",
+        "duree_operatoire": 120,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 11,
+        "specialite": "Y",
+        "duree_operatoire": 150,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 12,
+        "specialite": "X",
+        "duree_operatoire": 75,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 13,
+        "specialite": "X",
+        "duree_operatoire": 45,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 14,
+        "specialite": "Y",
+        "duree_operatoire": 135,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 15,
+        "specialite": "Y",
+        "duree_operatoire": 60,
+        "duree_sejour": 1
+      }
+    ],
+    "sessions": [
+      {
+        "vacation_id": 0,
+        "jour": 0,
+        "specialite": "X",
+        "capacite_min": 480
+      },
+      {
+        "vacation_id": 1,
+        "jour": 0,
+        "specialite": "Y",
+        "capacite_min": 345
+      },
+      {
+        "vacation_id": 2,
+        "jour": 1,
+        "specialite": "X",
+        "capacite_min": 450
+      },
+      {
+        "vacation_id": 3,
+        "jour": 1,
+        "specialite": "Y",
+        "capacite_min": 405
+      },
+      {
+        "vacation_id": 4,
+        "jour": 2,
+        "specialite": "X",
+        "capacite_min": 390
+      },
+      {
+        "vacation_id": 5,
+        "jour": 2,
+        "specialite": "Y",
+        "capacite_min": 450
+      },
+      {
+        "vacation_id": 6,
+        "jour": 3,
+        "specialite": "X",
+        "capacite_min": 300
+      },
+      {
+        "vacation_id": 7,
+        "jour": 3,
+        "specialite": "Y",
+        "capacite_min": 375
+      }
+    ],
+    "bed_capacities": [
+      8,
+      10,
+      11,
+      13,
+      10,
+      6
+    ],
+    "patient_options": [
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ]
+    ],
+    "feasible_witness": {
+      "0": 0,
+      "1": 0,
+      "2": 1,
+      "3": 1,
+      "4": 2,
+      "5": 2,
+      "6": 3,
+      "7": 3,
+      "8": 4,
+      "9": 4,
+      "10": 5,
+      "11": 5,
+      "12": 6,
+      "13": 6,
+      "14": 7,
+      "15": 7
+    },
+    "initial_assignments": {
+      "0": {
+        "0": 4,
+        "1": 4,
+        "2": 3,
+        "3": 5,
+        "4": 4,
+        "5": 0,
+        "6": 1,
+        "7": 3,
+        "8": 6,
+        "9": 4,
+        "10": 3,
+        "11": 7,
+        "12": 2,
+        "13": 0,
+        "14": 5,
+        "15": 3
+      },
+      "1": {
+        "0": 0,
+        "1": 2,
+        "2": 1,
+        "3": 5,
+        "4": 0,
+        "5": 2,
+        "6": 7,
+        "7": 5,
+        "8": 2,
+        "9": 4,
+        "10": 7,
+        "11": 5,
+        "12": 0,
+        "13": 0,
+        "14": 7,
+        "15": 3
+      },
+      "2": {
+        "0": 0,
+        "1": 4,
+        "2": 1,
+        "3": 1,
+        "4": 4,
+        "5": 6,
+        "6": 7,
+        "7": 7,
+        "8": 0,
+        "9": 6,
+        "10": 3,
+        "11": 1,
+        "12": 0,
+        "13": 0,
+        "14": 3,
+        "15": 5
+      },
+      "3": {
+        "0": 0,
+        "1": 6,
+        "2": 3,
+        "3": 1,
+        "4": 4,
+        "5": 4,
+        "6": 3,
+        "7": 1,
+        "8": 6,
+        "9": 6,
+        "10": 1,
+        "11": 7,
+        "12": 4,
+        "13": 4,
+        "14": 3,
+        "15": 7
+      },
+      "4": {
+        "0": 2,
+        "1": 6,
+        "2": 1,
+        "3": 1,
+        "4": 0,
+        "5": 4,
+        "6": 5,
+        "7": 5,
+        "8": 4,
+        "9": 2,
+        "10": 7,
+        "11": 1,
+        "12": 0,
+        "13": 4,
+        "14": 1,
+        "15": 7
+      }
+    }
+  },
+  {
+    "workload_seed": 1104,
+    "category": "near_capacity",
+    "patients": [
+      {
+        "patient_id": 0,
+        "specialite": "X",
+        "duree_operatoire": 105,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 1,
+        "specialite": "X",
+        "duree_operatoire": 60,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 2,
+        "specialite": "Y",
+        "duree_operatoire": 120,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 3,
+        "specialite": "Y",
+        "duree_operatoire": 135,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 4,
+        "specialite": "X",
+        "duree_operatoire": 180,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 5,
+        "specialite": "X",
+        "duree_operatoire": 150,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 6,
+        "specialite": "Y",
+        "duree_operatoire": 180,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 7,
+        "specialite": "Y",
+        "duree_operatoire": 45,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 8,
+        "specialite": "X",
+        "duree_operatoire": 105,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 9,
+        "specialite": "X",
+        "duree_operatoire": 165,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 10,
+        "specialite": "Y",
+        "duree_operatoire": 120,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 11,
+        "specialite": "Y",
+        "duree_operatoire": 105,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 12,
+        "specialite": "X",
+        "duree_operatoire": 150,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 13,
+        "specialite": "X",
+        "duree_operatoire": 150,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 14,
+        "specialite": "Y",
+        "duree_operatoire": 135,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 15,
+        "specialite": "Y",
+        "duree_operatoire": 180,
+        "duree_sejour": 1
+      }
+    ],
+    "sessions": [
+      {
+        "vacation_id": 0,
+        "jour": 0,
+        "specialite": "X",
+        "capacite_min": 180
+      },
+      {
+        "vacation_id": 1,
+        "jour": 0,
+        "specialite": "Y",
+        "capacite_min": 270
+      },
+      {
+        "vacation_id": 2,
+        "jour": 1,
+        "specialite": "X",
+        "capacite_min": 345
+      },
+      {
+        "vacation_id": 3,
+        "jour": 1,
+        "specialite": "Y",
+        "capacite_min": 240
+      },
+      {
+        "vacation_id": 4,
+        "jour": 2,
+        "specialite": "X",
+        "capacite_min": 285
+      },
+      {
+        "vacation_id": 5,
+        "jour": 2,
+        "specialite": "Y",
+        "capacite_min": 240
+      },
+      {
+        "vacation_id": 6,
+        "jour": 3,
+        "specialite": "X",
+        "capacite_min": 315
+      },
+      {
+        "vacation_id": 7,
+        "jour": 3,
+        "specialite": "Y",
+        "capacite_min": 330
+      }
+    ],
+    "bed_capacities": [
+      5,
+      8,
+      7,
+      6,
+      4
+    ],
+    "patient_options": [
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ]
+    ],
+    "feasible_witness": {
+      "0": 0,
+      "1": 0,
+      "2": 1,
+      "3": 1,
+      "4": 2,
+      "5": 2,
+      "6": 3,
+      "7": 3,
+      "8": 4,
+      "9": 4,
+      "10": 5,
+      "11": 5,
+      "12": 6,
+      "13": 6,
+      "14": 7,
+      "15": 7
+    },
+    "initial_assignments": {
+      "0": {
+        "0": 4,
+        "1": 4,
+        "2": 3,
+        "3": 5,
+        "4": 4,
+        "5": 0,
+        "6": 1,
+        "7": 3,
+        "8": 6,
+        "9": 4,
+        "10": 3,
+        "11": 7,
+        "12": 2,
+        "13": 0,
+        "14": 5,
+        "15": 3
+      },
+      "1": {
+        "0": 0,
+        "1": 2,
+        "2": 1,
+        "3": 5,
+        "4": 0,
+        "5": 2,
+        "6": 7,
+        "7": 5,
+        "8": 2,
+        "9": 4,
+        "10": 7,
+        "11": 5,
+        "12": 0,
+        "13": 0,
+        "14": 7,
+        "15": 3
+      },
+      "2": {
+        "0": 0,
+        "1": 4,
+        "2": 1,
+        "3": 1,
+        "4": 4,
+        "5": 6,
+        "6": 7,
+        "7": 7,
+        "8": 0,
+        "9": 6,
+        "10": 3,
+        "11": 1,
+        "12": 0,
+        "13": 0,
+        "14": 3,
+        "15": 5
+      },
+      "3": {
+        "0": 0,
+        "1": 6,
+        "2": 3,
+        "3": 1,
+        "4": 4,
+        "5": 4,
+        "6": 3,
+        "7": 1,
+        "8": 6,
+        "9": 6,
+        "10": 1,
+        "11": 7,
+        "12": 4,
+        "13": 4,
+        "14": 3,
+        "15": 7
+      },
+      "4": {
+        "0": 2,
+        "1": 6,
+        "2": 1,
+        "3": 1,
+        "4": 0,
+        "5": 4,
+        "6": 5,
+        "7": 5,
+        "8": 4,
+        "9": 2,
+        "10": 7,
+        "11": 1,
+        "12": 0,
+        "13": 4,
+        "14": 1,
+        "15": 7
+      }
+    }
+  },
+  {
+    "workload_seed": 1105,
+    "category": "near_capacity",
+    "patients": [
+      {
+        "patient_id": 0,
+        "specialite": "X",
+        "duree_operatoire": 60,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 1,
+        "specialite": "X",
+        "duree_operatoire": 165,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 2,
+        "specialite": "Y",
+        "duree_operatoire": 45,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 3,
+        "specialite": "Y",
+        "duree_operatoire": 90,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 4,
+        "specialite": "X",
+        "duree_operatoire": 165,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 5,
+        "specialite": "X",
+        "duree_operatoire": 135,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 6,
+        "specialite": "Y",
+        "duree_operatoire": 135,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 7,
+        "specialite": "Y",
+        "duree_operatoire": 75,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 8,
+        "specialite": "X",
+        "duree_operatoire": 105,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 9,
+        "specialite": "X",
+        "duree_operatoire": 90,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 10,
+        "specialite": "Y",
+        "duree_operatoire": 75,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 11,
+        "specialite": "Y",
+        "duree_operatoire": 45,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 12,
+        "specialite": "X",
+        "duree_operatoire": 150,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 13,
+        "specialite": "X",
+        "duree_operatoire": 105,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 14,
+        "specialite": "Y",
+        "duree_operatoire": 105,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 15,
+        "specialite": "Y",
+        "duree_operatoire": 60,
+        "duree_sejour": 1
+      }
+    ],
+    "sessions": [
+      {
+        "vacation_id": 0,
+        "jour": 0,
+        "specialite": "X",
+        "capacite_min": 240
+      },
+      {
+        "vacation_id": 1,
+        "jour": 0,
+        "specialite": "Y",
+        "capacite_min": 150
+      },
+      {
+        "vacation_id": 2,
+        "jour": 1,
+        "specialite": "X",
+        "capacite_min": 315
+      },
+      {
+        "vacation_id": 3,
+        "jour": 1,
+        "specialite": "Y",
+        "capacite_min": 225
+      },
+      {
+        "vacation_id": 4,
+        "jour": 2,
+        "specialite": "X",
+        "capacite_min": 210
+      },
+      {
+        "vacation_id": 5,
+        "jour": 2,
+        "specialite": "Y",
+        "capacite_min": 135
+      },
+      {
+        "vacation_id": 6,
+        "jour": 3,
+        "specialite": "X",
+        "capacite_min": 270
+      },
+      {
+        "vacation_id": 7,
+        "jour": 3,
+        "specialite": "Y",
+        "capacite_min": 180
+      }
+    ],
+    "bed_capacities": [
+      5,
+      6,
+      8,
+      9,
+      5,
+      1
+    ],
+    "patient_options": [
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ]
+    ],
+    "feasible_witness": {
+      "0": 0,
+      "1": 0,
+      "2": 1,
+      "3": 1,
+      "4": 2,
+      "5": 2,
+      "6": 3,
+      "7": 3,
+      "8": 4,
+      "9": 4,
+      "10": 5,
+      "11": 5,
+      "12": 6,
+      "13": 6,
+      "14": 7,
+      "15": 7
+    },
+    "initial_assignments": {
+      "0": {
+        "0": 4,
+        "1": 4,
+        "2": 3,
+        "3": 5,
+        "4": 4,
+        "5": 0,
+        "6": 1,
+        "7": 3,
+        "8": 6,
+        "9": 4,
+        "10": 3,
+        "11": 7,
+        "12": 2,
+        "13": 0,
+        "14": 5,
+        "15": 3
+      },
+      "1": {
+        "0": 0,
+        "1": 2,
+        "2": 1,
+        "3": 5,
+        "4": 0,
+        "5": 2,
+        "6": 7,
+        "7": 5,
+        "8": 2,
+        "9": 4,
+        "10": 7,
+        "11": 5,
+        "12": 0,
+        "13": 0,
+        "14": 7,
+        "15": 3
+      },
+      "2": {
+        "0": 0,
+        "1": 4,
+        "2": 1,
+        "3": 1,
+        "4": 4,
+        "5": 6,
+        "6": 7,
+        "7": 7,
+        "8": 0,
+        "9": 6,
+        "10": 3,
+        "11": 1,
+        "12": 0,
+        "13": 0,
+        "14": 3,
+        "15": 5
+      },
+      "3": {
+        "0": 0,
+        "1": 6,
+        "2": 3,
+        "3": 1,
+        "4": 4,
+        "5": 4,
+        "6": 3,
+        "7": 1,
+        "8": 6,
+        "9": 6,
+        "10": 1,
+        "11": 7,
+        "12": 4,
+        "13": 4,
+        "14": 3,
+        "15": 7
+      },
+      "4": {
+        "0": 2,
+        "1": 6,
+        "2": 1,
+        "3": 1,
+        "4": 0,
+        "5": 4,
+        "6": 5,
+        "7": 5,
+        "8": 4,
+        "9": 2,
+        "10": 7,
+        "11": 1,
+        "12": 0,
+        "13": 4,
+        "14": 1,
+        "15": 7
+      }
+    }
+  },
+  {
+    "workload_seed": 1106,
+    "category": "near_capacity",
+    "patients": [
+      {
+        "patient_id": 0,
+        "specialite": "X",
+        "duree_operatoire": 135,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 1,
+        "specialite": "X",
+        "duree_operatoire": 45,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 2,
+        "specialite": "Y",
+        "duree_operatoire": 90,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 3,
+        "specialite": "Y",
+        "duree_operatoire": 45,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 4,
+        "specialite": "X",
+        "duree_operatoire": 60,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 5,
+        "specialite": "X",
+        "duree_operatoire": 75,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 6,
+        "specialite": "Y",
+        "duree_operatoire": 45,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 7,
+        "specialite": "Y",
+        "duree_operatoire": 90,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 8,
+        "specialite": "X",
+        "duree_operatoire": 135,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 9,
+        "specialite": "X",
+        "duree_operatoire": 165,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 10,
+        "specialite": "Y",
+        "duree_operatoire": 45,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 11,
+        "specialite": "Y",
+        "duree_operatoire": 90,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 12,
+        "specialite": "X",
+        "duree_operatoire": 45,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 13,
+        "specialite": "X",
+        "duree_operatoire": 120,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 14,
+        "specialite": "Y",
+        "duree_operatoire": 165,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 15,
+        "specialite": "Y",
+        "duree_operatoire": 45,
+        "duree_sejour": 1
+      }
+    ],
+    "sessions": [
+      {
+        "vacation_id": 0,
+        "jour": 0,
+        "specialite": "X",
+        "capacite_min": 195
+      },
+      {
+        "vacation_id": 1,
+        "jour": 0,
+        "specialite": "Y",
+        "capacite_min": 150
+      },
+      {
+        "vacation_id": 2,
+        "jour": 1,
+        "specialite": "X",
+        "capacite_min": 150
+      },
+      {
+        "vacation_id": 3,
+        "jour": 1,
+        "specialite": "Y",
+        "capacite_min": 150
+      },
+      {
+        "vacation_id": 4,
+        "jour": 2,
+        "specialite": "X",
+        "capacite_min": 315
+      },
+      {
+        "vacation_id": 5,
+        "jour": 2,
+        "specialite": "Y",
+        "capacite_min": 150
+      },
+      {
+        "vacation_id": 6,
+        "jour": 3,
+        "specialite": "X",
+        "capacite_min": 180
+      },
+      {
+        "vacation_id": 7,
+        "jour": 3,
+        "specialite": "Y",
+        "capacite_min": 225
+      }
+    ],
+    "bed_capacities": [
+      5,
+      9,
+      7,
+      9,
+      4,
+      2
+    ],
+    "patient_options": [
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ]
+    ],
+    "feasible_witness": {
+      "0": 0,
+      "1": 0,
+      "2": 1,
+      "3": 1,
+      "4": 2,
+      "5": 2,
+      "6": 3,
+      "7": 3,
+      "8": 4,
+      "9": 4,
+      "10": 5,
+      "11": 5,
+      "12": 6,
+      "13": 6,
+      "14": 7,
+      "15": 7
+    },
+    "initial_assignments": {
+      "0": {
+        "0": 4,
+        "1": 4,
+        "2": 3,
+        "3": 5,
+        "4": 4,
+        "5": 0,
+        "6": 1,
+        "7": 3,
+        "8": 6,
+        "9": 4,
+        "10": 3,
+        "11": 7,
+        "12": 2,
+        "13": 0,
+        "14": 5,
+        "15": 3
+      },
+      "1": {
+        "0": 0,
+        "1": 2,
+        "2": 1,
+        "3": 5,
+        "4": 0,
+        "5": 2,
+        "6": 7,
+        "7": 5,
+        "8": 2,
+        "9": 4,
+        "10": 7,
+        "11": 5,
+        "12": 0,
+        "13": 0,
+        "14": 7,
+        "15": 3
+      },
+      "2": {
+        "0": 0,
+        "1": 4,
+        "2": 1,
+        "3": 1,
+        "4": 4,
+        "5": 6,
+        "6": 7,
+        "7": 7,
+        "8": 0,
+        "9": 6,
+        "10": 3,
+        "11": 1,
+        "12": 0,
+        "13": 0,
+        "14": 3,
+        "15": 5
+      },
+      "3": {
+        "0": 0,
+        "1": 6,
+        "2": 3,
+        "3": 1,
+        "4": 4,
+        "5": 4,
+        "6": 3,
+        "7": 1,
+        "8": 6,
+        "9": 6,
+        "10": 1,
+        "11": 7,
+        "12": 4,
+        "13": 4,
+        "14": 3,
+        "15": 7
+      },
+      "4": {
+        "0": 2,
+        "1": 6,
+        "2": 1,
+        "3": 1,
+        "4": 0,
+        "5": 4,
+        "6": 5,
+        "7": 5,
+        "8": 4,
+        "9": 2,
+        "10": 7,
+        "11": 1,
+        "12": 0,
+        "13": 4,
+        "14": 1,
+        "15": 7
+      }
+    }
+  },
+  {
+    "workload_seed": 1107,
+    "category": "near_capacity",
+    "patients": [
+      {
+        "patient_id": 0,
+        "specialite": "X",
+        "duree_operatoire": 75,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 1,
+        "specialite": "X",
+        "duree_operatoire": 120,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 2,
+        "specialite": "Y",
+        "duree_operatoire": 165,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 3,
+        "specialite": "Y",
+        "duree_operatoire": 75,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 4,
+        "specialite": "X",
+        "duree_operatoire": 60,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 5,
+        "specialite": "X",
+        "duree_operatoire": 120,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 6,
+        "specialite": "Y",
+        "duree_operatoire": 180,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 7,
+        "specialite": "Y",
+        "duree_operatoire": 75,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 8,
+        "specialite": "X",
+        "duree_operatoire": 105,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 9,
+        "specialite": "X",
+        "duree_operatoire": 180,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 10,
+        "specialite": "Y",
+        "duree_operatoire": 135,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 11,
+        "specialite": "Y",
+        "duree_operatoire": 60,
+        "duree_sejour": 0
+      },
+      {
+        "patient_id": 12,
+        "specialite": "X",
+        "duree_operatoire": 60,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 13,
+        "specialite": "X",
+        "duree_operatoire": 45,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 14,
+        "specialite": "Y",
+        "duree_operatoire": 75,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 15,
+        "specialite": "Y",
+        "duree_operatoire": 150,
+        "duree_sejour": 2
+      }
+    ],
+    "sessions": [
+      {
+        "vacation_id": 0,
+        "jour": 0,
+        "specialite": "X",
+        "capacite_min": 210
+      },
+      {
+        "vacation_id": 1,
+        "jour": 0,
+        "specialite": "Y",
+        "capacite_min": 255
+      },
+      {
+        "vacation_id": 2,
+        "jour": 1,
+        "specialite": "X",
+        "capacite_min": 195
+      },
+      {
+        "vacation_id": 3,
+        "jour": 1,
+        "specialite": "Y",
+        "capacite_min": 270
+      },
+      {
+        "vacation_id": 4,
+        "jour": 2,
+        "specialite": "X",
+        "capacite_min": 300
+      },
+      {
+        "vacation_id": 5,
+        "jour": 2,
+        "specialite": "Y",
+        "capacite_min": 210
+      },
+      {
+        "vacation_id": 6,
+        "jour": 3,
+        "specialite": "X",
+        "capacite_min": 120
+      },
+      {
+        "vacation_id": 7,
+        "jour": 3,
+        "specialite": "Y",
+        "capacite_min": 240
+      }
+    ],
+    "bed_capacities": [
+      5,
+      9,
+      11,
+      7,
+      6,
+      3
+    ],
+    "patient_options": [
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ]
+    ],
+    "feasible_witness": {
+      "0": 0,
+      "1": 0,
+      "2": 1,
+      "3": 1,
+      "4": 2,
+      "5": 2,
+      "6": 3,
+      "7": 3,
+      "8": 4,
+      "9": 4,
+      "10": 5,
+      "11": 5,
+      "12": 6,
+      "13": 6,
+      "14": 7,
+      "15": 7
+    },
+    "initial_assignments": {
+      "0": {
+        "0": 4,
+        "1": 4,
+        "2": 3,
+        "3": 5,
+        "4": 4,
+        "5": 0,
+        "6": 1,
+        "7": 3,
+        "8": 6,
+        "9": 4,
+        "10": 3,
+        "11": 7,
+        "12": 2,
+        "13": 0,
+        "14": 5,
+        "15": 3
+      },
+      "1": {
+        "0": 0,
+        "1": 2,
+        "2": 1,
+        "3": 5,
+        "4": 0,
+        "5": 2,
+        "6": 7,
+        "7": 5,
+        "8": 2,
+        "9": 4,
+        "10": 7,
+        "11": 5,
+        "12": 0,
+        "13": 0,
+        "14": 7,
+        "15": 3
+      },
+      "2": {
+        "0": 0,
+        "1": 4,
+        "2": 1,
+        "3": 1,
+        "4": 4,
+        "5": 6,
+        "6": 7,
+        "7": 7,
+        "8": 0,
+        "9": 6,
+        "10": 3,
+        "11": 1,
+        "12": 0,
+        "13": 0,
+        "14": 3,
+        "15": 5
+      },
+      "3": {
+        "0": 0,
+        "1": 6,
+        "2": 3,
+        "3": 1,
+        "4": 4,
+        "5": 4,
+        "6": 3,
+        "7": 1,
+        "8": 6,
+        "9": 6,
+        "10": 1,
+        "11": 7,
+        "12": 4,
+        "13": 4,
+        "14": 3,
+        "15": 7
+      },
+      "4": {
+        "0": 2,
+        "1": 6,
+        "2": 1,
+        "3": 1,
+        "4": 0,
+        "5": 4,
+        "6": 5,
+        "7": 5,
+        "8": 4,
+        "9": 2,
+        "10": 7,
+        "11": 1,
+        "12": 0,
+        "13": 4,
+        "14": 1,
+        "15": 7
+      }
+    }
+  },
+  {
+    "workload_seed": 1108,
+    "category": "tail_decline",
+    "patients": [
+      {
+        "patient_id": 0,
+        "specialite": "X",
+        "duree_operatoire": 165,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 1,
+        "specialite": "X",
+        "duree_operatoire": 150,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 2,
+        "specialite": "Y",
+        "duree_operatoire": 180,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 3,
+        "specialite": "Y",
+        "duree_operatoire": 120,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 4,
+        "specialite": "X",
+        "duree_operatoire": 105,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 5,
+        "specialite": "X",
+        "duree_operatoire": 180,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 6,
+        "specialite": "Y",
+        "duree_operatoire": 60,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 7,
+        "specialite": "Y",
+        "duree_operatoire": 75,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 8,
+        "specialite": "X",
+        "duree_operatoire": 75,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 9,
+        "specialite": "X",
+        "duree_operatoire": 90,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 10,
+        "specialite": "Y",
+        "duree_operatoire": 135,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 11,
+        "specialite": "Y",
+        "duree_operatoire": 120,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 12,
+        "specialite": "X",
+        "duree_operatoire": 105,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 13,
+        "specialite": "X",
+        "duree_operatoire": 120,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 14,
+        "specialite": "Y",
+        "duree_operatoire": 165,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 15,
+        "specialite": "Y",
+        "duree_operatoire": 90,
+        "duree_sejour": 2
+      }
+    ],
+    "sessions": [
+      {
+        "vacation_id": 0,
+        "jour": 0,
+        "specialite": "X",
+        "capacite_min": 330
+      },
+      {
+        "vacation_id": 1,
+        "jour": 0,
+        "specialite": "Y",
+        "capacite_min": 315
+      },
+      {
+        "vacation_id": 2,
+        "jour": 1,
+        "specialite": "X",
+        "capacite_min": 300
+      },
+      {
+        "vacation_id": 3,
+        "jour": 1,
+        "specialite": "Y",
+        "capacite_min": 150
+      },
+      {
+        "vacation_id": 4,
+        "jour": 2,
+        "specialite": "X",
+        "capacite_min": 180
+      },
+      {
+        "vacation_id": 5,
+        "jour": 2,
+        "specialite": "Y",
+        "capacite_min": 270
+      },
+      {
+        "vacation_id": 6,
+        "jour": 3,
+        "specialite": "X",
+        "capacite_min": 240
+      },
+      {
+        "vacation_id": 7,
+        "jour": 3,
+        "specialite": "Y",
+        "capacite_min": 270
+      }
+    ],
+    "bed_capacities": [
+      13,
+      13,
+      13,
+      13,
+      8,
+      5,
+      1
+    ],
+    "patient_options": [
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ]
+    ],
+    "feasible_witness": {
+      "0": 0,
+      "1": 0,
+      "2": 1,
+      "3": 1,
+      "4": 2,
+      "5": 2,
+      "6": 3,
+      "7": 3,
+      "8": 4,
+      "9": 4,
+      "10": 5,
+      "11": 5,
+      "12": 6,
+      "13": 6,
+      "14": 7,
+      "15": 7
+    },
+    "initial_assignments": {
+      "0": {
+        "0": 4,
+        "1": 4,
+        "2": 3,
+        "3": 5,
+        "4": 4,
+        "5": 0,
+        "6": 1,
+        "7": 3,
+        "8": 6,
+        "9": 4,
+        "10": 3,
+        "11": 7,
+        "12": 2,
+        "13": 0,
+        "14": 5,
+        "15": 3
+      },
+      "1": {
+        "0": 0,
+        "1": 2,
+        "2": 1,
+        "3": 5,
+        "4": 0,
+        "5": 2,
+        "6": 7,
+        "7": 5,
+        "8": 2,
+        "9": 4,
+        "10": 7,
+        "11": 5,
+        "12": 0,
+        "13": 0,
+        "14": 7,
+        "15": 3
+      },
+      "2": {
+        "0": 0,
+        "1": 4,
+        "2": 1,
+        "3": 1,
+        "4": 4,
+        "5": 6,
+        "6": 7,
+        "7": 7,
+        "8": 0,
+        "9": 6,
+        "10": 3,
+        "11": 1,
+        "12": 0,
+        "13": 0,
+        "14": 3,
+        "15": 5
+      },
+      "3": {
+        "0": 0,
+        "1": 6,
+        "2": 3,
+        "3": 1,
+        "4": 4,
+        "5": 4,
+        "6": 3,
+        "7": 1,
+        "8": 6,
+        "9": 6,
+        "10": 1,
+        "11": 7,
+        "12": 4,
+        "13": 4,
+        "14": 3,
+        "15": 7
+      },
+      "4": {
+        "0": 2,
+        "1": 6,
+        "2": 1,
+        "3": 1,
+        "4": 0,
+        "5": 4,
+        "6": 5,
+        "7": 5,
+        "8": 4,
+        "9": 2,
+        "10": 7,
+        "11": 1,
+        "12": 0,
+        "13": 4,
+        "14": 1,
+        "15": 7
+      }
+    }
+  },
+  {
+    "workload_seed": 1109,
+    "category": "tail_decline",
+    "patients": [
+      {
+        "patient_id": 0,
+        "specialite": "X",
+        "duree_operatoire": 60,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 1,
+        "specialite": "X",
+        "duree_operatoire": 60,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 2,
+        "specialite": "Y",
+        "duree_operatoire": 165,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 3,
+        "specialite": "Y",
+        "duree_operatoire": 180,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 4,
+        "specialite": "X",
+        "duree_operatoire": 60,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 5,
+        "specialite": "X",
+        "duree_operatoire": 120,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 6,
+        "specialite": "Y",
+        "duree_operatoire": 60,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 7,
+        "specialite": "Y",
+        "duree_operatoire": 135,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 8,
+        "specialite": "X",
+        "duree_operatoire": 90,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 9,
+        "specialite": "X",
+        "duree_operatoire": 90,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 10,
+        "specialite": "Y",
+        "duree_operatoire": 120,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 11,
+        "specialite": "Y",
+        "duree_operatoire": 150,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 12,
+        "specialite": "X",
+        "duree_operatoire": 180,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 13,
+        "specialite": "X",
+        "duree_operatoire": 45,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 14,
+        "specialite": "Y",
+        "duree_operatoire": 75,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 15,
+        "specialite": "Y",
+        "duree_operatoire": 60,
+        "duree_sejour": 3
+      }
+    ],
+    "sessions": [
+      {
+        "vacation_id": 0,
+        "jour": 0,
+        "specialite": "X",
+        "capacite_min": 135
+      },
+      {
+        "vacation_id": 1,
+        "jour": 0,
+        "specialite": "Y",
+        "capacite_min": 360
+      },
+      {
+        "vacation_id": 2,
+        "jour": 1,
+        "specialite": "X",
+        "capacite_min": 195
+      },
+      {
+        "vacation_id": 3,
+        "jour": 1,
+        "specialite": "Y",
+        "capacite_min": 210
+      },
+      {
+        "vacation_id": 4,
+        "jour": 2,
+        "specialite": "X",
+        "capacite_min": 195
+      },
+      {
+        "vacation_id": 5,
+        "jour": 2,
+        "specialite": "Y",
+        "capacite_min": 285
+      },
+      {
+        "vacation_id": 6,
+        "jour": 3,
+        "specialite": "X",
+        "capacite_min": 240
+      },
+      {
+        "vacation_id": 7,
+        "jour": 3,
+        "specialite": "Y",
+        "capacite_min": 150
+      }
+    ],
+    "bed_capacities": [
+      14,
+      14,
+      14,
+      14,
+      9,
+      6,
+      4
+    ],
+    "patient_options": [
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ]
+    ],
+    "feasible_witness": {
+      "0": 0,
+      "1": 0,
+      "2": 1,
+      "3": 1,
+      "4": 2,
+      "5": 2,
+      "6": 3,
+      "7": 3,
+      "8": 4,
+      "9": 4,
+      "10": 5,
+      "11": 5,
+      "12": 6,
+      "13": 6,
+      "14": 7,
+      "15": 7
+    },
+    "initial_assignments": {
+      "0": {
+        "0": 4,
+        "1": 4,
+        "2": 3,
+        "3": 5,
+        "4": 4,
+        "5": 0,
+        "6": 1,
+        "7": 3,
+        "8": 6,
+        "9": 4,
+        "10": 3,
+        "11": 7,
+        "12": 2,
+        "13": 0,
+        "14": 5,
+        "15": 3
+      },
+      "1": {
+        "0": 0,
+        "1": 2,
+        "2": 1,
+        "3": 5,
+        "4": 0,
+        "5": 2,
+        "6": 7,
+        "7": 5,
+        "8": 2,
+        "9": 4,
+        "10": 7,
+        "11": 5,
+        "12": 0,
+        "13": 0,
+        "14": 7,
+        "15": 3
+      },
+      "2": {
+        "0": 0,
+        "1": 4,
+        "2": 1,
+        "3": 1,
+        "4": 4,
+        "5": 6,
+        "6": 7,
+        "7": 7,
+        "8": 0,
+        "9": 6,
+        "10": 3,
+        "11": 1,
+        "12": 0,
+        "13": 0,
+        "14": 3,
+        "15": 5
+      },
+      "3": {
+        "0": 0,
+        "1": 6,
+        "2": 3,
+        "3": 1,
+        "4": 4,
+        "5": 4,
+        "6": 3,
+        "7": 1,
+        "8": 6,
+        "9": 6,
+        "10": 1,
+        "11": 7,
+        "12": 4,
+        "13": 4,
+        "14": 3,
+        "15": 7
+      },
+      "4": {
+        "0": 2,
+        "1": 6,
+        "2": 1,
+        "3": 1,
+        "4": 0,
+        "5": 4,
+        "6": 5,
+        "7": 5,
+        "8": 4,
+        "9": 2,
+        "10": 7,
+        "11": 1,
+        "12": 0,
+        "13": 4,
+        "14": 1,
+        "15": 7
+      }
+    }
+  },
+  {
+    "workload_seed": 1110,
+    "category": "tail_decline",
+    "patients": [
+      {
+        "patient_id": 0,
+        "specialite": "X",
+        "duree_operatoire": 90,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 1,
+        "specialite": "X",
+        "duree_operatoire": 180,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 2,
+        "specialite": "Y",
+        "duree_operatoire": 45,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 3,
+        "specialite": "Y",
+        "duree_operatoire": 135,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 4,
+        "specialite": "X",
+        "duree_operatoire": 180,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 5,
+        "specialite": "X",
+        "duree_operatoire": 60,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 6,
+        "specialite": "Y",
+        "duree_operatoire": 150,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 7,
+        "specialite": "Y",
+        "duree_operatoire": 135,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 8,
+        "specialite": "X",
+        "duree_operatoire": 150,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 9,
+        "specialite": "X",
+        "duree_operatoire": 60,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 10,
+        "specialite": "Y",
+        "duree_operatoire": 45,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 11,
+        "specialite": "Y",
+        "duree_operatoire": 180,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 12,
+        "specialite": "X",
+        "duree_operatoire": 135,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 13,
+        "specialite": "X",
+        "duree_operatoire": 150,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 14,
+        "specialite": "Y",
+        "duree_operatoire": 75,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 15,
+        "specialite": "Y",
+        "duree_operatoire": 45,
+        "duree_sejour": 2
+      }
+    ],
+    "sessions": [
+      {
+        "vacation_id": 0,
+        "jour": 0,
+        "specialite": "X",
+        "capacite_min": 285
+      },
+      {
+        "vacation_id": 1,
+        "jour": 0,
+        "specialite": "Y",
+        "capacite_min": 195
+      },
+      {
+        "vacation_id": 2,
+        "jour": 1,
+        "specialite": "X",
+        "capacite_min": 255
+      },
+      {
+        "vacation_id": 3,
+        "jour": 1,
+        "specialite": "Y",
+        "capacite_min": 300
+      },
+      {
+        "vacation_id": 4,
+        "jour": 2,
+        "specialite": "X",
+        "capacite_min": 225
+      },
+      {
+        "vacation_id": 5,
+        "jour": 2,
+        "specialite": "Y",
+        "capacite_min": 240
+      },
+      {
+        "vacation_id": 6,
+        "jour": 3,
+        "specialite": "X",
+        "capacite_min": 300
+      },
+      {
+        "vacation_id": 7,
+        "jour": 3,
+        "specialite": "Y",
+        "capacite_min": 135
+      }
+    ],
+    "bed_capacities": [
+      17,
+      17,
+      17,
+      17,
+      9,
+      7,
+      0
+    ],
+    "patient_options": [
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ]
+    ],
+    "feasible_witness": {
+      "0": 0,
+      "1": 0,
+      "2": 1,
+      "3": 1,
+      "4": 2,
+      "5": 2,
+      "6": 3,
+      "7": 3,
+      "8": 4,
+      "9": 4,
+      "10": 5,
+      "11": 5,
+      "12": 6,
+      "13": 6,
+      "14": 7,
+      "15": 7
+    },
+    "initial_assignments": {
+      "0": {
+        "0": 4,
+        "1": 4,
+        "2": 3,
+        "3": 5,
+        "4": 4,
+        "5": 0,
+        "6": 1,
+        "7": 3,
+        "8": 6,
+        "9": 4,
+        "10": 3,
+        "11": 7,
+        "12": 2,
+        "13": 0,
+        "14": 5,
+        "15": 3
+      },
+      "1": {
+        "0": 0,
+        "1": 2,
+        "2": 1,
+        "3": 5,
+        "4": 0,
+        "5": 2,
+        "6": 7,
+        "7": 5,
+        "8": 2,
+        "9": 4,
+        "10": 7,
+        "11": 5,
+        "12": 0,
+        "13": 0,
+        "14": 7,
+        "15": 3
+      },
+      "2": {
+        "0": 0,
+        "1": 4,
+        "2": 1,
+        "3": 1,
+        "4": 4,
+        "5": 6,
+        "6": 7,
+        "7": 7,
+        "8": 0,
+        "9": 6,
+        "10": 3,
+        "11": 1,
+        "12": 0,
+        "13": 0,
+        "14": 3,
+        "15": 5
+      },
+      "3": {
+        "0": 0,
+        "1": 6,
+        "2": 3,
+        "3": 1,
+        "4": 4,
+        "5": 4,
+        "6": 3,
+        "7": 1,
+        "8": 6,
+        "9": 6,
+        "10": 1,
+        "11": 7,
+        "12": 4,
+        "13": 4,
+        "14": 3,
+        "15": 7
+      },
+      "4": {
+        "0": 2,
+        "1": 6,
+        "2": 1,
+        "3": 1,
+        "4": 0,
+        "5": 4,
+        "6": 5,
+        "7": 5,
+        "8": 4,
+        "9": 2,
+        "10": 7,
+        "11": 1,
+        "12": 0,
+        "13": 4,
+        "14": 1,
+        "15": 7
+      }
+    }
+  },
+  {
+    "workload_seed": 1111,
+    "category": "tail_decline",
+    "patients": [
+      {
+        "patient_id": 0,
+        "specialite": "X",
+        "duree_operatoire": 90,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 1,
+        "specialite": "X",
+        "duree_operatoire": 75,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 2,
+        "specialite": "Y",
+        "duree_operatoire": 150,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 3,
+        "specialite": "Y",
+        "duree_operatoire": 165,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 4,
+        "specialite": "X",
+        "duree_operatoire": 60,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 5,
+        "specialite": "X",
+        "duree_operatoire": 120,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 6,
+        "specialite": "Y",
+        "duree_operatoire": 60,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 7,
+        "specialite": "Y",
+        "duree_operatoire": 75,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 8,
+        "specialite": "X",
+        "duree_operatoire": 180,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 9,
+        "specialite": "X",
+        "duree_operatoire": 105,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 10,
+        "specialite": "Y",
+        "duree_operatoire": 120,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 11,
+        "specialite": "Y",
+        "duree_operatoire": 105,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 12,
+        "specialite": "X",
+        "duree_operatoire": 105,
+        "duree_sejour": 2
+      },
+      {
+        "patient_id": 13,
+        "specialite": "X",
+        "duree_operatoire": 75,
+        "duree_sejour": 1
+      },
+      {
+        "patient_id": 14,
+        "specialite": "Y",
+        "duree_operatoire": 165,
+        "duree_sejour": 3
+      },
+      {
+        "patient_id": 15,
+        "specialite": "Y",
+        "duree_operatoire": 150,
+        "duree_sejour": 3
+      }
+    ],
+    "sessions": [
+      {
+        "vacation_id": 0,
+        "jour": 0,
+        "specialite": "X",
+        "capacite_min": 180
+      },
+      {
+        "vacation_id": 1,
+        "jour": 0,
+        "specialite": "Y",
+        "capacite_min": 330
+      },
+      {
+        "vacation_id": 2,
+        "jour": 1,
+        "specialite": "X",
+        "capacite_min": 195
+      },
+      {
+        "vacation_id": 3,
+        "jour": 1,
+        "specialite": "Y",
+        "capacite_min": 150
+      },
+      {
+        "vacation_id": 4,
+        "jour": 2,
+        "specialite": "X",
+        "capacite_min": 300
+      },
+      {
+        "vacation_id": 5,
+        "jour": 2,
+        "specialite": "Y",
+        "capacite_min": 240
+      },
+      {
+        "vacation_id": 6,
+        "jour": 3,
+        "specialite": "X",
+        "capacite_min": 195
+      },
+      {
+        "vacation_id": 7,
+        "jour": 3,
+        "specialite": "Y",
+        "capacite_min": 330
+      }
+    ],
+    "bed_capacities": [
+      14,
+      14,
+      14,
+      14,
+      8,
+      4,
+      2
+    ],
+    "patient_options": [
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        0,
+        2,
+        4,
+        6
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ],
+      [
+        1,
+        3,
+        5,
+        7
+      ]
+    ],
+    "feasible_witness": {
+      "0": 0,
+      "1": 0,
+      "2": 1,
+      "3": 1,
+      "4": 2,
+      "5": 2,
+      "6": 3,
+      "7": 3,
+      "8": 4,
+      "9": 4,
+      "10": 5,
+      "11": 5,
+      "12": 6,
+      "13": 6,
+      "14": 7,
+      "15": 7
+    },
+    "initial_assignments": {
+      "0": {
+        "0": 4,
+        "1": 4,
+        "2": 3,
+        "3": 5,
+        "4": 4,
+        "5": 0,
+        "6": 1,
+        "7": 3,
+        "8": 6,
+        "9": 4,
+        "10": 3,
+        "11": 7,
+        "12": 2,
+        "13": 0,
+        "14": 5,
+        "15": 3
+      },
+      "1": {
+        "0": 0,
+        "1": 2,
+        "2": 1,
+        "3": 5,
+        "4": 0,
+        "5": 2,
+        "6": 7,
+        "7": 5,
+        "8": 2,
+        "9": 4,
+        "10": 7,
+        "11": 5,
+        "12": 0,
+        "13": 0,
+        "14": 7,
+        "15": 3
+      },
+      "2": {
+        "0": 0,
+        "1": 4,
+        "2": 1,
+        "3": 1,
+        "4": 4,
+        "5": 6,
+        "6": 7,
+        "7": 7,
+        "8": 0,
+        "9": 6,
+        "10": 3,
+        "11": 1,
+        "12": 0,
+        "13": 0,
+        "14": 3,
+        "15": 5
+      },
+      "3": {
+        "0": 0,
+        "1": 6,
+        "2": 3,
+        "3": 1,
+        "4": 4,
+        "5": 4,
+        "6": 3,
+        "7": 1,
+        "8": 6,
+        "9": 6,
+        "10": 1,
+        "11": 7,
+        "12": 4,
+        "13": 4,
+        "14": 3,
+        "15": 7
+      },
+      "4": {
+        "0": 2,
+        "1": 6,
+        "2": 1,
+        "3": 1,
+        "4": 0,
+        "5": 4,
+        "6": 5,
+        "7": 5,
+        "8": 4,
+        "9": 2,
+        "10": 7,
+        "11": 1,
+        "12": 0,
+        "13": 4,
+        "14": 1,
+        "15": 7
+      }
+    }
+  }
+]

@@ -57,8 +57,9 @@ def _partitions(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.Dat
     return parts
 
 
-def _point(model, features: pd.DataFrame) -> np.ndarray:
-    return np.maximum(1.0, np.expm1(model.predict(features)))
+def _point(model, features: pd.DataFrame, *, log_target: bool = True) -> np.ndarray:
+    prediction = model.predict(features)
+    return np.maximum(1.0, np.expm1(prediction) if log_target else prediction)
 
 
 def fit_los_model(data: Path = DEFAULT_DATA, artifact: Path = DEFAULT_ARTIFACT) -> dict:
@@ -112,9 +113,14 @@ def predict_los_loaded(frame: pd.DataFrame, saved: dict, *, raw: bool = False) -
     if raw:
         frame = apply_category_mapping(engineer_features(frame, columns), saved["category_mapping"])
     features = prepared(frame, columns)
-    point = _point(saved["model"], features)
+    # Historical LOS artifacts are log-target models. Versioned baseline/direct
+    # target artifacts explicitly declare False and must not be exponentiated.
+    point = _point(saved["model"], features, log_target=saved.get("log_target", True))
     width = saved["interval_half_width_days"]
-    if not np.isfinite(point).all() or not np.isfinite(width):
+    if (not np.isscalar(width) or not isinstance(width, (int, float, np.number))
+            or not np.isfinite(width) or width < 0):
+        raise ValueError("LOS interval half-width must be a finite nonnegative scalar")
+    if not np.isfinite(point).all():
         raise ValueError("LOS model returned non-finite predictions")
     return pd.DataFrame({"los_point_days": point,
                          "los_lower_days": np.maximum(1.0, point - width),

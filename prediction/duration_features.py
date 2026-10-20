@@ -21,7 +21,9 @@ def engineer_features(frame, columns):
     for col in ['sexe', 'interv_type', 'anesth_type', 'anesth_loco_reg', 'praticien', 'nom_chir'] + codes:
         family = 'cim_diag_family' if col == 'cim_diag_pr' else col + '_family'
         if col in columns or family in columns or col + '_missing' in columns:
-            values = frame[col].map(normalize_value)
+            # Optional consultation fields can be absent, not just explicit nulls.
+            # Use the same learned missing category in both cases.
+            values = frame.get(col, pd.Series(None, index=frame.index, dtype=object)).map(normalize_value)
             if col in codes:
                 values = values.map(lambda value: MISSING if value == MISSING else re.sub(r'[^A-Z0-9]', '', value) or MISSING)
             result[col] = values
@@ -30,7 +32,8 @@ def engineer_features(frame, columns):
             if col.startswith('anesth'):
                 result[col + '_missing'] = values.eq(MISSING).astype('int8')
     if 'age_years' in columns:
-        result['age_years'] = pd.to_numeric(frame['age_years'], errors='coerce')
+        result['age_years'] = pd.to_numeric(
+            frame.get('age_years', pd.Series(np.nan, index=frame.index)), errors='coerce')
     if any(col.startswith('intervention_') for col in columns):
         dates = pd.to_datetime(frame['date_inter'], errors='raise')
         if dates.isna().any():
