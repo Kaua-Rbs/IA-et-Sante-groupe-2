@@ -6,7 +6,6 @@ from sqlmodel import Session, select
 from api.ai.contracts import PredictionInput, reserved_stay_days
 from api.ai.providers import Predictors
 from api.clinical.models import Patient, Prediction, SurgicalRequest
-from api.config import settings
 from api.resources.models import Specialty
 
 
@@ -58,7 +57,7 @@ def build_prediction(session: Session, request: SurgicalRequest, predictors: Pre
             predictors.room_duration.model_version, predictors.los.model_version,
             predictors.care_type.model_version,
         })),
-        source=settings.AI_BACKEND,
+        source=predictors.source,
     )
     return prediction
 

@@ -3,7 +3,7 @@
 	import FormErrors from '#lib/components/FormErrors.svelte';
 	import StatusBadge from '#lib/components/StatusBadge.svelte';
 	import {
-		formatDateTime, formatDay, formatLongDay, formatMinutes, formatSlot, plural
+		formatDateTime, formatDay, formatLongDay, formatMinutes, formatPercent, formatSlot, plural
 	} from '#lib/format.ts';
 	import { nameOf, patientLabel, sexLabel } from '#lib/names.ts';
 	import {
@@ -99,6 +99,8 @@
 									<dd>{nameOf(data.bedUnits, proposal.bed_unit_id)}</dd>
 									<dt>Sortie prévue</dt>
 									<dd>{formatLongDay(proposal.discharge_date)}</dd>
+									<dt>Urgences</dt>
+									<dd class="emergency">{formatPercent(data.health.emergency_margin)} de la vacation gardés libres</dd>
 								</dl>
 								<div class="reasons">
 									<p class="label">Pourquoi cette date</p>
@@ -270,6 +272,11 @@
 </div>
 
 <style>
+	.emergency {
+		color: var(--emergency);
+		font-weight: 500;
+	}
+
 	.layout {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr) clamp(260px, 24%, 460px);

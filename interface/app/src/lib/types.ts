@@ -179,43 +179,6 @@ export interface CohortPreview {
 	unassigned: string[];
 }
 
-export interface RoomSimulationPreview {
-	date: string;
-	method: string;
-	policy: 'static' | 'reactive';
-	cases: number;
-	completed: number;
-	unstarted: number;
-	booked_cases: number;
-	booked_completed: number;
-	overtime_minutes: number;
-	replanning_count: number;
-	failures: number;
-	assumptions: {
-		rooms: number;
-		opening: string;
-		closing: string;
-		turnover_minutes: number;
-		room_1_closure: string | null;
-		realized_duration_factor: number;
-		beds_and_specialty_constraints: string;
-	};
-}
-
-export interface WardSimulationPreview {
-	start: string;
-	end: string;
-	cases: number;
-	completed: number;
-	unstarted: number;
-	overtime_minutes: number;
-	replanning_count: number;
-	failures: number;
-	overcapacity_bed_days: number;
-	daily: { date: string; offered: number; started: number; waiting: number; occupied_beds: number }[];
-	assumptions: { realized_room_factor: number; realized_los_factor: number; room_model: string };
-}
-
 export interface ReplanRun {
 	id: string;
 	status: string;
@@ -256,7 +219,6 @@ export interface Health {
 	status: string;
 	name: string;
 	version: string;
-	ai_backend: string;
 	emergency_margin: number;
 	proposal_count: number;
 }

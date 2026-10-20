@@ -26,7 +26,7 @@ async def lifespan(app: FastAPI):
     # Fail at startup if a trained artifact is unavailable or unreadable
     predictors = get_predictors()
     # Which models produced the predictions from now on (also stored with each prediction)
-    audit("api.started", version=__version__, ai_backend=settings.AI_BACKEND,
+    audit("api.started", version=__version__, ai_backend=predictors.source,
           room_model=predictors.room_duration.model_version,
           los_model=predictors.los.model_version,
           care_type_model=predictors.care_type.model_version)
@@ -70,7 +70,6 @@ def health():
         "status": "ok",
         "name": "KYST",
         "version": __version__,
-        "ai_backend": settings.AI_BACKEND,
         "emergency_margin": settings.EMERGENCY_MARGIN,
         "proposal_count": settings.PROPOSAL_COUNT,
     }

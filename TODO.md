@@ -10,7 +10,7 @@
   - À placer dans `artifacts/ml-models/final-2026-10-20-v3/` : le rôle `kyst` déploie `room_consultation_selected_…` et `los_consultation_selected_…` sous les noms attendus par l'API (`kyst_model_files`)
   - Provenance : le manifeste ci-dessus suffit (date, données, hash des sources)
 - Versions compatibles : scikit-learn 1.9.1, xgboost 3.4.1, pandas 3.0.6, joblib 1.6.0 identiques entre `experiments/final_model_requirements.txt` et `interface/api/uv.lock` (entraînement sous Python 3.14 / Windows, image API en 3.13 : à confirmer au chargement)
-- Tester en local dans l'interface : `AI_BACKEND=trained` dans `kyst.local.env`, avec `ROOM_MODEL_PATH` / `LOS_MODEL_PATH` pointant vers les fichiers v3, créer une demande, vérifier temps de salle / séjour / propositions
+- Tester en local dans l'interface : `ROOM_MODEL_PATH` / `LOS_MODEL_PATH` pointant vers les fichiers v3 dans `kyst.local.env`, créer une demande, vérifier temps de salle / séjour / propositions
 - Ambulatoire : séjour prédit arrondi à 1 jour (< 1,5) et réservation d'une seule journée ; le modèle prédit une moyenne, l'ancien seuil `<= 1` ne classait presque rien en ambulatoire. À mentionner dans le rapport
 - Précision dégradée en consultation (anesthésie et praticien absents) : voir `docs/modeles-prediction.md`, à mentionner dans le rapport
 - Les bornes P80/P95 du temps de salle ne sont pas exposées (pas d'intervalle affiché pour le bloc en mode `trained`)
@@ -22,7 +22,7 @@ Objectif : une instance qui ressemble à la vraie vie d'un service, avec l'IA br
 
 #### Fait
 
-- Prod = toujours `AI_BACKEND=trained` (en dur dans `compose.yml`) ; seul `kyst_seed_demo` change entre instances
+- Prédictions = toujours les modèles entraînés (mode fixtures supprimé, les tests API utilisent `tests/predictors.py`) ; seul `kyst_seed_demo` change entre instances
 - Rôle Ansible : copie des modèles depuis `kyst_models_src` vers `/home/podman/ias/models` ; variables `kyst_ai_backend` / `kyst_model_dir` supprimées
 - UI : plus aucune mention « démo » (tableau de bord, fiche demande, page d'accueil) ; la fiche demande affiche « Prédiction IA »
 - Seed réaliste (`interface/api/seed.py`), testé en local en fixtures (~3 s, tests API OK) :

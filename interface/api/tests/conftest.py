@@ -9,7 +9,6 @@ os.environ.update({
     "ACCOUNT_VALIDATION": "true",
     "FIRST_ADMIN_EMAIL": "admin@kyst.fr",
     "FIRST_ADMIN_PASSWORD": "admin-password",
-    "AI_BACKEND": "fixtures",
     "AUTO_REPLAN_ENABLED": "false",
     "EMERGENCY_MARGIN": "0.1",
     "PROPOSAL_COUNT": "2",
@@ -20,8 +19,13 @@ from fastapi.testclient import TestClient  # noqa: E402
 from sqlmodel import SQLModel  # noqa: E402
 
 from api.accounts.models import ROLE_IDS, Role  # noqa: E402
+from api.ai import providers  # noqa: E402
 from api.db import engine  # noqa: E402
 from api.main import app  # noqa: E402
+from api.tests.predictors import stub_predictors  # noqa: E402
+
+# The trained artifacts are not versioned: every test uses the stand-ins
+providers._predictors = stub_predictors()
 
 
 @pytest.fixture

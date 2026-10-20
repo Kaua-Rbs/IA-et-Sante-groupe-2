@@ -16,6 +16,10 @@ from api.ai.contracts import BedUnitLoad, VacationSlot
 from api.resources.models import CareType
 from optimiseur import optimizer as op
 
+# Best method of the equal-time benchmark (300 patients, 80 vacations, 20 seeds, 3 s):
+# simulated annealing ranks first (mean rank 1.25, gap 0.015 to the best solution).
+METHOD = op.METHODE_RECUIT
+
 
 @dataclass(frozen=True)
 class CohortCase:
@@ -57,13 +61,10 @@ def optimize_cohort(
     vacations: tuple[VacationSlot, ...],
     bed_units: tuple[BedUnitLoad, ...],
     *,
-    method: str,
     emergency_margin: float,
     seed: int = 0,
     budget_seconds: float = 1.0,
 ) -> CohortPreview:
-    if method not in op.TOUTES_METHODES:
-        raise ValueError("Unknown optimization method")
     if not 0 <= emergency_margin < 1 or budget_seconds <= 0:
         raise ValueError("Invalid optimization settings")
     if len({case.request_id for case in cases}) != len(cases):
@@ -71,7 +72,7 @@ def optimize_cohort(
     if len({slot.id for slot in vacations}) != len(vacations):
         raise ValueError("Duplicate vacation in snapshot")
     if not vacations:
-        return CohortPreview(method, (), tuple(sorted(
+        return CohortPreview(METHOD, (), tuple(sorted(
             (case.request_id for case in cases), key=str)), len(cases))
 
     remaining = {
@@ -129,9 +130,9 @@ def optimize_cohort(
         ]
         result = op.optimize_planning(
             patients_df, vacations_df, lits_capacity=free_beds,
-            patient_options=patient_options, methodes=[method], seed=seed,
+            patient_options=patient_options, methodes=[METHOD], seed=seed,
             time_budget_s=budget_seconds,
-        )[method]
+        )[METHOD]
         # Search fitness is a soft objective. Validate every real vacation and
         # bed unit before presenting a case as schedulable.
         chosen = sorted(result.meilleure_solution.items(),
@@ -163,4 +164,4 @@ def optimize_cohort(
     placed = {assignment.request_id for assignment in assignments}
     unassigned.update(case.request_id for case in cases if case.request_id not in placed)
     unassigned.difference_update(placed)
-    return CohortPreview(method, tuple(assignments), tuple(sorted(unassigned, key=str)), len(cases))
+    return CohortPreview(METHOD, tuple(assignments), tuple(sorted(unassigned, key=str)), len(cases))

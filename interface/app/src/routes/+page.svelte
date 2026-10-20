@@ -1,7 +1,8 @@
 <script lang="ts">
 	import Landing from '#lib/components/Landing.svelte';
 	import OccupancyChart from '#lib/components/OccupancyChart.svelte';
-	import { formatMinutes, formatPercent } from '#lib/format.ts';
+	import { emergencyReserve } from '#lib/emergency.ts';
+	import { formatMinutes, formatPercent, plural } from '#lib/format.ts';
 	import { sortBedUnits } from '#lib/names.ts';
 	import type { CareType } from '#lib/types.ts';
 	import type { PageProps } from './$types';
@@ -26,6 +27,7 @@
 		const planned = dash?.fills.reduce((s, f) => s + f.planned_minutes, 0) ?? 0;
 		return capacity ? planned / capacity : null;
 	});
+	let reserve = $derived(dash ? emergencyReserve(dash.fills, dash.margin) : null);
 </script>
 
 <svelte:head>
@@ -71,6 +73,20 @@
 			<p class="kpi__value">{blocRate === null ? '—' : formatPercent(blocRate)}</p>
 			<p class="kpi__note"><a href="/planning">Voir le planning</a></p>
 		</div>
+		{#if reserve}
+			<div class="kpi kpi--emergency">
+				<p class="kpi__label">Réserve urgences, 7 jours</p>
+				<p class="kpi__value">{formatMinutes(reserve.reserved)}</p>
+				<p class="kpi__note">
+					{formatPercent(dash.margin)} de chaque vacation ·
+					{#if reserve.breached}
+						<strong class="breach">{plural(reserve.breached, 'vacation')} entamée{reserve.breached > 1 ? 's' : ''}</strong>
+					{:else}
+						intacte
+					{/if}
+				</p>
+			</div>
+		{/if}
 		{#if dash.pending}
 			<div class="kpi">
 				<p class="kpi__label">Demandes à programmer</p>
@@ -123,6 +139,15 @@
 
 	.section-head h2 {
 		margin: 0;
+	}
+
+	.kpi--emergency {
+		border-left: 4px solid var(--emergency);
+	}
+
+	.kpi--emergency .kpi__label,
+	.breach {
+		color: var(--emergency);
 	}
 
 	.accuracy {

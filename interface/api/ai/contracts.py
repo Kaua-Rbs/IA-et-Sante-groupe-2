@@ -1,7 +1,7 @@
 """Boundary between the API and the prediction / scheduling work of the other teams.
 
-The API only talks to these protocols. Implementations live in `fixtures.py`
-or `trained.py`; collective optimization is exposed as a separate preview. Units follow
+The API only talks to these protocols. Implementations live in `trained.py`
+and `scheduler.py`; collective optimization is exposed as a separate preview. Units follow
 `hospital_sim/contracts.py` so both sides can share adapters.
 """
 

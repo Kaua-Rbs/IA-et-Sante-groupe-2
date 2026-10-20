@@ -171,11 +171,11 @@ api/
 ├── clinical/         # Patients pseudonymisés, demandes d'intervention, prédictions
 ├── planning/         # Propositions de dates, interventions programmées, capacité
 ├── analytics/        # Indicateurs agrégés
-├── ai/               # Prédictions (fixtures ou modèles entraînés), cohorte, simulations Mesa
+├── ai/               # Prédictions (modèles entraînés), recherche de dates, cohorte
 └── tests/
 ```
 
-Les prédictions et l'ordonnancement passent par les protocoles de `ai/contracts.py`. En local, `AI_BACKEND=fixtures` fournit des valeurs fixes ; `AI_BACKEND=trained` charge les modèles entraînés (voir [l'intégration de l'IA](../docs/integration-ia-kyst.md#configuration)). Le modèle de données est décrit dans [docs/BDD.md](docs/BDD.md) et les routes dans [docs/Routes.md](docs/Routes.md).
+Les prédictions et l'ordonnancement passent par les protocoles de `ai/contracts.py`. L'API charge les modèles entraînés au démarrage, y compris en local : indiquez leurs chemins dans `kyst.local.env` (voir [l'intégration de l'IA](../docs/integration-ia-kyst.md#configuration)). Les tests utilisent des prédicteurs de substitution. Le modèle de données est décrit dans [docs/BDD.md](docs/BDD.md) et les routes dans [docs/Routes.md](docs/Routes.md).
 
 ### 4. Gérer les dépendances Python
 

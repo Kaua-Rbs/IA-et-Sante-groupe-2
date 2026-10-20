@@ -57,7 +57,7 @@ def main():
         session.flush()
         predictions = [Prediction(
             request_id=request.id, room_minutes=60, los_days=2,
-            care_type=CareType.conventional, model_version="synthetic", source="fixtures",
+            care_type=CareType.conventional, model_version="synthetic", source="synthetic",
         ) for request in requests]
         session.add_all(predictions)
         session.flush()

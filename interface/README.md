@@ -12,7 +12,7 @@ interface/
 └── justfile      # Lancement en production sur une machine (just prod)
 ```
 
-Le navigateur ne parle qu'au front ; seul le serveur du front appelle l'API, qui détient les données et appelle les moteurs de recherche du dépôt ([`prediction/`](../prediction/README.md), [`optimiseur/`](../optimiseur/README.md), [`hospital_sim/`](../hospital_sim/README.md)).
+Le navigateur ne parle qu'au front ; seul le serveur du front appelle l'API, qui détient les données et appelle les moteurs de recherche du dépôt ([`prediction/`](../prediction/README.md), [`optimiseur/`](../optimiseur/README.md)).
 
 ## Documentation
 
@@ -23,7 +23,7 @@ Le navigateur ne parle qu'au front ; seul le serveur du front appelle l'API, qui
 | [Modèle de données](docs/BDD.md) | Tables, cycle de vie d'une demande, calcul de la capacité |
 | [Routes de l'API](docs/Routes.md) | Vue d'ensemble des routes et des droits |
 | [Front](docs/Frontend.md) | Organisation du code SvelteKit, pages, session, mise en page |
-| [Intégration de l'IA](../docs/integration-ia-kyst.md) | Modèles, cohorte, simulations Mesa, configuration |
+| [Intégration de l'IA](../docs/integration-ia-kyst.md) | Modèles, cohorte, actualisation, configuration |
 | [Déploiement](ansible/README.md) | Playbooks et rôles Ansible |
 
 ## Démarrage rapide

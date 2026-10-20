@@ -17,7 +17,6 @@ RUN uv sync --frozen --no-dev --no-install-project
 
 COPY interface/api/ ./
 COPY optimiseur/ /srv/optimiseur/
-COPY hospital_sim/ /srv/hospital_sim/
 COPY prediction/ /srv/prediction/
 
 ENV PYTHONPATH=/srv

@@ -18,8 +18,6 @@ dependencies = [
     "xgboost>=3.0",
     "catboost>=1.2",
     "joblib>=1.4",
-    "mesa==3.5.1",
-    "networkx>=3.4",
 ]
 
 [dependency-groups]
@@ -34,6 +32,6 @@ package = false
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 # Le package `api` s'importe depuis le dossier parent (interface/), les moteurs de
-# recherche (optimiseur, hospital_sim, modeles) depuis la racine du depot
+# recherche (optimiseur, prediction) depuis la racine du depot
 pythonpath = ["..", "../.."]
 filterwarnings = ["ignore::DeprecationWarning:starlette.testclient"]

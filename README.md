@@ -16,7 +16,7 @@ Aujourd'hui, la programmation suit un **flux poussé** : l'intervention est fix�
 2. KYST prédit le **temps d'occupation de la salle**, la **durée de séjour** et le type d'hébergement (ambulatoire ou conventionnel).
 3. Il propose **deux dates** (A et B), chacune compatible avec une vacation de la bonne spécialité et un lit libre pendant tout le séjour, avec ses raisons.
 4. À la confirmation, il revérifie la capacité puis réserve la vacation et le lit.
-5. Le cadre de bloc peut optimiser l'ensemble des demandes en attente (dix métaheuristiques), simuler des scénarios avec Mesa et actualiser les propositions après un changement (annulation, salle fermée…).
+5. Le cadre de bloc peut optimiser l'ensemble des demandes en attente (recuit simulé, meilleure des dix métaheuristiques comparées) et actualiser les propositions après un changement (annulation, salle fermée…).
 
 Le détail est dans [les fonctionnalités de KYST](interface/docs/Features.md).
 
@@ -47,7 +47,7 @@ flowchart LR
     D --> E[interface/api<br/>prédictions]
     F[prediction/] --> C
     F --> E
-    G[optimiseur/ et hospital_sim/] --> E
+    G[optimiseur/] --> E
     E --> H[interface/app<br/>KYST]
 ```
 
@@ -75,7 +75,7 @@ cd interface/api && just install && just seed && just dev   # API sur http://127
 cd interface/app && pnpm install && pnpm dev                # front sur http://localhost:5173
 ```
 
-En local, l'API utilise par défaut des valeurs de prédiction fixes (`AI_BACKEND=fixtures`) ; les modèles entraînés s'activent avec `AI_BACKEND=trained` (voir [l'intégration](docs/integration-ia-kyst.md#configuration)). Le déploiement est décrit dans le [rôle Ansible `kyst`](interface/ansible/roles/kyst/README.md).
+L'API, y compris en local, a besoin des modèles entraînés, qui ne sont pas versionnés : leurs chemins se règlent dans `interface/kyst.local.env` (voir [l'intégration](docs/integration-ia-kyst.md#configuration)). Le déploiement est décrit dans le [rôle Ansible `kyst`](interface/ansible/roles/kyst/README.md).
 
 ### Données, notebooks et modèles
 

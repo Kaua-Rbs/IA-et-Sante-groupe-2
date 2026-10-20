@@ -1,6 +1,6 @@
 # optimiseur
 
-Métaheuristiques qui affectent un ensemble de patients à des vacations (créneaux de salle attribués à une spécialité). KYST les utilise pour **optimiser la cohorte** des demandes en attente et pour **actualiser les propositions** après un changement ; `hospital_sim` les réutilise pour planifier les salles dans la simulation Mesa.
+Métaheuristiques qui affectent un ensemble de patients à des vacations (créneaux de salle attribués à une spécialité). KYST n'en utilise qu'une, le **recuit simulé** (meilleur rang moyen au banc d'essai à temps égal), pour **optimiser la cohorte** des demandes en attente et **actualiser les propositions** après un changement ; `hospital_sim` les réutilise pour planifier les salles dans la simulation Mesa.
 
 | Module | Rôle |
 | :--- | :--- |
@@ -25,7 +25,7 @@ Dans l'API, `interface/api/ai/cohort.py` construit les tables d'entrée à parti
 | Génétique × Recuit | Recuit court sur le meilleur individu de chaque génération |
 | Fourmis × Tabou | Chaque itération ACO intensifie sa meilleure fourmi par recherche tabou |
 | SMA | Agents simples (glouton, descente, aléatoire), tableau noir, migrations et redémarrages |
-| SMA × Métaheuristiques | Agents recuit, tabou, génétique, fourmis et hybride qui coopèrent par tableau noir (méthode par défaut de l'actualisation dans KYST) |
+| SMA × Métaheuristiques | Agents recuit, tabou, génétique, fourmis et hybride qui coopèrent par tableau noir |
 
 Dans les systèmes multi-agents, le **tableau noir** garde la meilleure solution commune ; le **coordinateur** la diffuse aux agents sous la moyenne et relance les plus faibles quand la recherche stagne. Chaque agent a son propre générateur aléatoire : à graine égale, le résultat est identique.
 

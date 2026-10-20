@@ -7,7 +7,8 @@ Activity is built around today so the dashboard looks like a service in use:
 three weeks of completed cases with observed durations (prediction accuracy),
 patients currently in the wards, four weeks of bookings that thin out with
 distance, and pending requests with open date proposals. Every prediction and
-date goes through the configured predictors and scheduler (`AI_BACKEND`).
+date goes through the trained predictors and the scheduler, so the artifacts
+(`ROOM_MODEL_PATH`, `LOS_MODEL_PATH`) are required.
 """
 
 import datetime as dt

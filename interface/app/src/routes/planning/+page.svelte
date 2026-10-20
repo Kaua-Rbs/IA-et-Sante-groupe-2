@@ -1,10 +1,13 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
+	import EmergencyReserve from '#lib/components/EmergencyReserve.svelte';
 	import FormErrors from '#lib/components/FormErrors.svelte';
 	import VacationMeter from '#lib/components/VacationMeter.svelte';
 	import {
-		addDays, formatMinutes, formatPercent, formatShortDay, formatSlot, mondayOf, today
+		addDays, formatDateTime, formatLongDay, formatMinutes, formatPercent, formatShortDay, formatSlot,
+		mondayOf, plural, today
 	} from '#lib/format.ts';
+	import { emergencyReserve } from '#lib/emergency.ts';
 	import { nameOf } from '#lib/names.ts';
 	import type { PageProps } from './$types';
 
@@ -41,6 +44,8 @@
 		};
 	});
 
+	let reserve = $derived(emergencyReserve(data.fills, margin));
+
 	let showForm = $state(false);
 	let newRoom = $state<number | null>(null);
 	let defaultSpecialty = $derived(data.rooms.find((r) => r.id === newRoom)?.default_specialty_id ?? null);
@@ -58,10 +63,7 @@
 	<div>
 		<p class="eyebrow-ink">Bloc opératoire</p>
 		<h1>Semaine du {formatShortDay(data.start)}</h1>
-		<p>
-			Remplissage de chaque vacation. La zone hachurée est la marge de {formatPercent(margin)} gardée
-			pour les urgences.
-		</p>
+		<p>Remplissage de chaque vacation, réserve pour les urgences comprise.</p>
 	</div>
 	<nav class="actions" aria-label="Changer de semaine">
 		<a class="btn btn--ghost btn--small" href="?week={addDays(data.start, -7)}">← Précédente</a>
@@ -84,9 +86,11 @@
 	<div class="kpi">
 		<p class="kpi__label">Temps encore disponible</p>
 		<p class="kpi__value">{formatMinutes(totals.free)}</p>
-		<p class="kpi__note">à partir d'aujourd'hui, hors marge d'urgence</p>
+		<p class="kpi__note">à partir d'aujourd'hui, hors réserve urgences</p>
 	</div>
 </div>
+
+<EmergencyReserve {margin} {reserve} />
 
 <div class="card board-card">
 	<div class="table-wrap">
@@ -156,93 +160,89 @@
 		</section>
 	{/if}
 	{#if data.replanning}
+		{@const replan = data.replanning}
 		<section class="card add">
-			<div class="card-head"><h2>Actualisation des propositions</h2></div>
-			<p>{data.replanning.pending_changes} changements en attente · mode {data.replanning.automatic ? 'automatique' : 'manuel'} · {data.replanning.method} sur {data.replanning.horizon_days} jours.</p>
-			<p class="muted">Le calcul actualise les propositions des demandes en attente. Les interventions confirmées gardent leurs réservations et les nouvelles dates attendent une confirmation clinique.</p>
-			<form method="POST" action="?/refreshProposals" use:enhance><button class="btn" type="submit">Actualiser les propositions</button></form>
+			<div class="card-head">
+				<h2>Actualiser les propositions après un changement</h2>
+				<span class="badge">{replan.automatic ? 'Automatique' : 'Manuel'}</span>
+			</div>
+			<p>
+				Quand le bloc change, les dates déjà proposées aux demandes en attente peuvent devenir
+				impossibles ou moins bonnes. Une vacation ajoutée ou supprimée, une salle fermée, une
+				intervention annulée ou une date écartée par un chirurgien sont autant de changements.
+				KYST les note, puis recalcule les dates de toutes les demandes en attente sur les
+				{replan.horizon_days} prochains jours.
+			</p>
+			<ul class="explain">
+				<li><strong>Ce qui change :</strong> les dates proposées sont remplacées, et celles devenues impossibles sont retirées.</li>
+				<li><strong>Ce qui ne change pas :</strong> les interventions confirmées gardent leur créneau et leur lit.</li>
+				<li><strong>Qui décide :</strong> chaque nouvelle date attend la confirmation du chirurgien, depuis la demande.</li>
+			</ul>
+			<p class="status">
+				{#if replan.pending_changes}
+					<strong>{plural(replan.pending_changes, 'changement')}</strong> depuis le dernier calcul.
+				{:else}
+					Aucun changement depuis le dernier calcul : les propositions sont à jour.
+				{/if}
+				{#if replan.automatic}
+					L'actualisation est automatique : le calcul part tout seul dans les secondes qui suivent un changement.
+				{/if}
+			</p>
+			<form method="POST" action="?/refreshProposals" use:enhance>
+				<button class="btn" type="submit">Actualiser maintenant</button>
+			</form>
 			{#if form?.replanRun}
-				<p>{form.replanRun.status === 'succeeded' ? `${form.replanRun.proposals_count} propositions actualisées.` : "Le calcul a échoué. Les propositions précédentes sont conservées ; vous pouvez relancer l'actualisation."}</p>
+				<p class="result">
+					{form.replanRun.status === 'succeeded'
+						? `${plural(form.replanRun.proposals_count, 'date proposée')} après actualisation.`
+						: "Le calcul a échoué. Les propositions précédentes sont conservées ; vous pouvez relancer l'actualisation."}
+				</p>
 			{:else if form?.refreshQueued}
-				<p>Un calcul est déjà en cours ; la demande d'actualisation reste en attente.</p>
+				<p class="result">Un calcul est déjà en cours ; votre demande sera prise en compte au suivant.</p>
 			{/if}
-			{#if data.replanning.runs.length}
-				<div class="table-wrap"><table><thead><tr><th>Calcul</th><th>État</th><th>Changements</th><th>Propositions</th></tr></thead>
-					<tbody>{#each data.replanning.runs as run}<tr><td>{run.started_at}</td><td>{runLabel[run.status] ?? run.status}</td><td>{run.event_count}</td><td>{run.proposals_count}</td></tr>{/each}</tbody>
-				</table></div>
+			{#if replan.runs.length}
+				<details class="history">
+					<summary>Derniers calculs ({replan.runs.length})</summary>
+					<div class="table-wrap">
+						<table class="table">
+							<thead><tr><th>Lancé le</th><th>État</th><th>Changements pris en compte</th><th>Dates proposées</th></tr></thead>
+							<tbody>
+								{#each replan.runs as run (run.id)}
+									<tr>
+										<td>{formatDateTime(run.started_at)}</td>
+										<td>{runLabel[run.status] ?? run.status}</td>
+										<td>{run.event_count}</td>
+										<td>{run.proposals_count}</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+				</details>
 			{/if}
 		</section>
 	{/if}
-	<section class="card add">
-		<div class="card-head"><h2>Simulation Mesa : salles</h2></div>
-		<p class="muted">Scénario hypothétique sur les demandes en attente. Les durées d'exécution sont les prédictions multipliées par le facteur choisi. Les lits, les spécialités et les vacations ne sont pas simulés dans cet aperçu.</p>
-		<form method="POST" action="?/previewSimulation" use:enhance={() => async ({ update }) => update({ reset: false })}>
-			<div class="fields">
-				<div class="field">
-					<label for="simulation-date">Date</label>
-					<input id="simulation-date" name="date" type="date" min={today()} value={today()} required />
-				</div>
-				<div class="field">
-					<label for="simulation-method">Méthode</label>
-					<select id="simulation-method" name="method" required>
-						{#each data.simulationMethods as method}
-							<option value={method}>{method}</option>
-						{/each}
-					</select>
-				</div>
-				<div class="field">
-					<label for="simulation-policy">Politique</label>
-					<select id="simulation-policy" name="policy">
-						<option value="reactive">Réactive</option>
-						<option value="static">Figée</option>
-					</select>
-				</div>
-				<div class="field">
-					<label for="simulation-factor">Facteur de durée réalisée</label>
-					<input id="simulation-factor" name="realized_factor" type="number" min="1" max="2" step="0.1" value="1.2" required />
-				</div>
-				<div class="field">
-					<label><input name="outage" type="checkbox" checked /> Salle 1 fermée aux nouvelles entrées de 10 h à 12 h</label>
-				</div>
-			</div>
-			<div class="form-footer"><button class="btn" type="submit">Simuler</button></div>
-		</form>
-		{#if form?.simulation}
-			<p><strong>{form.simulation.completed}</strong> interventions terminées sur {form.simulation.cases}, <strong>{form.simulation.unstarted}</strong> non commencées ; dépassement cumulé : <strong>{formatMinutes(form.simulation.overtime_minutes)}</strong>.</p>
-			<p class="muted">{form.simulation.booked_cases} interventions déjà réservées ce jour occupent aussi les salles ({form.simulation.booked_completed} terminées).</p>
-			<p class="muted">{form.simulation.replanning_count} replanifications · {form.simulation.failures} échecs · {form.simulation.assumptions.rooms} salles identiques, 08 h–17 h, remise en état de 15 min.</p>
-		{/if}
-	</section>
-
-	<section class="card add">
-		<div class="card-head"><h2>Simulation Mesa : salles et lits</h2></div>
-		<p class="muted">Aperçu sur 14 jours au plus. Les réservations existantes réduisent les minutes de vacation et les lits disponibles. Les cas en attente portent au jour suivant. Une durée de séjour réalisée plus longue peut créer un conflit de lits, qui est compté.</p>
-		<form method="POST" action="?/previewWard" use:enhance={() => async ({ update }) => update({ reset: false })}>
-			<div class="fields">
-				<div class="field"><label for="ward-start">Du</label><input id="ward-start" name="start" type="date" min={today()} value={today()} required /></div>
-				<div class="field"><label for="ward-end">Au</label><input id="ward-end" name="end" type="date" min={today()} value={addDays(today(), 6)} required /></div>
-				<div class="field"><label for="ward-method">Méthode salle</label><select id="ward-method" name="method">{#each data.simulationMethods as method}<option value={method}>{method}</option>{/each}</select></div>
-				<div class="field"><label for="ward-policy">Politique</label><select id="ward-policy" name="policy"><option value="reactive">Réactive</option><option value="static">Figée</option></select></div>
-				<div class="field"><label for="ward-room-factor">Facteur temps en salle</label><input id="ward-room-factor" name="realized_factor" type="number" min="1" max="2" step="0.1" value="1.2" required /></div>
-				<div class="field"><label for="ward-los-factor">Facteur séjour</label><input id="ward-los-factor" name="los_factor" type="number" min="1" max="2" step="0.1" value="1" required /></div>
-				<div class="field"><label><input name="outage" type="checkbox" checked /> Salle 1 fermée aux nouvelles entrées de 10 h à 12 h</label></div>
-			</div>
-			<div class="form-footer"><button class="btn" type="submit">Simuler salles et lits</button></div>
-		</form>
-		{#if form?.ward}
-			<p><strong>{form.ward.completed}</strong> interventions commencées sur {form.ward.cases} ; <strong>{form.ward.unstarted}</strong> non commencées ; <strong>{form.ward.overcapacity_bed_days}</strong> jours-unité de lits en conflit.</p>
-			<p class="muted">Dépassement des salles : {formatMinutes(form.ward.overtime_minutes)} · {form.ward.replanning_count} replanifications · {form.ward.failures} échecs.</p>
-			<div class="table-wrap"><table><thead><tr><th>Jour</th><th>Offertes</th><th>Commencées</th><th>En attente</th><th>Lits occupés</th></tr></thead>
-				<tbody>{#each form.ward.daily as day}<tr><td>{day.date}</td><td>{day.offered}</td><td>{day.started}</td><td>{day.waiting}</td><td>{day.occupied_beds}</td></tr>{/each}</tbody>
-			</table></div>
-		{/if}
-	</section>
 
 	<section class="card add">
 		<div class="card-head">
-			<h2>Optimisation de la cohorte</h2>
+			<h2>Optimiser toutes les demandes en attente</h2>
 		</div>
-		<p class="muted">L'aperçu ne réserve aucune date. Vous pouvez ensuite publier des propositions recalculées ; les chirurgiens les confirment individuellement.</p>
+		<p>
+			D'habitude, chaque demande reçoit ses dates A et B seule, au moment où on la crée : les
+			premières arrivées prennent les meilleurs créneaux. Ici, KYST place
+			<strong>ensemble</strong> toutes les demandes en attente de la période (50 au plus), pour
+			mieux remplir les vacations et étaler l'occupation des lits.
+		</p>
+		<ol class="explain">
+			<li><strong>Choisir la période</strong> (4 semaines par défaut, 60 jours au plus) : plus elle est longue, plus il y a de créneaux libres.</li>
+			<li><strong>Voir le résultat :</strong> un aperçu, sans rien réserver ni envoyer.</li>
+			<li><strong>Publier :</strong> le calcul est refait, puis chaque demande placée reçoit cette date comme nouvelle proposition. Le chirurgien la confirme ou l'écarte depuis la demande.</li>
+		</ol>
+		<p class="muted small">
+			Méthode : recuit simulé, la plus performante des dix métaheuristiques comparées à temps de
+			calcul égal. Chaque date respecte la spécialité, le chirurgien, la fenêtre de la demande, les
+			lits disponibles et la réserve pour les urgences.
+		</p>
 		<form method="POST" action="?/previewOptimization" use:enhance={() => async ({ update }) => update({ reset: false })}>
 			<div class="fields">
 				<div class="field">
@@ -251,44 +251,46 @@
 				</div>
 				<div class="field">
 					<label for="cohort-end">Au</label>
-					<input id="cohort-end" name="end" type="date" min={today()} value={addDays(today(), 6)} required />
-				</div>
-				<div class="field">
-					<label for="cohort-method">Méthode</label>
-					<select id="cohort-method" name="method" required>
-						{#each data.methods as method}
-							<option value={method} selected={method === 'Tabou x Recuit'}>{method}</option>
-						{/each}
-					</select>
+					<input id="cohort-end" name="end" type="date" min={today()} max={addDays(today(), 60)} value={addDays(today(), 27)} required />
 				</div>
 			</div>
 			<div class="form-footer">
-				<button class="btn btn--ghost" type="submit">Calculer un aperçu</button>
-				<button class="btn" type="submit" formaction="?/publishOptimization">Publier des propositions</button>
+				<button class="btn btn--ghost" type="submit">Voir le résultat</button>
+				<button class="btn" type="submit" formaction="?/publishOptimization">Publier les dates</button>
 			</div>
 		</form>
 		{#if form?.published}
-			<p><strong>{form.published.length}</strong> propositions publiées après un nouveau calcul et un contrôle des capacités. Elles attendent la confirmation clinique.</p>
+			<p class="result">
+				<strong>{plural(form.published.length, 'date publiée', 'dates publiées')}</strong>, à confirmer par les chirurgiens.
+			</p>
 			{#if form.published.length}
 				<ul>
-					{#each form.published as proposal}
-						<li><a href="/requests/{proposal.request_id}">Demande {proposal.request_id.slice(0, 8)}</a> · {proposal.admission_date}</li>
+					{#each form.published as proposal (proposal.id)}
+						<li><a href="/requests/{proposal.request_id}">Demande du {formatLongDay(proposal.admission_date)}</a></li>
 					{/each}
 				</ul>
 			{/if}
 		{/if}
 		{#if form?.preview}
-			<p><strong>{form.preview.assignments.length}</strong> demandes placées sur {form.preview.evaluated_cases} · <strong>{form.preview.unassigned.length}</strong> non placées.</p>
-			{#if form.preview.assignments.length}
+			{@const preview = form.preview}
+			<p class="result">
+				<strong>{preview.assignments.length}</strong> demandes placées sur {preview.evaluated_cases}.
+				{#if preview.unassigned.length}
+					{plural(preview.unassigned.length, 'demande reste', 'demandes restent')} sans date : aucun créneau
+					compatible dans la période, élargissez-la ou ouvrez des vacations.
+				{/if}
+				Rien n'est encore réservé.
+			</p>
+			{#if preview.assignments.length}
 				<div class="table-wrap">
-					<table>
-						<thead><tr><th>Demande</th><th>Date</th><th>Vacation</th><th>Unité de lits</th><th>Durée prévue</th></tr></thead>
+					<table class="table">
+						<thead><tr><th>Demande</th><th>Admission</th><th>Sortie prévue</th><th>Hébergement</th><th>Temps au bloc</th></tr></thead>
 						<tbody>
-							{#each form.preview.assignments as assignment}
+							{#each preview.assignments as assignment (assignment.request_id)}
 								<tr>
-									<td><a href="/requests/{assignment.request_id}">{assignment.request_id.slice(0, 8)}</a></td>
-									<td>{assignment.admission_date}</td>
-									<td>#{assignment.vacation_id}</td>
+									<td><a href="/requests/{assignment.request_id}">Voir la demande</a></td>
+									<td>{formatLongDay(assignment.admission_date)}</td>
+									<td>{formatLongDay(assignment.discharge_date)}</td>
 									<td>{nameOf(data.bedUnits, assignment.bed_unit_id)}</td>
 									<td>{formatMinutes(assignment.planned_minutes)}</td>
 								</tr>
@@ -467,5 +469,44 @@
 
 	.add {
 		margin-top: var(--s3);
+	}
+
+	.badge {
+		padding: 0.15rem 0.5rem;
+		border: 1px solid var(--border-strong);
+		border-radius: var(--radius-pill);
+		font-family: var(--font-mono);
+		font-size: 11px;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: var(--text-secondary);
+	}
+
+	.explain {
+		margin: 0 0 var(--s2);
+		padding-left: 1.2rem;
+	}
+
+	.explain li + li {
+		margin-top: 0.3rem;
+	}
+
+	.status {
+		padding: var(--s1) var(--s2);
+		border-radius: var(--radius);
+		background: var(--surface-muted);
+	}
+
+	.result {
+		margin-top: var(--s2);
+	}
+
+	.history {
+		margin-top: var(--s2);
+	}
+
+	.history summary {
+		cursor: pointer;
+		color: var(--text-secondary);
 	}
 </style>
