@@ -278,7 +278,7 @@
                    minimum height=0.55cm,minimum width=1.55cm,align=center,
                    font=\tiny},
         bb/.style={draw=McmTerracotta,rounded corners=2pt,
-                   fill=McmTerracotta!10,minimum height=1.15cm,
+                   fill=McmTerracotta!10,minimum height=1.95cm,
                    minimum width=1.85cm,align=center,font=\tiny,thick},
         co/.style={draw=McmAmber,rounded corners=2pt,fill=McmAmber!10,
                    minimum height=0.5cm,minimum width=1.85cm,align=center,
@@ -288,7 +288,7 @@
         \node[ag] (a2) at (0,-0.85) {Agent tabou};
         \node[ag] (a3) at (0,-1.70) {Agent génétique};
         \node[bb] (bb) at (2.55,-0.85) {\textbf{Tableau noir}\\meilleure\\solution};
-        \node[co] (co) at (2.55,0.05) {\textbf{Coordinateur}};
+        \node[co] (co) at (2.55,0.55) {\textbf{Coordinateur}};
         \draw[f] (a1.east) -- (bb.west|-a1);
         \draw[f] (a2) -- (bb);
         \draw[f] (a3.east) -- (bb.west|-a3);
