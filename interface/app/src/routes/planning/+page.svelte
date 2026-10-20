@@ -1,13 +1,11 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
-	import EmergencyReserve from '#lib/components/EmergencyReserve.svelte';
 	import FormErrors from '#lib/components/FormErrors.svelte';
 	import VacationMeter from '#lib/components/VacationMeter.svelte';
 	import {
 		addDays, formatDateTime, formatLongDay, formatMinutes, formatPercent, formatShortDay, formatSlot,
 		mondayOf, plural, today
 	} from '#lib/format.ts';
-	import { emergencyReserve } from '#lib/emergency.ts';
 	import { nameOf } from '#lib/names.ts';
 	import type { PageProps } from './$types';
 
@@ -43,8 +41,6 @@
 				.reduce((sum, f) => sum + Math.max(0, f.duration_min * (1 - margin) - f.planned_minutes), 0)
 		};
 	});
-
-	let reserve = $derived(emergencyReserve(data.fills, margin));
 
 	let showForm = $state(false);
 	let newRoom = $state<number | null>(null);
@@ -89,8 +85,6 @@
 		<p class="kpi__note">à partir d'aujourd'hui, hors réserve urgences</p>
 	</div>
 </div>
-
-<EmergencyReserve {margin} {reserve} />
 
 <div class="card board-card">
 	<div class="table-wrap">
@@ -166,18 +160,16 @@
 				<h2>Actualiser les propositions après un changement</h2>
 				<span class="badge">{replan.automatic ? 'Automatique' : 'Manuel'}</span>
 			</div>
-			<p>
-				Quand le bloc change, les dates déjà proposées aux demandes en attente peuvent devenir
-				impossibles ou moins bonnes. Une vacation ajoutée ou supprimée, une salle fermée, une
-				intervention annulée ou une date écartée par un chirurgien sont autant de changements.
-				KYST les note, puis recalcule les dates de toutes les demandes en attente sur les
-				{replan.horizon_days} prochains jours.
+			<p class="lead">
+				Une vacation ajoutée ou supprimée, une salle fermée, une intervention annulée ou une date
+				refusée peut rendre caduques les dates proposées. KYST recalcule alors celles de toutes les
+				demandes en attente sur les {replan.horizon_days} prochains jours.
 			</p>
-			<ul class="explain">
-				<li><strong>Ce qui change :</strong> les dates proposées sont remplacées, et celles devenues impossibles sont retirées.</li>
-				<li><strong>Ce qui ne change pas :</strong> les interventions confirmées gardent leur créneau et leur lit.</li>
-				<li><strong>Qui décide :</strong> chaque nouvelle date attend la confirmation du chirurgien, depuis la demande.</li>
-			</ul>
+			<p class="lead">
+				Les dates proposées sont remplacées, ou retirées si elles deviennent impossibles ; les
+				interventions confirmées gardent leur créneau et leur lit ; le chirurgien confirme chaque
+				nouvelle date.
+			</p>
 			<p class="status">
 				{#if replan.pending_changes}
 					<strong>{plural(replan.pending_changes, 'changement')}</strong> depuis le dernier calcul.
@@ -225,23 +217,33 @@
 
 	<section class="card add">
 		<div class="card-head">
-			<h2>Optimiser toutes les demandes en attente</h2>
+			<h2>Optimiser une période au choix</h2>
+			<span class="badge">Avec aperçu</span>
 		</div>
-		<p>
-			D'habitude, chaque demande reçoit ses dates A et B seule, au moment où on la crée : les
-			premières arrivées prennent les meilleurs créneaux. Ici, KYST place
-			<strong>ensemble</strong> toutes les demandes en attente de la période (50 au plus), pour
-			mieux remplir les vacations et étaler l'occupation des lits.
+		<p class="lead">
+			Même calcul que l'actualisation ci-dessus, mais sur la période de votre choix (60 jours au
+			plus) et avec un aperçu avant publication. Toutes les demandes en attente de la période
+			(50 au plus) sont placées <strong>ensemble</strong>, pour mieux remplir les vacations et
+			étaler l'occupation des lits.
 		</p>
-		<ol class="explain">
-			<li><strong>Choisir la période</strong> (4 semaines par défaut, 60 jours au plus) : plus elle est longue, plus il y a de créneaux libres.</li>
-			<li><strong>Voir le résultat :</strong> un aperçu, sans rien réserver ni envoyer.</li>
-			<li><strong>Publier :</strong> le calcul est refait, puis chaque demande placée reçoit cette date comme nouvelle proposition. Le chirurgien la confirme ou l'écarte depuis la demande.</li>
+		<ol class="points steps">
+			<li class="point">
+				<strong>Choisir la période</strong>
+				<span>Elle dure 4 semaines par défaut. Plus elle est longue, plus KYST trouve de créneaux libres.</span>
+			</li>
+			<li class="point">
+				<strong>Voir le résultat</strong>
+				<span>KYST affiche le placement proposé, sans rien réserver ni envoyer.</span>
+			</li>
+			<li class="point">
+				<strong>Publier les dates</strong>
+				<span>Chaque demande placée reçoit sa nouvelle date, que le chirurgien confirme ou écarte.</span>
+			</li>
 		</ol>
 		<p class="muted small">
-			Méthode : recuit simulé, la plus performante des dix métaheuristiques comparées à temps de
-			calcul égal. Chaque date respecte la spécialité, le chirurgien, la fenêtre de la demande, les
-			lits disponibles et la réserve pour les urgences.
+			Méthode : recuit simulé, la plus performante des dix métaheuristiques comparées. Chaque date
+			respecte la spécialité, le chirurgien, la fenêtre de la demande, les lits et la réserve
+			pour les urgences.
 		</p>
 		<form method="POST" action="?/previewOptimization" use:enhance={() => async ({ update }) => update({ reset: false })}>
 			<div class="fields">
@@ -482,16 +484,51 @@
 		color: var(--text-secondary);
 	}
 
-	.explain {
+	.lead {
+		max-width: none;
 		margin: 0 0 var(--s2);
-		padding-left: 1.2rem;
 	}
 
-	.explain li + li {
-		margin-top: 0.3rem;
+	.points {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+		gap: var(--s2);
+		margin: 0 0 var(--s2);
+		padding: 0;
+		list-style: none;
+	}
+
+	.point {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		max-width: none;
+		padding: var(--s1) var(--s2);
+		border-left: 3px solid var(--primary);
+		border-radius: var(--radius);
+		background: var(--bg);
+	}
+
+	.point strong {
+		font-weight: 600;
+	}
+
+	.point span {
+		color: var(--text-secondary);
+	}
+
+	.steps {
+		counter-reset: step;
+	}
+
+	.steps .point strong::before {
+		counter-increment: step;
+		content: counter(step) '. ';
+		color: var(--primary);
 	}
 
 	.status {
+		max-width: none;
 		padding: var(--s1) var(--s2);
 		border-radius: var(--radius);
 		background: var(--surface-muted);
