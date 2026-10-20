@@ -32,6 +32,7 @@
     mode: '0644'
     owner: root
     group: root
+  register: podman_subuid
   become: true
 
 - name: Add podman group to subgid file
@@ -43,6 +44,7 @@
     mode: '0644'
     owner: root
     group: root
+  register: podman_subgid
   become: true
 
 
@@ -70,9 +72,12 @@
     mode: '0644'
   become: true
 
+# Applique les nouvelles plages subuid/subgid. La commande arrête tous les conteneurs de
+# l'utilisateur : ne la lancer que si les plages ont changé, pas à chaque déploiement.
 - name: Enable rootless mode for podman
   ansible.builtin.command:
     cmd: podman system migrate
+  when: podman_subuid.changed or podman_subgid.changed
   become: true
   become_user: podman
   changed_when: true
