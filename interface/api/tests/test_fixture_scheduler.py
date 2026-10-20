@@ -1,9 +1,13 @@
 import datetime as dt
 
-from api.ai.contracts import BedUnitLoad, PredictionInput, SchedulingInput, VacationSlot
+from api.ai.contracts import (
+    BedUnitLoad, DurationPrediction, PredictionInput, SchedulingInput, VacationSlot,
+    reserved_stay_days,
+)
 from api.ai.fixtures import (
     FixtureCareTypeClassifier, FixtureLOSPredictor, GreedyFixtureScheduler,
 )
+from api.ai.trained import PredictedStayCareTypeClassifier
 from api.resources.models import CareType
 
 MONDAY = dt.date(2030, 1, 7)
@@ -45,3 +49,27 @@ def test_single_day_stays_are_ambulatory():
                              specialty="Chirurgie vasculaire", intervention_type="Varices")
     assert FixtureLOSPredictor().predict(inputs).value == 1
     assert FixtureCareTypeClassifier().predict(inputs) == CareType.ambulatory
+
+
+class StubLOS:
+    model_version = "los-stub"
+
+    def __init__(self, days):
+        self.days = days
+
+    def predict(self, inputs):
+        return DurationPrediction(self.days, "inclusive_calendar_days")
+
+
+def test_predicted_stays_rounding_to_one_day_are_ambulatory():
+    inputs = PredictionInput(age=40, sex=1, principal_diagnosis="M23.2", ccam_codes=("NFFC004",),
+                             specialty="Orthopédie")
+    for days, care_type in ((1.0, CareType.ambulatory), (1.49, CareType.ambulatory),
+                            (1.5, CareType.conventional), (3.2, CareType.conventional)):
+        assert PredictedStayCareTypeClassifier(StubLOS(days)).predict(inputs) == care_type
+
+
+def test_ambulatory_stays_reserve_a_single_day():
+    los = DurationPrediction(1.4, "inclusive_calendar_days")
+    assert reserved_stay_days(los, CareType.ambulatory) == 1
+    assert reserved_stay_days(los, CareType.conventional) == 2

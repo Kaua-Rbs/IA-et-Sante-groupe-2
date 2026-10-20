@@ -7,7 +7,7 @@ or `trained.py`; collective optimization is exposed as a separate preview. Units
 
 import datetime as dt
 from dataclasses import dataclass, field
-from math import isfinite
+from math import ceil, isfinite
 from typing import Literal, Protocol
 
 from api.resources.models import CareType
@@ -38,6 +38,11 @@ class DurationPrediction:
             lower, upper = self.interval
             if not (isfinite(lower) and isfinite(upper) and 0 <= lower <= upper):
                 raise ValueError("Uncertainty interval must have ordered nonnegative bounds")
+
+
+def reserved_stay_days(los: DurationPrediction, care_type: CareType) -> int:
+    """Inclusive days to reserve: an ambulatory place is a same-day stay, a bed is rounded up."""
+    return 1 if care_type == CareType.ambulatory else ceil(los.value)
 
 
 class LOSPredictor(Protocol):

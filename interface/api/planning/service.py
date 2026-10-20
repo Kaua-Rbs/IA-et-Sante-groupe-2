@@ -8,7 +8,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, select
 
 from api.accounts.models import User
-from api.ai.contracts import BedUnitLoad, SchedulingInput, Scheduler, VacationSlot
+from api.ai.contracts import (
+    BedUnitLoad, SchedulingInput, Scheduler, VacationSlot, reserved_stay_days,
+)
 from api.ai.providers import Predictors
 from api.ai.cohort import CohortCase, CohortPreview, optimize_cohort
 from api.clinical import service as clinical
@@ -105,12 +107,13 @@ def cohort_snapshot(
         los = predictors.los.predict(features)
         if room.unit != "minutes" or los.unit != "inclusive_calendar_days":
             raise ValueError("Prediction units do not match the scheduling contract")
-        days = ceil(los.value)
+        care_type = predictors.care_type.predict(features)
+        days = reserved_stay_days(los, care_type)
         if days > 365:
             raise ValueError("Predicted stay exceeds the supported planning horizon")
         cases.append(CohortCase(
             request.id, request.specialty_id, request.surgeon_id, room.value, days,
-            predictors.care_type.predict(features), max(start, request.earliest_date),
+            care_type, max(start, request.earliest_date),
             min(end, request.latest_date or end),
             tuple(sorted(excluded.get(request.id, ()))),
         ))

@@ -5,13 +5,13 @@
 ### Modèles IA
 
 - Code des modèles « consultation » (v3, 2026-10-20) mergé depuis `improvement/technical-audit` (`consultation_features.py` et `prediction_planning.py` déplacés dans `prediction/`)
-- Récupérer les fichiers `.joblib` auprès de l'auteur de la branche (racha334) : ils ne sont pas dans Git (`/artifacts/` est ignoré)
+- Fichiers `.joblib` récupérés dans `artifacts/ml-models/final-2026-10-20-v3/` (non versionnés) : empreintes vérifiées, chargés par l'API sous Python 3.13
   - Liste : `FINAL_MODEL_ARTIFACT_FILES.txt` ; empreintes SHA-256 : `experiments/results/final-consultation-2026-10-20-v3/manifest.json` et `experiments/results/final-artifact-verification-2026-10-20-v3/artifact_verification.json`
   - À placer dans `artifacts/ml-models/final-2026-10-20-v3/` : le rôle `kyst` déploie `room_consultation_selected_…` et `los_consultation_selected_…` sous les noms attendus par l'API (`kyst_model_files`)
-  - Vérifier les empreintes à la réception (`sha256sum`)
   - Provenance : les manifestes ci-dessus suffisent (date, données, hash des sources)
 - Versions compatibles : scikit-learn 1.9.1, xgboost 3.4.1, pandas 3.0.6, joblib 1.6.0 identiques entre `experiments/final_model_requirements.txt` et `interface/api/uv.lock` (entraînement sous Python 3.14 / Windows, image API en 3.13 : à confirmer au chargement)
-- Tester les modèles en local avant de déployer : `AI_BACKEND=trained` dans `kyst.local.env`, avec `ROOM_MODEL_PATH` / `LOS_MODEL_PATH` pointant vers les fichiers v3, créer une demande, vérifier temps de salle / séjour / propositions
+- Tester en local dans l'interface : `AI_BACKEND=trained` dans `kyst.local.env`, avec `ROOM_MODEL_PATH` / `LOS_MODEL_PATH` pointant vers les fichiers v3, créer une demande, vérifier temps de salle / séjour / propositions
+- Ambulatoire : séjour prédit arrondi à 1 jour (< 1,5) et réservation d'une seule journée ; le modèle prédit une moyenne, l'ancien seuil `<= 1` ne classait presque rien en ambulatoire. À mentionner dans le rapport
 - Précision dégradée en consultation (anesthésie et praticien absents) : voir `docs/web-full-system-integration.md`, à mentionner dans le rapport
 - Les bornes P80/P95 du temps de salle ne sont pas exposées (pas d'intervalle affiché pour le bloc en mode `trained`)
 - Chiffres pour le rapport : `FINAL_MODEL_RESULTS_FOR_REPORT.md` (MAE salle 16,6 min, séjour 0,51 j ; couverture faible pour les séjours ≥ 7 j)
@@ -34,7 +34,7 @@ Objectif : une instance qui ressemble à la vraie vie d'un service, avec l'IA br
 
 #### Reste à faire
 
-- Tester le seed avec les modèles entraînés (`AI_BACKEND=trained`) : durée d'exécution, part de l'ambulatoire (en fixtures, seul l'ORL est ambulatoire → ~6 places sur 21), occupation des lits (en fixtures : 14 à 39 lits sur 45)
+- Seed testé avec les modèles v3 (`AI_BACKEND=trained`, 2026-10-20) : ~20 s, ~720 patients, 30 % d'ambulatoire (surtout orthopédie et ORL), 30 à 36 lits conventionnels sur 45 et 5 à 9 places ambulatoires sur 21 sur les deux semaines à venir
 - Vérifier les codes CCAM du catalogue du seed (écrits de mémoire), idéalement avec les codes les plus fréquents du classeur pour que les modèles les reconnaissent
 - Les demandes du seed sont attribuées au premier administrateur (« créée par Administrateur ») : créer des comptes fictifs (chirurgiens, secrétariat, cadre) pour la démo ?
 - Les données vieillissent (datées autour du jour du seed) : vider la base et relancer le playbook juste avant la soutenance
