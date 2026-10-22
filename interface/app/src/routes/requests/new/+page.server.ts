@@ -46,7 +46,8 @@ export const actions = {
 				ccam_codes: ccam,
 				intervention_type: text(data, 'intervention_type') || null,
 				earliest_date: text(data, 'earliest_date'),
-				latest_date: text(data, 'latest_date') || null
+				latest_date: text(data, 'latest_date') || null,
+				urgent: text(data, 'urgent') === 'on'
 			});
 		} catch (error) {
 			// Patient déjà créé : on le resélectionne pour ne pas le dupliquer au prochain envoi

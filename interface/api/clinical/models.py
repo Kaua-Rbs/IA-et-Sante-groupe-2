@@ -5,7 +5,7 @@ from enum import Enum
 from uuid import UUID, uuid4
 
 from pydantic import NaiveDatetime, model_validator
-from sqlalchemy import JSON, Column
+from sqlalchemy import JSON, Column, false
 from sqlmodel import Field, SQLModel
 
 from api.db import utcnow
@@ -71,6 +71,10 @@ class SurgicalRequestBase(SQLModel):
     intervention_type: str | None = Field(default=None, max_length=100)
     earliest_date: dt.date = Field(description="No admission before this date")
     latest_date: dt.date | None = Field(default=None, description="Wished deadline")
+    urgent: bool = Field(
+        default=False, sa_column_kwargs={"server_default": false()},
+        description="May use the emergency margin and, if needed, postpone planned cases",
+    )
 
 
 class SurgicalRequest(SurgicalRequestBase, table=True):
@@ -96,6 +100,7 @@ class SurgicalRequestUpdate(SQLModel):
     intervention_type: str | None = Field(default=None, max_length=100)
     earliest_date: dt.date | None = None
     latest_date: dt.date | None = None
+    urgent: bool | None = None
 
 
 class SurgicalRequestPublic(SurgicalRequestBase):

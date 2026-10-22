@@ -91,7 +91,7 @@ def vacation_fill(
     rows = session.exec(
         select(Vacation, OperatingRoom)
         .join(OperatingRoom, Vacation.room_id == OperatingRoom.id)
-        .where(Vacation.date >= start, Vacation.date <= end)
+        .where(Vacation.date >= start, Vacation.date <= end, Vacation.active == True)  # noqa: E712
         .order_by(Vacation.date, Vacation.start_time, OperatingRoom.name)
     ).all()
     used = used_minutes(session, (v.id for v, _ in rows))

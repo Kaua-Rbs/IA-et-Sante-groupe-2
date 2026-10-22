@@ -55,18 +55,24 @@ Les identifiants des rôles sont fixes, car le front s'appuie sur `admin = 2`.
 |---|---|---|
 | `Specialty` | Spécialité chirurgicale | `name` |
 | `OperatingRoom` | Salle d'opération | `name`, `default_specialty_id`, `active` |
-| `Vacation` | Créneau d'une salle attribué à une spécialité | `room_id`, `specialty_id`, `surgeon_id` (optionnel), `date`, `start_time`, `duration_min` (240 par défaut) |
+| `Vacation` | Créneau d'une salle attribué à une spécialité | `room_id`, `specialty_id`, `surgeon_id` (optionnel), `date`, `start_time`, `duration_min` (240 par défaut), `active` (faux pour une vacation supprimée que l'historique référence encore) |
 | `BedUnit` | Unité d'hébergement | `care_type` (`ambulatory` / `conventional`), `capacity` |
 | `Surgeon` | Chirurgien | `name` (nom affiché ou code), `specialty_id`, `user_id` (optionnel) |
+| `Unavailability` | Salle fermée ou chirurgien absent | `room_id` ou `surgeon_id` (un seul des deux), `start_date`, `end_date`, `start_time` et `end_time` (facultatifs : toute la journée sinon), `reason` |
 
 Deux vacations d'une même salle ne peuvent pas se chevaucher. Une vacation commence et finit le même jour.
+
+Une indisponibilité retire du temps aux vacations qu'elle chevauche (union des créneaux) :
+une vacation entièrement fermée ne reçoit plus de proposition, une vacation en partie
+fermée n'en reçoit que pour le temps restant. Les interventions confirmées ne bougent
+pas ; celles qui n'ont plus leur place sont signalées comme conflits.
 
 ## Clinique (`clinical`)
 
 | Table | Rôle | Champs principaux |
 |---|---|---|
 | `Patient` | Patient pseudonymisé | `external_ref` (identifiant pseudonyme), `birth_year`, `sex` (1 = H, 2 = F) |
-| `SurgicalRequest` | Intervention à programmer, telle que décrite en consultation | `patient_id`, `surgeon_id`, `specialty_id` (copiée du chirurgien), `principal_diagnosis` (CIM-10), `ccam_codes`, `intervention_type`, `earliest_date`, `latest_date`, `status` |
+| `SurgicalRequest` | Intervention à programmer, telle que décrite en consultation | `patient_id`, `surgeon_id`, `specialty_id` (copiée du chirurgien), `principal_diagnosis` (CIM-10), `ccam_codes`, `intervention_type`, `earliest_date`, `latest_date`, `urgent`, `status` |
 | `Prediction` | Sortie des modèles pour une demande | `room_minutes` (+ intervalle), `los_days` (jours calendaires inclusifs, + intervalle), `care_type`, `model_version`, `source` |
 
 Minimisation des données : on ne stocke ni nom ni date de naissance, seulement l'année, qui suffit à calculer l'âge pour les prédictions.
@@ -75,8 +81,8 @@ Minimisation des données : on ne stocke ni nom ni date de naissance, seulement 
 
 | Table | Rôle | Champs principaux |
 |---|---|---|
-| `Proposal` | Date proposée par l'ordonnanceur | `rank` (1 = date A), `vacation_id`, `bed_unit_id`, `admission_date`, `discharge_date`, `planned_minutes`, `score`, `reasons` (explications lisibles), `scheduler`, `status`, `decided_by`, `decided_at` |
-| `PlannedCase` | Intervention programmée après acceptation humaine | `vacation_id`, `bed_unit_id`, `admission_date`, `discharge_date`, `planned_minutes`, `status`, `actual_room_minutes`, `actual_los_days` |
+| `Proposal` | Date proposée par l'ordonnanceur | `rank` (1 = date A), `vacation_id`, `bed_unit_id`, `admission_date`, `discharge_date`, `planned_minutes`, `score`, `reasons` (explications lisibles), `scheduler`, `displaced_case_ids` (urgence : interventions reportées si elle est confirmée), `status`, `decided_by`, `decided_at` |
+| `PlannedCase` | Intervention programmée après acceptation humaine | `vacation_id`, `bed_unit_id`, `admission_date`, `discharge_date`, `planned_minutes`, `status`, `actual_room_minutes`, `actual_los_days`, `cancel_reason` (motif d'une déprogrammation) |
 
 La capacité engagée se calcule à partir des `PlannedCase` au statut `planned` ou `done` :
 - **minutes utilisées par vacation** : somme des `planned_minutes` ;

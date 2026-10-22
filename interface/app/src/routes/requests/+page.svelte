@@ -62,7 +62,10 @@
 							à partir du {formatDay(request.earliest_date)}
 							{#if request.latest_date}<div class="muted small">avant le {formatDay(request.latest_date)}</div>{/if}
 						</td>
-						<td><StatusBadge status={request.status} labels={REQUEST_STATUS_LABELS} /></td>
+						<td>
+							<StatusBadge status={request.status} labels={REQUEST_STATUS_LABELS} />
+							{#if request.urgent}<span class="badge badge--urgent">Urgence</span>{/if}
+						</td>
 						<td><a href="/requests/{request.id}">Ouvrir</a></td>
 					</tr>
 				{:else}

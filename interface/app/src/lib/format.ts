@@ -62,6 +62,11 @@ export function formatMinutes(minutes: number): string {
 	return rest ? `${Math.floor(m / 60)} h ${String(rest).padStart(2, '0')}` : `${m / 60} h`;
 }
 
+const decimal = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 });
+
+/** 3.5199 -> « 3,5 » ; 6 -> « 6 » */
+export const formatNumber = (value: number) => decimal.format(value);
+
 export const formatPercent = (rate: number) => `${Math.round(rate * 100)} %`;
 
 export function plural(count: number, singular: string, pluralForm = singular + 's'): string {

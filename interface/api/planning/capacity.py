@@ -6,14 +6,11 @@ from collections.abc import Iterable
 
 from sqlmodel import Session, func, select
 
+from api.ai.contracts import stay_days  # noqa: F401  (shared with the solvers)
 from api.planning.models import CaseStatus, PlannedCase
 
 # Cases that hold capacity
 ACTIVE_STATUSES = (CaseStatus.planned, CaseStatus.done)
-
-
-def stay_days(admission: dt.date, discharge: dt.date) -> list[dt.date]:
-    return [admission + dt.timedelta(days=i) for i in range((discharge - admission).days + 1)]
 
 
 def used_minutes(session: Session, vacation_ids: Iterable[int]) -> dict[int, int]:

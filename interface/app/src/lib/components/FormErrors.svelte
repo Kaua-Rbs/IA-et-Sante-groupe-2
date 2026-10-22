@@ -1,6 +1,6 @@
 <script lang="ts">
 	interface Props {
-		form?: { error?: string; reasons?: string[]; success?: string } | null;
+		form?: { error?: string; reasons?: string[]; success?: string; info?: string } | null;
 	}
 
 	let { form = null }: Props = $props();
@@ -19,4 +19,6 @@
 	</div>
 {:else if form?.success}
 	<div class="alert alert--success" role="status">{form.success}</div>
+{:else if form?.info}
+	<div class="alert alert--info" role="status">{form.info}</div>
 {/if}
