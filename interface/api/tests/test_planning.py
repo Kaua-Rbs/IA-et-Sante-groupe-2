@@ -241,7 +241,7 @@ def test_refresh_removes_open_dates_for_newly_unassignable_requests(setup):
     ).json() == []
 
 
-def test_care_type_change_flags_confirmed_stay_without_moving_it(setup):
+def test_care_type_change_deprograms_the_future_stay(setup):
     s = setup
     first = propose(s, s["new_request"]())[0]
     case = s["client"].post(f"/proposals/{first['id']}/accept", headers=s["doctor"]).json()
@@ -249,10 +249,11 @@ def test_care_type_change_flags_confirmed_stay_without_moving_it(setup):
     changed = s["client"].patch(f"/bed-units/{s['beds']['id']}", headers=s["planner"],
                                 json={"care_type": "ambulatory"})
     assert changed.status_code == 200, changed.text
-    conflicts = s["client"].get("/planning/commitment-conflicts", headers=s["planner"]).json()
-    assert [row["case_id"] for row in conflicts] == [case["id"]]
-    assert any("hébergement" in reason for reason in conflicts[0]["reasons"])
-    assert s["client"].get("/cases", headers=s["doctor"]).json() == [case]
+    # The future stay no longer has a bed of its type: deprogrammed, not left in conflict
+    assert s["client"].get("/planning/commitment-conflicts", headers=s["planner"]).json() == []
+    (moved,) = s["client"].get("/cases", headers=s["doctor"]).json()
+    assert moved["id"] == case["id"] and moved["status"] == "cancelled"
+    assert "n'accueille plus ce séjour" in moved["cancel_reason"]
 
 
 def test_cancelling_a_case_frees_capacity(setup):

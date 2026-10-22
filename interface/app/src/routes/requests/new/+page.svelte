@@ -138,6 +138,17 @@
 					<span class="hint">Facultatif. Sans limite, KYST cherche sur les semaines suivantes.</span>
 				</div>
 			</div>
+			<label class="urgent">
+				<input type="checkbox" name="urgent" value="on" checked={v('urgent') === 'on'} />
+				<span>
+					<strong>Urgence</strong>
+					<span class="hint">
+						Peut utiliser la marge réservée aux urgences. Si aucune vacation n'est libre dans
+						la fenêtre, KYST propose de reporter le moins d'interventions futures possible ;
+						vous décidez.
+					</span>
+				</span>
+			</label>
 		</section>
 
 	</div>
@@ -161,6 +172,23 @@
 		.request-sections {
 			grid-template-columns: repeat(3, minmax(0, 1fr));
 		}
+	}
+
+	.urgent {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.6rem;
+		margin-top: var(--s2);
+		cursor: pointer;
+	}
+
+	.urgent input {
+		margin-top: 0.3rem;
+		accent-color: var(--emergency);
+	}
+
+	.urgent .hint {
+		display: block;
 	}
 
 	.choice {

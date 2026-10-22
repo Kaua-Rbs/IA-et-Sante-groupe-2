@@ -74,6 +74,18 @@ export interface Vacation {
 	duration_min: number;
 }
 
+/** Salle fermée ou chirurgien absent, sur des jours entiers ou un créneau chaque jour. */
+export interface Unavailability {
+	id: number;
+	room_id: number | null;
+	surgeon_id: number | null;
+	start_date: string;
+	end_date: string;
+	start_time: string | null;
+	end_time: string | null;
+	reason: string | null;
+}
+
 export interface Patient {
 	id: string;
 	external_ref: string | null;
@@ -92,6 +104,8 @@ export interface SurgicalRequest {
 	intervention_type: string | null;
 	earliest_date: string;
 	latest_date: string | null;
+	/** Peut utiliser la marge d'urgence, puis proposer de reporter des interventions */
+	urgent: boolean;
 	status: RequestStatus;
 	created_by: string;
 	created_at: string;
@@ -125,6 +139,8 @@ export interface Proposal {
 	score: number;
 	reasons: string[];
 	scheduler: string;
+	/** Interventions reportées si cette date (urgente) est confirmée */
+	displaced_case_ids: string[] | null;
 	status: ProposalStatus;
 	created_at: string;
 	decided_by: string | null;
@@ -144,6 +160,17 @@ export interface PlannedCase {
 	actual_room_minutes: number | null;
 	actual_los_days: number | null;
 	created_at: string;
+	/** Motif de déprogrammation (aléa, urgence, déplacement) ; null pour une simple annulation */
+	cancel_reason: string | null;
+}
+
+/** Demande qui a perdu sa réservation, avec ses dates A/B à confirmer. */
+export interface DeprogrammedCase extends CaseLandmarks {
+	request_id: string;
+	case_id: string;
+	former_date: string;
+	reason: string;
+	proposals: Proposal[];
 }
 
 export interface UnitOccupancy {
@@ -177,6 +204,24 @@ export interface CohortPreview {
 		planned_minutes: number;
 	}[];
 	unassigned: string[];
+	/** Même instantané, méthode habituelle : chaque demande prend sa date A, dans l'ordre d'arrivée. */
+	baseline: CohortMetrics;
+	optimized: CohortMetrics;
+	rows: {
+		request_id: string;
+		patient: { id: string; external_ref: string | null } | null;
+		earliest_date: string;
+		baseline_date: string | null;
+		optimized_date: string | null;
+	}[];
+}
+
+export interface CohortMetrics {
+	placed: number;
+	mean_wait_days: number;
+	max_fill: number;
+	fill_spread: number;
+	bed_peak: number;
 }
 
 export interface ReplanRun {
@@ -200,7 +245,15 @@ export interface ReplanningStatus {
 	runs: ReplanRun[];
 }
 
-export interface CommitmentConflict {
+/** Repères stables d'une intervention : qui, où, quand. */
+interface CaseLandmarks {
+	patient: { id: string; external_ref: string | null };
+	room_name: string;
+	start_time: string;
+	planned_minutes: number;
+}
+
+export interface CommitmentConflict extends CaseLandmarks {
 	case_id: string;
 	request_id: string;
 	admission_date: string;

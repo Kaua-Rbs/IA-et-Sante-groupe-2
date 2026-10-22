@@ -4,7 +4,7 @@ import datetime as dt
 from enum import Enum
 from uuid import UUID, uuid4
 
-from pydantic import NaiveDatetime
+from pydantic import NaiveDatetime, field_validator
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel
 
@@ -29,6 +29,16 @@ class ProposalBase(SQLModel):
     score: float
     reasons: list[str] = Field(sa_column=Column(JSON, nullable=False))
     scheduler: str = Field(description="Implementation that produced it")
+    # Urgent requests only: planned cases postponed if this proposal is accepted
+    displaced_case_ids: list[str] = Field(
+        default_factory=list, sa_column=Column(JSON, nullable=True),
+    )
+
+    @field_validator("displaced_case_ids", mode="before")
+    @classmethod
+    def none_as_empty(cls, value):
+        # Rows written before the column existed hold NULL
+        return value or []
 
 
 class Proposal(ProposalBase, table=True):
@@ -72,6 +82,8 @@ class PlannedCase(PlannedCaseBase, table=True):
     actual_room_minutes: int | None = Field(default=None, gt=0)
     actual_los_days: int | None = Field(default=None, gt=0)
     created_at: NaiveDatetime = Field(default_factory=utcnow)
+    # Why the case was deprogrammed (disruption, emergency, move); None for a plain cancellation
+    cancel_reason: str | None = Field(default=None, max_length=300)
 
 
 class PlannedCasePublic(PlannedCaseBase):
@@ -80,6 +92,7 @@ class PlannedCasePublic(PlannedCaseBase):
     actual_room_minutes: int | None
     actual_los_days: int | None
     created_at: NaiveDatetime
+    cancel_reason: str | None
 
 
 class CaseOutcome(SQLModel):

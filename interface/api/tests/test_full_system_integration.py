@@ -92,6 +92,10 @@ def test_cohort_api_preview_is_read_only(client, make_user):
     assert preview["evaluated_cases"] == 2
     assert len(preview["assignments"]) == 2
     assert preview["unassigned"] == []
+    # Side by side with the usual flow: same requests, same rules
+    assert preview["baseline"]["placed"] == preview["optimized"]["placed"] == 2
+    assert {row["optimized_date"] for row in preview["rows"]} == {day.isoformat()}
+    assert all(row["patient"] for row in preview["rows"])
     assert client.get("/cases", headers=planner).json() == []
     assert all(not client.get(f"/requests/{row['request_id']}/proposals",
                               headers=planner).json() for row in preview["assignments"])
@@ -113,8 +117,8 @@ def test_cohort_api_preview_is_read_only(client, make_user):
     blocked = client.post(f"/proposals/{proposals[1]['id']}/accept", headers=doctor)
     assert blocked.status_code == 409
     assert any("salle" in reason.lower() for reason in blocked.json()["detail"]["reasons"])
-    assert len(client.get("/cases", headers=planner).json()) == 1
-    conflicts = client.get("/planning/commitment-conflicts", headers=planner).json()
-    assert len(conflicts) == 1
-    assert conflicts[0]["case_id"] == accepted.json()["id"]
-    assert any("salle" in reason.lower() for reason in conflicts[0]["reasons"])
+    # The confirmed case of tomorrow is deprogrammed by the closure, not left in conflict
+    (case,) = client.get("/cases", headers=planner).json()
+    assert case["id"] == accepted.json()["id"] and case["status"] == "cancelled"
+    assert "Salle 1 fermée" in case["cancel_reason"]
+    assert client.get("/planning/commitment-conflicts", headers=planner).json() == []

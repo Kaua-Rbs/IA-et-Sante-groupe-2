@@ -16,6 +16,7 @@ os.environ.update({
 
 import pytest  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
+from sqlalchemy import event  # noqa: E402
 from sqlmodel import SQLModel  # noqa: E402
 
 from api.accounts.models import ROLE_IDS, Role  # noqa: E402
@@ -26,6 +27,12 @@ from api.tests.predictors import stub_predictors  # noqa: E402
 
 # The trained artifacts are not versioned: every test uses the stand-ins
 providers._predictors = stub_predictors()
+
+
+# Enforce foreign keys as PostgreSQL does in production; SQLite ignores them by default
+@event.listens_for(engine, "connect")
+def _enable_foreign_keys(connection, _):
+    connection.execute("PRAGMA foreign_keys=ON")
 
 
 @pytest.fixture

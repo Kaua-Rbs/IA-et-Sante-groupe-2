@@ -5,14 +5,18 @@ from sqlmodel import Session, select
 
 from api.accounts.models import User
 from api.accounts.security import CurrentUser, PlannerUser
+from api.ai.providers import PredictorsDep, SchedulerDep
 from api.crud import get_or_404, remove, require_exists, save
 from api.db import SessionDep
+from api.planning.disruptions import deprogram_invalid_bookings
+from api.planning.models import CaseStatus, PlannedCase, Proposal
 from api.planning.replanning import record_change
 from api.resources.models import (
     BedUnit, BedUnitCreate, BedUnitPublic, BedUnitUpdate,
     OperatingRoom, OperatingRoomCreate, OperatingRoomPublic, OperatingRoomUpdate,
     Specialty, SpecialtyCreate, SpecialtyPublic, SpecialtyUpdate,
     Surgeon, SurgeonCreate, SurgeonPublic, SurgeonUpdate,
+    Unavailability, UnavailabilityCreate, UnavailabilityPublic,
     Vacation, VacationCreate, VacationPublic, VacationUpdate,
 )
 
@@ -68,12 +72,16 @@ def create_room(body: OperatingRoomCreate, session: SessionDep, current_user: Pl
 @router.patch("/rooms/{room_id}", response_model=OperatingRoomPublic)
 def update_room(
     room_id: int, body: OperatingRoomUpdate, session: SessionDep, current_user: PlannerUser,
+    predictors: PredictorsDep, scheduler: SchedulerDep,
 ):
     room = get_or_404(session, OperatingRoom, room_id)
     require_exists(session, Specialty, body.default_specialty_id)
     room.sqlmodel_update(body.model_dump(exclude_unset=True))
     record_change(session, "room_changed", current_user.id)
-    return save(session, room)
+    room = save(session, room)
+    deprogram_invalid_bookings(session, current_user, predictors, scheduler)
+    session.refresh(room)
+    return room
 
 
 @router.delete("/rooms/{room_id}")
@@ -99,11 +107,15 @@ def create_bed_unit(body: BedUnitCreate, session: SessionDep, current_user: Plan
 @router.patch("/bed-units/{unit_id}", response_model=BedUnitPublic)
 def update_bed_unit(
     unit_id: int, body: BedUnitUpdate, session: SessionDep, current_user: PlannerUser,
+    predictors: PredictorsDep, scheduler: SchedulerDep,
 ):
     unit = get_or_404(session, BedUnit, unit_id)
     unit.sqlmodel_update(body.model_dump(exclude_unset=True))
     record_change(session, "bed_unit_changed", current_user.id)
-    return save(session, unit)
+    unit = save(session, unit)
+    deprogram_invalid_bookings(session, current_user, predictors, scheduler)
+    session.refresh(unit)
+    return unit
 
 
 @router.delete("/bed-units/{unit_id}")
@@ -169,6 +181,7 @@ def _check_vacation(session: Session, vacation: VacationCreate, exclude_id: int 
     end = start + vacation.duration_min
     same_day = session.exec(select(Vacation).where(
         Vacation.room_id == vacation.room_id, Vacation.date == vacation.date,
+        Vacation.active == True,  # noqa: E712
     )).all()
     for other in same_day:
         other_start = _minutes(other.start_time)
@@ -186,8 +199,9 @@ def list_vacations(
     specialty_id: int | None = None,
     surgeon_id: int | None = None,
 ):
-    """Vacations between `start` and `end` (inclusive), optionally filtered."""
-    statement = select(Vacation).order_by(Vacation.date, Vacation.start_time, Vacation.room_id)
+    """Vacations between `start` and `end` (inclusive), optionally filtered; deleted ones excluded."""
+    statement = select(Vacation).where(Vacation.active == True).order_by(  # noqa: E712
+        Vacation.date, Vacation.start_time, Vacation.room_id)
     if start is not None:
         statement = statement.where(Vacation.date >= start)
     if end is not None:
@@ -210,24 +224,105 @@ def read_vacation(vacation_id: int, session: SessionDep, current_user: CurrentUs
 def create_vacation(body: VacationCreate, session: SessionDep, current_user: PlannerUser):
     _check_vacation(session, body)
     record_change(session, "vacation_created", current_user.id)
+    # A deleted vacation kept for its history occupies the same slot: reopen it
+    deleted = session.exec(select(Vacation).where(
+        Vacation.room_id == body.room_id, Vacation.date == body.date,
+        Vacation.start_time == body.start_time, Vacation.active == False,  # noqa: E712
+    )).first()
+    if deleted is not None:
+        deleted.sqlmodel_update(body.model_dump() | {"active": True})
+        return save(session, deleted)
     return save(session, Vacation.model_validate(body))
 
 
 @router.patch("/vacations/{vacation_id}", response_model=VacationPublic)
 def update_vacation(
     vacation_id: int, body: VacationUpdate, session: SessionDep, current_user: PlannerUser,
+    predictors: PredictorsDep, scheduler: SchedulerDep,
 ):
-    vacation = get_or_404(session, Vacation, vacation_id)
+    vacation = _active_vacation(session, vacation_id)
     merged = VacationCreate.model_validate(
         vacation.model_dump() | body.model_dump(exclude_unset=True)
     )
     _check_vacation(session, merged, exclude_id=vacation_id)
     vacation.sqlmodel_update(merged.model_dump())
     record_change(session, "vacation_changed", current_user.id)
-    return save(session, vacation)
+    vacation = save(session, vacation)
+    deprogram_invalid_bookings(session, current_user, predictors, scheduler)
+    session.refresh(vacation)
+    return vacation
+
+
+def _active_vacation(session: Session, vacation_id: int) -> Vacation:
+    vacation = get_or_404(session, Vacation, vacation_id)
+    if not vacation.active:
+        raise HTTPException(status_code=404, detail="Vacation not found")
+    return vacation
 
 
 @router.delete("/vacations/{vacation_id}")
-def delete_vacation(vacation_id: int, session: SessionDep, current_user: PlannerUser):
+def delete_vacation(
+    vacation_id: int, session: SessionDep, current_user: PlannerUser,
+    predictors: PredictorsDep, scheduler: SchedulerDep,
+):
+    """Delete a vacation. Its future cases are deprogrammed and get dates A/B at once.
+
+    A vacation of the past, or of today with cases, is kept: what happened is history."""
+    vacation = _active_vacation(session, vacation_id)
+    cases = session.exec(select(PlannedCase).where(PlannedCase.vacation_id == vacation_id)).all()
+    today = dt.date.today()
+    if cases and vacation.date < today:
+        raise HTTPException(status_code=409, detail="Une vacation passée ne se supprime pas.")
+    if vacation.date == today and any(c.status == CaseStatus.planned for c in cases):
+        raise HTTPException(status_code=409, detail=(
+            "Vacation du jour avec des interventions : elles ne sont pas déprogrammées "
+            "automatiquement. Annulez-les d'abord."))
     record_change(session, "vacation_deleted", current_user.id)
-    return remove(session, get_or_404(session, Vacation, vacation_id))
+    referenced = cases or session.exec(
+        select(Proposal.id).where(Proposal.vacation_id == vacation_id).limit(1)).first()
+    if not referenced:
+        return remove(session, vacation) | {"deprogrammed": 0}
+    # Cases and proposals keep pointing to it: hide it instead of deleting it
+    vacation.active = False
+    save(session, vacation)
+    deprogrammed = deprogram_invalid_bookings(session, current_user, predictors, scheduler)
+    return {"ok": True, "deprogrammed": len(deprogrammed)}
+
+
+# --- Unavailabilities (room closures, surgeon absences) ---
+
+@router.get("/unavailabilities", response_model=list[UnavailabilityPublic])
+def list_unavailabilities(
+    session: SessionDep, current_user: CurrentUser,
+    start: dt.date | None = None, end: dt.date | None = None,
+):
+    """Closures and absences overlapping [`start`, `end`] (inclusive)."""
+    statement = select(Unavailability).order_by(
+        Unavailability.start_date, Unavailability.start_time, Unavailability.id)
+    if start is not None:
+        statement = statement.where(Unavailability.end_date >= start)
+    if end is not None:
+        statement = statement.where(Unavailability.start_date <= end)
+    return session.exec(statement).all()
+
+
+@router.post("/unavailabilities", response_model=UnavailabilityPublic, status_code=201)
+def create_unavailability(
+    body: UnavailabilityCreate, session: SessionDep, current_user: PlannerUser,
+    predictors: PredictorsDep, scheduler: SchedulerDep,
+):
+    """Close a room or declare a surgeon absent. Future cases left without a slot are
+    deprogrammed and get dates A/B at once; those of today are listed as conflicts."""
+    require_exists(session, OperatingRoom, body.room_id)
+    require_exists(session, Surgeon, body.surgeon_id)
+    record_change(session, "unavailability_created", current_user.id)
+    unavailability = save(session, Unavailability.model_validate(body))
+    deprogram_invalid_bookings(session, current_user, predictors, scheduler)
+    session.refresh(unavailability)
+    return unavailability
+
+
+@router.delete("/unavailabilities/{unavailability_id}")
+def delete_unavailability(unavailability_id: int, session: SessionDep, current_user: PlannerUser):
+    record_change(session, "unavailability_deleted", current_user.id)
+    return remove(session, get_or_404(session, Unavailability, unavailability_id))

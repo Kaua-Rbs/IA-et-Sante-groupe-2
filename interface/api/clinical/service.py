@@ -10,7 +10,9 @@ from api.resources.models import Specialty
 
 
 def supersede_proposals(session: Session, request_ids: Iterable[UUID]) -> None:
-    """Invalidate dates and reset rejections when clinical inputs change."""
+    """Invalidate dates and reset rejections when the request changes.
+
+    A date the patient left (moved, postponed for an emergency) stays excluded."""
     from api.planning.models import Proposal, ProposalStatus
     ids = tuple(request_ids)
     if not ids:
@@ -18,6 +20,7 @@ def supersede_proposals(session: Session, request_ids: Iterable[UUID]) -> None:
     for proposal in session.exec(select(Proposal).where(
         Proposal.request_id.in_(ids),
         Proposal.status.in_((ProposalStatus.proposed, ProposalStatus.rejected)),
+        Proposal.scheduler != "release",
     )).all():
         proposal.status = ProposalStatus.superseded
         session.add(proposal)

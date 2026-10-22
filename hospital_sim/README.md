@@ -1,6 +1,6 @@
 # hospital_sim
 
-Simulation Mesa d'une journée de bloc opératoire, minute par minute, avec replanification par un coordinateur. KYST l'utilise pour ses deux aperçus « et si… » de la page **Planning** : salles sur une journée (`interface/api/ai/room_simulation.py`) et salles et lits sur plusieurs jours (`interface/api/ai/ward_simulation.py`). Ces aperçus ne réservent rien.
+Simulation Mesa d'une journée de bloc opératoire, minute par minute, avec replanification par un coordinateur. Elle sert aux expériences et aux benchmarks du projet (fermeture de salle, politiques figée et réactive) ; l'application KYST ne l'appelle plus depuis que ses aperçus « et si… » ont été retirés. Dans KYST, les fermetures de salle et absences de chirurgien se saisissent sur la page **Bloc**.
 
 ## Principe
 

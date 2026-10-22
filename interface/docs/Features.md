@@ -64,6 +64,8 @@ flowchart LR
 | Recalculer les propositions | Disponible | « Proposer de nouvelles dates » relance la prédiction et l'ordonnanceur sur l'état actuel du planning. |
 | Aucune date trouvée | Disponible | Message explicite et pistes : élargir la date limite, ou ouvrir des vacations. Une liste vide ne prouve pas qu'aucune solution n'existe. |
 | Annuler une demande ou une intervention | Disponible | L'annulation d'une intervention libère la vacation et le lit ; la demande est à reprogrammer. |
+| Déplacer un patient | Disponible | « Déplacer le patient » libère la vacation et le lit, puis propose d'autres dates que l'actuelle ; rien n'est réservé avant confirmation. |
+| Demande urgente | Disponible | Case « Urgence » à la saisie. L'urgence peut utiliser la marge réservée ; si aucune vacation n'est libre dans sa fenêtre, KYST propose de reporter le moins d'interventions futures possible (jamais celles du jour), en les nommant. Le praticien décide : à la confirmation seulement, ces interventions sont annulées et leurs patients reçoivent aussitôt de nouvelles dates. |
 | Historique des propositions | Disponible | Propositions acceptées, écartées ou remplacées, avec la date de décision. |
 | Liste des demandes par statut | Disponible | À programmer, programmées, réalisées, annulées. |
 | Droits par chirurgien | Prévu | Aujourd'hui, tout le personnel clinique voit toutes les demandes. |
@@ -89,10 +91,12 @@ Une **vacation** est un créneau d'une salle attribué à une spécialité, et �
 | Vue hebdomadaire | Disponible | Salles en lignes, jours en colonnes. Chaque vacation affiche son horaire, sa spécialité, son chirurgien, une jauge de remplissage et le nombre d'interventions. Le week-end n'apparaît que s'il porte des vacations. |
 | Marge pour les urgences | Disponible | Une part de chaque vacation (`EMERGENCY_MARGIN`, 10 % par défaut) reste libre ; elle est hachurée en orange sur la jauge et l'ordonnanceur n'y place personne. Un encart de la page Bloc, un indicateur du tableau de bord et chaque date proposée rappellent la réserve et signalent les vacations qui l'entament. |
 | Indicateurs de la semaine | Disponible | Nombre de vacations, remplissage moyen, temps encore disponible à partir d'aujourd'hui (hors marge). |
-| Ouvrir ou supprimer une vacation | Disponible | Réservé au cadre et à l'administrateur. Deux vacations d'une même salle ne peuvent pas se chevaucher. |
+| Ouvrir ou supprimer une vacation | Disponible | Réservé au cadre et à l'administrateur. Deux vacations d'une même salle ne peuvent pas se chevaucher. Supprimer une vacation déprogramme ses interventions futures, qui reçoivent aussitôt des dates A/B ; une vacation passée, ou du jour avec des interventions, est conservée. |
 | Modèles hebdomadaires | Prévu | Générer la répartition des vacations par spécialité à partir de l'historique, et justifier chaque aménagement. |
 | Planning du jour et ordre de passage | Prévu | Liste des patients par salle, actes, ordre et remise en état entre deux interventions. |
 | Optimisation de cohorte et publication | Disponible | Page Bloc, « Optimiser toutes les demandes en attente » : place ensemble jusqu'à 50 demandes en attente d'une période (recuit simulé). Aperçu sans réservation, puis publication des dates comme propositions après recalcul et contrôle ; chaque chirurgien confirme ensuite sa demande. |
+| Fermetures et absences | Disponible | Page Bloc, « Fermetures et absences » : salle fermée ou chirurgien absent, sur une période, toute la journée ou sur un créneau (par exemple 10h–12h). Le temps perdu est retiré des vacations, les propositions sont actualisées aussitôt, la grille signale les vacations touchées. |
+| Déprogrammation sur aléa | Disponible | Après une fermeture, une absence, une vacation supprimée ou modifiée, ou des lits en moins, les interventions **futures** qui n'ont plus leur place sont déprogrammées et reçoivent aussitôt des dates A/B ; les premières réservées gardent la leur. Elles apparaissent en tête de la page Bloc (confirmation directe) et leur fiche indique le motif. Celles du jour restent en place, listées à revoir avec l'équipe. |
 | Actualisation sur changement | Disponible | Page Bloc, « Actualiser les propositions après un changement » : chaque changement (vacation, salle, annulation, date écartée) est noté ; le recalcul remplace les dates proposées aux demandes en attente, sans toucher aux réservations confirmées. Manuel ou automatique, historique des calculs, reprise après interruption. |
 
 ### 4. Lits et places
@@ -103,7 +107,7 @@ Une **vacation** est un créneau d'une salle attribué à une spécialité, et �
 | Jours tendus et saturés | Disponible | Signalés par un symbole (▲ tendu à partir de 90 %, ■ saturé), une infobulle et un tableau des valeurs : jamais par la seule couleur. |
 | Réservation de lit à la confirmation | Disponible | Le séjour prédit est réservé dans l'unité du bon type la moins chargée. |
 | Lissage week-ends et vacances | Prévu | Aide à remplir les lits autour des week-ends et des vacances, et comparaison avec l'historique. |
-| Urgences non programmées | Prévu | Elles ne sont pas encore comptées dans l'occupation. |
+| Urgences non programmées | Prévu | Les urgences saisies dans KYST réservent leur lit ; celles admises sans passer par KYST ne sont pas encore comptées. |
 
 ### 5. Tableau de bord
 
@@ -171,6 +175,6 @@ Tous ces réglages se trouvent dans [`interface/kyst.env`](../kyst.env).
 | Liste des patients par vacation, durée totale, respect de la spécialité de la salle | Remplissage et nombre d'interventions par vacation, spécialité imposée. **Disponible** ; liste nominative et ordre de passage **prévus** |
 | Distribution hebdomadaire des vacations par spécialité, aménagements justifiés | Vacations ouvertes une à une. Modèles hebdomadaires déduits de l'historique **prévus** |
 | Gestion du remplissage des lits et places, week-ends et vacances | Occupation prévue par unité, jours tendus signalés. **Disponible** ; lissage week-ends et vacances **prévu** |
-| Marge pour les urgences et les aléas | Marge réservée sur chaque vacation. File persistante pour demandes, refus, annulations et ressources ; les observations peropératoires et calendriers minute par minute restent **prévus**. |
+| Marge pour les urgences et les aléas | Marge réservée sur chaque vacation, utilisable par les urgences, qui peuvent aussi proposer de reporter des interventions. Fermetures de salle et absences de chirurgien, sur des journées ou des créneaux. File persistante pour demandes, refus, annulations et ressources ; les observations peropératoires et calendriers minute par minute restent **prévus**. |
 | Expliquer les propositions, le chirurgien garde la main | Raisons affichées et confirmation humaine obligatoire. **Disponible** |
 | Apprendre de la réalité observée | Saisie des durées réelles et mesure de la précision. **Disponible** ; ré-entraînement **prévu** |

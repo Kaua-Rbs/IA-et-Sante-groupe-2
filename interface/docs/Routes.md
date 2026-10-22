@@ -35,7 +35,9 @@ Le jeton d'accès contient `sub`, `full_name`, `admin`, `doctor` et `roles` ; le
 | GET / POST | `/surgeons` | connecté / planner | `?specialty_id=` |
 | GET, PATCH, DELETE | `/surgeons/{id}` | connecté / planner | |
 | GET / POST | `/vacations` | connecté / planner | `?start=&end=&room_id=&specialty_id=&surgeon_id=` ; 409 en cas de chevauchement |
-| GET, PATCH, DELETE | `/vacations/{id}` | connecté / planner | |
+| GET, PATCH, DELETE | `/vacations/{id}` | connecté / planner | La suppression déprogramme les interventions futures (`{"deprogrammed": n}`) ; vacation gardée inactive si l'historique la référence ; 409 pour une vacation passée ou du jour avec interventions |
+| GET / POST | `/unavailabilities` | connecté / planner | Salle fermée ou chirurgien absent (`room_id` ou `surgeon_id`), du `start_date` au `end_date`, toute la journée ou de `start_time` à `end_time`. `?start=&end=` |
+| DELETE | `/unavailabilities/{id}` | planner | Lève la fermeture ou l'absence |
 
 ## Patients et demandes
 
@@ -44,7 +46,7 @@ Le jeton d'accès contient `sub`, `full_name`, `admin`, `doctor` et `roles` ; le
 | GET / POST | `/patients` | staff / clinique | `?external_ref=` |
 | GET, PATCH, DELETE | `/patients/{id}` | staff / clinique | |
 | GET / POST | `/requests` | staff / clinique | `?status=&surgeon_id=&patient_id=` |
-| GET, PATCH | `/requests/{id}` | staff / clinique | Modifiable seulement au statut `pending` |
+| GET, PATCH | `/requests/{id}` | staff / clinique | Modifiable seulement au statut `pending` ; `urgent` marque une urgence |
 | POST | `/requests/{id}/cancel` | clinique | Annule une demande `pending` |
 | GET / POST | `/requests/{id}/predictions` | staff / clinique | Historique, ou nouvelle prédiction (aperçu) |
 
@@ -52,6 +54,7 @@ Le jeton d'accès contient `sub`, `full_name`, `admin`, `doctor` et `roles` ; le
 
 | Méthode | Route | Accès | Description |
 |---|---|---|---|
+| GET | `/planning/deprogrammed` | staff | Demandes en attente qui ont perdu leur réservation (aléa, urgence, déplacement), avec le motif et leurs dates A/B ouvertes |
 | GET | `/planning/replanning` | planner | Nombre de changements en attente et dix derniers calculs. |
 | POST | `/planning/replanning/run` | planner | Enregistre une relance et traite les changements en attente ; ne modifie jamais les cas confirmés. |
 | GET | `/planning/commitment-conflicts` | planner | Interventions confirmées à revoir après changement de ressources ; fenêtre `start`/`end`, horizon d'actualisation par défaut. |
@@ -59,17 +62,28 @@ Le jeton d'accès contient `sub`, `full_name`, `admin`, `doctor` et `roles` ; le
 | POST | `/planning/cohort-proposals` | planner | Recalcule la cohorte et publie ses affectations réalisables comme propositions à confirmer ; transaction unique, sans réservation. |
 | POST | `/requests/{id}/proposals` | clinique | Prédit, puis propose jusqu'à `PROPOSAL_COUNT` dates (A, B…) avec leurs raisons. Remplace les propositions ouvertes. Une liste vide signifie qu'aucun créneau n'a été trouvé dans la fenêtre. |
 | GET | `/requests/{id}/proposals` | staff | `?status=` |
-| POST | `/proposals/{id}/accept` | clinique | Décision humaine. La capacité est revérifiée ; 409 avec `reasons` si la proposition est devenue infaisable. Crée le `PlannedCase`. |
+| POST | `/proposals/{id}/accept` | clinique | Décision humaine. La capacité est revérifiée ; 409 avec `reasons` si la proposition est devenue infaisable. Crée le `PlannedCase`. Pour une urgence, annule aussi les `displaced_case_ids` et propose aussitôt de nouvelles dates à ces patients. |
 | POST | `/proposals/{id}/reject` | clinique | |
 | GET | `/cases` | staff | `?start=&end=&vacation_id=&request_id=&status=` (les séjours qui chevauchent la période) |
 | GET | `/cases/{id}` | staff | |
 | POST | `/cases/{id}/cancel` | clinique | Libère la capacité ; la demande repasse `pending` |
+| POST | `/cases/{id}/reschedule` | clinique | Déplace le patient : libère la capacité et propose d'autres dates que l'actuelle, à confirmer |
 | POST | `/cases/{id}/outcome` | staff | Durée réelle en salle et durée réelle du séjour ; alimente `/analytics/predictions` |
 
 Une modification clinique invalide les propositions ouvertes de la demande.
 Les changements de ressources, demandes et réservations alimentent la file
 persistante d'actualisation. Les refus de dates sont respectés lors des calculs
 suivants et remis à zéro lorsque les données cliniques changent.
+
+Les routes qui changent une ressource (salle, vacation, unité de lits, fermeture ou absence)
+déprogramment les interventions futures qui n'ont plus leur place et leur proposent aussitôt
+des dates A/B. Ces demandes, comme les urgentes, restent hors de l'optimisation de cohorte :
+l'actualisation ne renouvelle leurs dates A/B que si elles sont devenues infaisables.
+
+Une demande urgente peut utiliser la marge d'urgence. Si aucune vacation n'est libre,
+l'ordonnanceur propose de reporter le moins d'interventions confirmées possible
+(jamais celles du jour ni des jours passés) ; ces reports ne sont appliqués qu'à la
+confirmation. Les demandes urgentes restent hors de l'optimisation de cohorte.
 
 L'aperçu de cohorte ne crée ni proposition ni réservation.
 La publication de cohorte crée des propositions ; chaque réservation attend la confirmation clinique.

@@ -5,6 +5,7 @@ from enum import Enum
 from uuid import UUID
 
 from pydantic import model_validator
+from sqlalchemy import true
 from sqlmodel import Field, SQLModel, UniqueConstraint
 
 
@@ -148,6 +149,8 @@ class VacationBase(SQLModel):
 class Vacation(VacationBase, table=True):
     __table_args__ = (UniqueConstraint("room_id", "date", "start_time"),)
     id: int | None = Field(default=None, primary_key=True)
+    # A deleted vacation that cases or proposals still reference is kept, inactive
+    active: bool = Field(default=True, index=True, sa_column_kwargs={"server_default": true()})
 
 
 class VacationCreate(VacationBase):
@@ -164,4 +167,62 @@ class VacationUpdate(SQLModel):
 
 
 class VacationPublic(VacationBase):
+    id: int
+    active: bool
+
+
+# --- Unavailability (room closure or surgeon absence) ---
+
+class UnavailabilityBase(SQLModel):
+    """A room closed or a surgeon absent, whole days or one time window each day."""
+
+    room_id: int | None = Field(default=None, foreign_key="operatingroom.id", index=True)
+    surgeon_id: int | None = Field(default=None, foreign_key="surgeon.id", index=True)
+    start_date: dt.date = Field(index=True)
+    end_date: dt.date = Field(index=True, description="Last day concerned (inclusive)")
+    # Both empty: the whole day; otherwise the same window on every day of the period
+    start_time: dt.time | None = None
+    end_time: dt.time | None = None
+    reason: str | None = Field(default=None, max_length=200)
+
+    @model_validator(mode="after")
+    def check_target_and_period(self):
+        if (self.room_id is None) == (self.surgeon_id is None):
+            raise ValueError("Give either a room or a surgeon")
+        if self.end_date < self.start_date:
+            raise ValueError("end_date cannot be before start_date")
+        if (self.start_time is None) != (self.end_time is None):
+            raise ValueError("Give both start_time and end_time, or neither")
+        if self.start_time is not None and self.end_time <= self.start_time:
+            raise ValueError("end_time must be after start_time")
+        return self
+
+    def overlap(self, vacation: "VacationBase") -> tuple[int, int] | None:
+        """Minutes of the day [start, end) the vacation loses to it, or None."""
+        if not self.start_date <= vacation.date <= self.end_date:
+            return None
+        start = vacation.start_time.hour * 60 + vacation.start_time.minute
+        end = start + vacation.duration_min
+        if self.start_time is not None:
+            start = max(start, self.start_time.hour * 60 + self.start_time.minute)
+            end = min(end, self.end_time.hour * 60 + self.end_time.minute)
+        return (start, end) if start < end else None
+
+    def describe(self) -> str:
+        days = (f"le {self.start_date:%d/%m}" if self.start_date == self.end_date
+                else f"du {self.start_date:%d/%m} au {self.end_date:%d/%m}")
+        hours = (f" de {self.start_time:%Hh%M} à {self.end_time:%Hh%M}"
+                 if self.start_time is not None else "")
+        return f"{days}{hours}"
+
+
+class Unavailability(UnavailabilityBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
+
+class UnavailabilityCreate(UnavailabilityBase):
+    pass
+
+
+class UnavailabilityPublic(UnavailabilityBase):
     id: int

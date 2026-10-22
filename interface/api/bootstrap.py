@@ -2,6 +2,8 @@
 
 import logging
 
+from sqlalchemy import inspect, text
+from sqlalchemy.schema import CreateColumn
 from sqlmodel import Session, SQLModel, select
 
 # Import every table module so SQLModel registers them before create_all
@@ -39,9 +41,30 @@ def create_first_admin(session: Session) -> None:
     logger.info("First administrator %s created", email)
 
 
+def add_missing_columns() -> None:
+    """create_all never alters a table: add the optional columns of newer versions.
+
+    Only nullable columns or columns with a server default are added, so
+    existing rows stay valid.
+    """
+    inspector = inspect(engine)
+    with engine.begin() as connection:
+        for table in SQLModel.metadata.sorted_tables:
+            if not inspector.has_table(table.name):
+                continue
+            existing = {column["name"] for column in inspector.get_columns(table.name)}
+            for column in table.columns:
+                if column.name in existing or not (column.nullable or column.server_default):
+                    continue
+                ddl = CreateColumn(column).compile(dialect=engine.dialect)
+                connection.execute(text(f'ALTER TABLE "{table.name}" ADD COLUMN {ddl}'))
+                logger.info("Column %s.%s added", table.name, column.name)
+
+
 def init_db() -> None:
     # TODO: replace create_all with Alembic migrations before the schema stabilises
     SQLModel.metadata.create_all(engine)
+    add_missing_columns()
     with Session(engine) as session:
         create_roles(session)
         create_first_admin(session)

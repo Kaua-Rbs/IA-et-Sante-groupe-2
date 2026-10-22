@@ -40,6 +40,11 @@ class DurationPrediction:
                 raise ValueError("Uncertainty interval must have ordered nonnegative bounds")
 
 
+def stay_days(admission: dt.date, discharge: dt.date) -> list[dt.date]:
+    """Days of a stay, admission and discharge included."""
+    return [admission + dt.timedelta(days=i) for i in range((discharge - admission).days + 1)]
+
+
 def reserved_stay_days(los: DurationPrediction, care_type: CareType) -> int:
     """Inclusive days to reserve: an ambulatory place is a same-day stay, a bed is rounded up."""
     return 1 if care_type == CareType.ambulatory else ceil(los.value)
@@ -77,7 +82,7 @@ class VacationSlot:
     room_name: str
     specialty_id: int
     surgeon_id: int | None
-    duration_min: int
+    duration_min: int  # open minutes: closures and absences already deducted
     used_min: int  # already planned in this vacation
 
 
@@ -88,6 +93,18 @@ class BedUnitLoad:
     care_type: CareType
     capacity: int
     occupancy: dict[dt.date, int] = field(default_factory=dict)  # occupied beds per day
+
+
+@dataclass(frozen=True)
+class MovableCase:
+    """A confirmed future case an urgent request may postpone (never today or before)."""
+
+    id: str
+    vacation_id: int
+    bed_unit_id: int
+    admission_date: dt.date
+    discharge_date: dt.date
+    minutes: int
 
 
 @dataclass(frozen=True)
@@ -104,6 +121,8 @@ class SchedulingInput:
     vacations: tuple[VacationSlot, ...]
     bed_units: tuple[BedUnitLoad, ...]
     emergency_margin: float  # share of each vacation kept free for emergencies
+    urgent: bool = False  # may use the margin, then postpone movable cases
+    movable_cases: tuple[MovableCase, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -114,6 +133,7 @@ class Candidate:
     discharge_date: dt.date
     score: float  # higher is better
     reasons: tuple[str, ...]  # displayable, without patient or staff identifiers
+    displaced_case_ids: tuple[str, ...] = ()  # postponed if a clinician accepts it
 
 
 class Scheduler(Protocol):

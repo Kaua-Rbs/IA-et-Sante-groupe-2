@@ -223,6 +223,12 @@
     color: var(--text-muted);
 }
 
+.badge--urgent {
+    background: var(--emergency-soft);
+    border-color: var(--emergency);
+    color: var(--emergency);
+}
+
 /* ── Tableaux ───────────────────────────────────────────────────────── */
 .table-wrap {
     width: 100%;

@@ -1,4 +1,5 @@
 import datetime as dt
+import logging
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException
@@ -20,6 +21,7 @@ from api.planning.models import (
 )
 
 router = APIRouter(tags=["planning"])
+logger = logging.getLogger(__name__)
 
 
 @router.get("/planning/replanning")
@@ -38,6 +40,30 @@ def commitment_conflicts(
         return confirmed_conflicts(session, start, end)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc)) from exc
+
+
+class PatientRef(BaseModel):
+    id: UUID
+    external_ref: str | None
+
+
+class DeprogrammedCase(BaseModel):
+    request_id: UUID
+    case_id: UUID
+    former_date: dt.date
+    reason: str
+    proposals: list[ProposalPublic]
+    patient: PatientRef
+    room_name: str
+    start_time: dt.time
+    planned_minutes: int
+
+
+@router.get("/planning/deprogrammed", response_model=list[DeprogrammedCase])
+def deprogrammed_cases(session: SessionDep, current_user: StaffUser):
+    """Requests that lost their booking (disruption, emergency, move) and their dates A/B."""
+    from api.planning.disruptions import deprogrammed
+    return deprogrammed(session)
 
 
 @router.post("/planning/replanning/run")
@@ -61,7 +87,7 @@ def cohort_preview(
 ):
     """Read-only multi-request optimization; a clinician still confirms dates."""
     try:
-        return service.preview_cohort(session, body.start, body.end, predictors,
+        return service.compare_cohort(session, body.start, body.end, predictors,
                                       seed=body.seed,
                                       budget_seconds=body.budget_seconds)
     except ValueError as exc:
@@ -137,17 +163,34 @@ def _get_open_proposal(session: SessionDep, proposal_id: UUID) -> Proposal:
 
 
 @router.post("/proposals/{proposal_id}/accept", response_model=PlannedCasePublic, status_code=201)
-def accept_proposal(proposal_id: UUID, session: SessionDep, current_user: ClinicalUser):
+def accept_proposal(
+    proposal_id: UUID, session: SessionDep, current_user: ClinicalUser,
+    predictors: PredictorsDep, scheduler: SchedulerDep,
+):
     """Human decision: book the slot. Capacity is checked again, since it may have
     been taken after the proposal was made."""
     proposal = _get_open_proposal(session, proposal_id)
-    problems = service.check_still_feasible(session, proposal)
+    displaced = service.displaced_cases(session, proposal)
+    problems = service.check_still_feasible(session, proposal, displaced)
     if problems:
         raise HTTPException(status_code=409, detail={
             "message": "Proposal is no longer feasible; generate new proposals",
             "reasons": problems,
         })
-    return service.accept(session, proposal, current_user)
+    postponed = [c.request_id for c in displaced]
+    case = service.accept(session, proposal, current_user, displaced)
+    # The booking is committed. Patients postponed for an emergency get new dates at
+    # once; a failure here leaves them pending for the next refresh, never undoes it.
+    for request_id in postponed:
+        try:
+            request = session.get(SurgicalRequest, request_id)
+            if request is not None and request.status == RequestStatus.pending:
+                service.propose(session, request, predictors, scheduler)
+        except Exception as exc:
+            session.rollback()
+            logger.warning("New dates for a postponed request failed: %s", type(exc).__name__)
+    session.refresh(case)
+    return case
 
 
 @router.post("/proposals/{proposal_id}/reject", response_model=ProposalPublic)
@@ -209,6 +252,49 @@ def cancel_case(case_id: UUID, session: SessionDep, current_user: ClinicalUser):
     session.add(request)
     replanning.record_change(session, "case_cancelled", current_user.id)
     return save(session, case)
+
+
+class RescheduleBody(BaseModel):
+    # Why the case leaves its slot, e.g. the disruption that closed it
+    reason: str | None = Field(default=None, max_length=250)
+    # A voluntary move keeps the booking when no other date exists; a closed slot cannot be kept
+    keep_if_no_date: bool = True
+
+
+@router.post("/cases/{case_id}/reschedule", response_model=list[ProposalPublic], status_code=201)
+def reschedule_case(
+    case_id: UUID, session: SessionDep, current_user: ClinicalUser,
+    predictors: PredictorsDep, scheduler: SchedulerDep, body: RescheduleBody | None = None,
+):
+    """Move a patient: free the slot and the bed, then propose new dates.
+
+    A voluntary move excludes the current date; a disruption (a reason given, or a
+    booking that cannot be kept) leaves what remains open that day on offer.
+
+    A human decision, so a case of today may move (its room may be closed); a past one
+    cannot. The booking is kept when no other date is found. Nothing new is booked
+    until a clinician confirms one of the new dates."""
+    case = _get_planned_case(session, case_id)
+    if case.admission_date < dt.date.today():
+        raise HTTPException(status_code=409, detail="Une intervention passée ne se déplace pas.")
+    request = session.get(SurgicalRequest, case.request_id)
+    reason = (f"Déprogrammée : {body.reason}" if body and body.reason
+              else "Date quittée : patient déplacé.")
+    # A disruption leaves the rest of the day open to the patient; a voluntary move does not
+    disruption = body is not None and (bool(body.reason) or not body.keep_if_no_date)
+    service.release_case(session, case, current_user, reason, exclude_date=not disruption)
+    session.flush()
+    proposals = service.build_proposals(session, request, predictors, scheduler)
+    if not proposals and (body is None or body.keep_if_no_date):
+        session.rollback()
+        raise HTTPException(status_code=409, detail=(
+            "Aucune autre date disponible dans la fenêtre de la demande : "
+            "l'intervention est conservée."))
+    replanning.record_change(session, "case_rescheduled", current_user.id)
+    session.commit()
+    for proposal in proposals:
+        session.refresh(proposal)
+    return proposals
 
 
 @router.post("/cases/{case_id}/outcome", response_model=PlannedCasePublic)

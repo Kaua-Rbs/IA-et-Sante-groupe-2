@@ -3,7 +3,8 @@
 	import FormErrors from '#lib/components/FormErrors.svelte';
 	import StatusBadge from '#lib/components/StatusBadge.svelte';
 	import {
-		formatDateTime, formatDay, formatLongDay, formatMinutes, formatPercent, formatSlot, plural
+		addDays, formatDateTime, formatDay, formatLongDay, formatMinutes, formatNumber, formatPercent,
+		formatSlot, plural, today
 	} from '#lib/format.ts';
 	import { nameOf, patientLabel, sexLabel } from '#lib/names.ts';
 	import {
@@ -51,6 +52,7 @@
 		<p>
 			{sexLabel(data.patient.sex)}, {age} ans · {nameOf(data.surgeons, req.surgeon_id)}
 			· <StatusBadge status={req.status} labels={REQUEST_STATUS_LABELS} />
+			{#if req.urgent}<span class="badge badge--urgent">Urgence</span>{/if}
 		</p>
 	</div>
 	{#if canAct && req.status === 'pending'}
@@ -69,6 +71,15 @@
 
 <div class="layout">
 	<div class="stack">
+		{#if data.deprogrammed}
+			<div class="card deprogrammed" role="status">
+				<p>
+					<strong>Intervention du {formatLongDay(data.deprogrammed.admission_date)} déprogrammée.</strong>
+					{data.deprogrammed.cancel_reason?.replace(/^Déprogrammée : /, '')}
+				</p>
+				<p class="muted small">Choisissez une nouvelle date ci-dessous ; rien n'est réservé avant votre confirmation.</p>
+			</div>
+		{/if}
 		{#if req.status === 'pending'}
 			<section>
 				<div class="card-head">
@@ -82,7 +93,9 @@
 					<div class="proposals">
 						{#each data.open as proposal (proposal.id)}
 							{@const vacation = vacationOf(proposal.vacation_id)}
-							<article class="proposal card" class:proposal--best={proposal.rank === 1}>
+							<!-- Le nombre vient de la proposition : l'avertissement reste même si un détail ne se charge pas -->
+							{@const displacedIds = proposal.displaced_case_ids ?? []}
+							<article class="proposal card" class:proposal--best={proposal.rank === 1} class:proposal--displacing={displacedIds.length > 0}>
 								<div class="proposal__head">
 									<span class="proposal__letter" aria-label="Date {letter(proposal.rank)}">{letter(proposal.rank)}</span>
 									<div>
@@ -95,13 +108,44 @@
 									<dd>{slot(vacation)}</dd>
 									<dt>Temps prévu</dt>
 									<dd>{formatMinutes(proposal.planned_minutes)}</dd>
-									<dt>Hébergement</dt>
+									<dt>Unité de lits</dt>
 									<dd>{nameOf(data.bedUnits, proposal.bed_unit_id)}</dd>
 									<dt>Sortie prévue</dt>
 									<dd>{formatLongDay(proposal.discharge_date)}</dd>
 									<dt>Urgences</dt>
-									<dd class="emergency">{formatPercent(data.health.emergency_margin)} de la vacation gardés libres</dd>
+									{#if req.urgent}
+										<dd class="emergency">Marge réservée aux urgences utilisable</dd>
+									{:else}
+										<dd class="emergency">{formatPercent(data.health.emergency_margin)} de la vacation gardés libres</dd>
+									{/if}
 								</dl>
+								{#if displacedIds.length}
+									<div class="displaced" role="note">
+										<p class="label">À décider : {plural(displacedIds.length, 'intervention reportée', 'interventions reportées')}</p>
+										<ul>
+											{#each displacedIds as id (id)}
+												{@const c = data.displaced.find((d) => d.id === id)}
+												<li>
+													{#if c}
+														<a href="/requests/{c.request_id}">Intervention du {formatDay(c.admission_date)}</a>
+														· {formatMinutes(c.planned_minutes)}
+													{:else}
+														Intervention programmée (détail indisponible)
+													{/if}
+												</li>
+											{/each}
+										</ul>
+										<p class="muted small">
+											{#if displacedIds.length > 1}
+												KYST ne reporte personne seul : en confirmant, ces interventions cèdent leur place à
+												l'urgence ; les patients repassent à programmer et reçoivent aussitôt de nouvelles dates.
+											{:else}
+												KYST ne reporte personne seul : en confirmant, cette intervention cède sa place à
+												l'urgence ; le patient repasse à programmer et reçoit aussitôt de nouvelles dates.
+											{/if}
+										</p>
+									</div>
+								{/if}
 								<div class="reasons">
 									<p class="label">Pourquoi cette date</p>
 									<ul>
@@ -112,7 +156,8 @@
 								</div>
 								{#if canAct}
 									<div class="actions">
-										<form method="POST" action="?/accept" use:enhance={submit}>
+										<form method="POST" action="?/accept" use:enhance={submit}
+											onsubmit={(e) => displacedIds.length && confirmSubmit(e, `Confirmer l'urgence et reporter ${plural(displacedIds.length, 'intervention programmée', 'interventions programmées')} ?`)}>
 											<input type="hidden" name="proposalId" value={proposal.id} />
 											<button class="btn" type="submit" disabled={busy}>Confirmer cette date</button>
 										</form>
@@ -130,9 +175,20 @@
 						<p><strong>Aucune date à proposer pour l'instant.</strong></p>
 						<p class="muted">
 							Aucune vacation de la spécialité n'a assez de temps libre avec un lit disponible
-							dans la fenêtre demandée. Élargissez la date limite, ou demandez au cadre de bloc
-							d'ouvrir des vacations, puis proposez de nouvelles dates.
+							{#if req.latest_date}d'ici au {formatDay(req.latest_date)}{:else}dans les semaines qui viennent{/if}.
+							Repoussez la date limite, ou demandez au cadre de bloc d'ouvrir des vacations.
 						</p>
+						{#if canAct}
+							<form method="POST" action="?/widen" use:enhance={submit} class="widen">
+								<div class="field">
+									<label for="widen-latest">Nouvelle date limite</label>
+									<input id="widen-latest" name="latest_date" type="date" min={req.latest_date ?? today()}
+										value={addDays(req.latest_date && req.latest_date > today() ? req.latest_date : today(), 21)} />
+								</div>
+								<button class="btn" type="submit" disabled={busy}>Élargir et chercher des dates</button>
+							</form>
+							<p class="muted small">Laisser le champ vide pour chercher sans date limite.</p>
+						{/if}
 					</div>
 				{/if}
 			</section>
@@ -152,7 +208,7 @@
 					<dd>{slot(vacationOf(c.vacation_id))}</dd>
 					<dt>Temps prévu</dt>
 					<dd>{formatMinutes(c.planned_minutes)}</dd>
-					<dt>Hébergement</dt>
+					<dt>Unité de lits</dt>
 					<dd>{nameOf(data.bedUnits, c.bed_unit_id)}</dd>
 					<dt>Sortie prévue</dt>
 					<dd>{formatLongDay(c.discharge_date)}</dd>
@@ -183,10 +239,19 @@
 						</div>
 					</form>
 					{#if canAct}
-						<form method="POST" action="?/cancelCase" use:enhance={submit} onsubmit={(e) => confirmSubmit(e, "Annuler l'intervention et libérer le créneau ?")}>
-							<input type="hidden" name="caseId" value={c.id} />
-							<button class="btn btn--danger btn--small" type="submit" disabled={busy}>Annuler l'intervention</button>
-						</form>
+						<div class="actions">
+							<!-- Une intervention passée ne se déplace pas -->
+							{#if c.admission_date >= today()}
+								<form method="POST" action="?/reschedule" use:enhance={submit} onsubmit={(e) => confirmSubmit(e, "Déplacer le patient ? S'il existe une autre date, le créneau et le lit sont libérés et de nouvelles dates sont proposées.")}>
+									<input type="hidden" name="caseId" value={c.id} />
+									<button class="btn btn--ghost btn--small" type="submit" disabled={busy}>Déplacer le patient</button>
+								</form>
+							{/if}
+							<form method="POST" action="?/cancelCase" use:enhance={submit} onsubmit={(e) => confirmSubmit(e, "Annuler l'intervention et libérer le créneau ?")}>
+								<input type="hidden" name="caseId" value={c.id} />
+								<button class="btn btn--danger btn--small" type="submit" disabled={busy}>Annuler l'intervention</button>
+							</form>
+						</div>
 					{/if}
 				{/if}
 			</section>
@@ -223,16 +288,17 @@
 				<div class="figures">
 					<div>
 						<p class="label">Temps au bloc</p>
-						<p class="figure">{formatMinutes(pred.room_minutes)}</p>
+						<!-- Arrondi à la minute supérieure, comme le temps réservé sur la vacation -->
+						<p class="figure">{formatMinutes(Math.ceil(pred.room_minutes))}</p>
 						{#if pred.room_minutes_low !== null && pred.room_minutes_high !== null}
-							<p class="muted small">entre {formatMinutes(pred.room_minutes_low)} et {formatMinutes(pred.room_minutes_high)}</p>
+							<p class="muted small">entre {formatMinutes(Math.ceil(pred.room_minutes_low))} et {formatMinutes(Math.ceil(pred.room_minutes_high))}</p>
 						{/if}
 					</div>
 					<div>
 						<p class="label">Séjour</p>
 						<p class="figure">{plural(pred.los_days, 'jour')}</p>
 						{#if pred.los_days_low !== null && pred.los_days_high !== null}
-							<p class="muted small">entre {pred.los_days_low} et {pred.los_days_high} j</p>
+							<p class="muted small">entre {formatNumber(pred.los_days_low)} et {formatNumber(pred.los_days_high)} jours (90 %)</p>
 						{/if}
 					</div>
 				</div>
@@ -256,6 +322,8 @@
 				<dd class="mono">{req.principal_diagnosis}</dd>
 				<dt>Actes CCAM</dt>
 				<dd class="mono">{req.ccam_codes.join(', ')}</dd>
+				<dt>Priorité</dt>
+				<dd>{req.urgent ? 'Urgence' : 'Programmée'}</dd>
 				{#if req.intervention_type}
 					<dt>Type</dt>
 					<dd>{req.intervention_type}</dd>
@@ -374,8 +442,49 @@
 		margin-top: auto;
 	}
 
+	.deprogrammed {
+		border-left: 3px solid var(--emergency);
+	}
+
+	.deprogrammed p {
+		margin: 0 0 0.3rem;
+	}
+
+	.proposal--displacing {
+		border-color: var(--emergency);
+		box-shadow: 0 0 0 1px var(--emergency);
+	}
+
+	.displaced {
+		padding: var(--s2);
+		border-left: 3px solid var(--emergency);
+		background: var(--surface-muted);
+		border-radius: var(--radius);
+	}
+
+	.displaced ul {
+		margin: 0 0 0.4rem;
+		padding-left: 1.1rem;
+	}
+
+	.displaced p:last-child {
+		margin: 0;
+	}
+
 	.empty-state p {
 		margin: 0 0 0.4rem;
+	}
+
+	.widen {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		gap: var(--s2);
+		margin: var(--s2) 0 0.4rem;
+	}
+
+	.widen .field {
+		margin: 0;
 	}
 
 	.outcome {

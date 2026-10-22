@@ -14,7 +14,7 @@ from uuid import UUID
 from sqlmodel import Session, func, select
 
 from api.ai.cohort import METHOD
-from api.ai.providers import get_predictors
+from api.ai.providers import get_predictors, get_scheduler
 from api.config import settings
 from api.db import engine, utcnow
 from api.planning.models import PlanningChange, ReplanRun
@@ -81,6 +81,9 @@ def process_pending_changes() -> dict | None:
                 event_count=len(events),
             )
             session.add(run)
+            # No relationship orders the flush: insert the run before the events
+            # point to it, or PostgreSQL rejects the foreign key.
+            session.flush()
             for event in events:
                 event.run_id = run.id
                 session.add(event)
@@ -89,20 +92,30 @@ def process_pending_changes() -> dict | None:
             run_id = run.id
         # Publication has a separate atomic transaction. A crash after its
         # commit can cause a later proposal refresh, but cannot duplicate bookings.
+        # The two steps fail independently: urgent and deprogrammed requests still get
+        # their dates when the cohort cannot be solved, and the reverse.
+        from api.planning.disruptions import refresh_individual
+        from api.planning.service import publish_cohort_proposals
+        count, failure = 0, None
         try:
-            from api.planning.service import publish_cohort_proposals
             with Session(engine) as session:
-                proposals = publish_cohort_proposals(
+                count += len(publish_cohort_proposals(
                     session, start, run.end, get_predictors(),
                     budget_seconds=settings.REPLAN_BUDGET_SECONDS,
                     max_cases=settings.REPLAN_MAX_CASES,
-                )
-                count = len(proposals)
-            status, failure = "succeeded", None
+                ))
         except Exception as exc:
             # Never persist exception messages: model/DB errors can include inputs.
-            count, status, failure = 0, "failed", type(exc).__name__
-            logger.warning("Proposal refresh failed: %s", failure)
+            failure = type(exc).__name__
+            logger.warning("Cohort refresh failed: %s", failure)
+        try:
+            with Session(engine) as session:
+                # Urgent and deprogrammed requests: renew their dates A/B if stale
+                count += refresh_individual(session, get_predictors(), get_scheduler())
+        except Exception as exc:
+            failure = failure or type(exc).__name__
+            logger.warning("Individual refresh failed: %s", type(exc).__name__)
+        status = "failed" if failure else "succeeded"
         with Session(engine) as session:
             run = session.get(ReplanRun, run_id)
             run.status, run.failure_type = status, failure
